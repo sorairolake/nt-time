@@ -24,11 +24,6 @@ nt-time = "0.1.0"
 Enables features that depend on the standard library.
 This is enabled by default.
 
-#### `time`
-
-Enables the [`time`][time-crate-url] crate.
-This is enabled by default.
-
 #### `large-dates`
 
 Enables the `large-dates` feature of the [`time`][time-crate-url] crate.

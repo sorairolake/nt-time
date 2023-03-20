@@ -7,12 +7,13 @@
 //! The `nt-time` crate is a [Windows NT system time][file-time-docs-url]
 //! library.
 //!
+//! This is used as timestamps such as Windows and [7z][7z-format-url].
+//!
 //! # Features
 //!
 //! ## Default features
 //!
 //! - `std`: Enables features that depend on the standard library.
-//! - `time`: Enables the [`time`][time-crate-url] crate.
 //!
 //! ## Optional features
 //!
@@ -20,6 +21,7 @@
 //!   [`time`][time-crate-url] crate.
 //!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [7z-format-url]: https://www.7-zip.org/7z.html
 //! [time-crate-url]: https://crates.io/crates/time
 
 #![doc(html_root_url = "https://docs.rs/nt-time/0.1.0/")]
@@ -38,18 +40,10 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-#[must_use]
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+mod error;
+mod filetime;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use crate::{
+    error::{TryFromFileTimeError, TryFromOffsetDateTimeError},
+    filetime::FileTime,
+};
