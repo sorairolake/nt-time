@@ -30,6 +30,38 @@ impl FileTime {
     ///
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
     pub const MAX: Self = Self(u64::MAX);
+
+    /// Creates a new `FileTime` with the given Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn new(time: u64) -> Self {
+        Self(time)
+    }
+
+    /// Converts a `FileTime` to the Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+    /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn as_u64(self) -> u64 {
+        self.0
+    }
 }
 
 impl Default for FileTime {
@@ -42,7 +74,7 @@ impl Default for FileTime {
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the Windows NT system time.
     fn from(time: FileTime) -> Self {
-        time.0
+        time.as_u64()
     }
 }
 
@@ -89,7 +121,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
 impl From<u64> for FileTime {
     /// Converts the Windows NT system time to a `FileTime`.
     fn from(time: u64) -> Self {
-        Self(time)
+        Self::new(time)
     }
 }
 
@@ -216,6 +248,18 @@ mod tests {
             OffsetDateTime::try_from(FileTime::MAX).unwrap(),
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
         );
+    }
+
+    #[test]
+    fn new() {
+        assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
+    }
+
+    #[test]
+    fn as_u64() {
+        assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+        assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     }
 
     #[test]
