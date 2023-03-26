@@ -8,59 +8,189 @@
 
 use core::fmt;
 
-/// The error type returned when a conversion from a
-/// [`FileTime`](crate::FileTime) to a [`OffsetDateTime`](time::OffsetDateTime)
-/// fails.
+/// The error type indicating that a [`OffsetDateTime`](time::OffsetDateTime)
+/// was out of range.
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
-pub struct TryFromFileTimeError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct OffsetDateTimeRangeError;
 
-impl fmt::Display for TryFromFileTimeError {
+impl fmt::Display for OffsetDateTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "file time is after `9999-12-31 23:59:59.999999900 UTC`")
+        write!(f, "date time is out of range")
     }
 }
 
 #[cfg(feature = "std")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
-impl std::error::Error for TryFromFileTimeError {}
+impl std::error::Error for OffsetDateTimeRangeError {}
 
-/// The error type returned when a conversion from a
-/// [`OffsetDateTime`](time::OffsetDateTime) to a [`FileTime`](crate::FileTime)
-/// fails.
+/// The error type indicating that a [`FileTime`](crate::FileTime) was out of
+/// range.
 #[allow(clippy::module_name_repetitions)]
-#[derive(Debug)]
-pub struct TryFromOffsetDateTimeError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FileTimeRangeError(FileTimeRangeErrorKind);
 
-impl fmt::Display for TryFromOffsetDateTimeError {
+impl FileTimeRangeError {
+    #[inline]
+    pub(crate) const fn new(kind: FileTimeRangeErrorKind) -> Self {
+        Self(kind)
+    }
+}
+
+impl fmt::Display for FileTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "date time is out of range of file time")
+        match self.0 {
+            FileTimeRangeErrorKind::Negative => {
+                write!(f, "file time is before `1601-01-01 00:00:00 UTC`")
+            }
+            FileTimeRangeErrorKind::Overflow => {
+                write!(
+                    f,
+                    "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+                )
+            }
+        }
     }
 }
 
 #[cfg(feature = "std")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
-impl std::error::Error for TryFromOffsetDateTimeError {}
+impl std::error::Error for FileTimeRangeError {}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum FileTimeRangeErrorKind {
+    Negative,
+    Overflow,
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn display_try_from_file_time_error() {
+    fn clone_offset_date_time_range_error() {
+        assert_eq!(OffsetDateTimeRangeError.clone(), OffsetDateTimeRangeError);
+    }
+
+    #[test]
+    fn copy_offset_date_time_range_error() {
+        let a = OffsetDateTimeRangeError;
+        let b = a;
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn debug_offset_date_time_range_error() {
         assert_eq!(
-            format!("{TryFromFileTimeError}"),
-            "file time is after `9999-12-31 23:59:59.999999900 UTC`"
+            format!("{OffsetDateTimeRangeError:?}"),
+            "OffsetDateTimeRangeError"
         );
     }
 
     #[test]
-    fn display_try_from_offset_date_time_error() {
+    fn partial_eq_offset_date_time_range_error() {
+        assert!(OffsetDateTimeRangeError == OffsetDateTimeRangeError);
+    }
+
+    #[test]
+    fn display_offset_date_time_range_error() {
         assert_eq!(
-            format!("{TryFromOffsetDateTimeError}"),
-            "date time is out of range of file time"
+            format!("{OffsetDateTimeRangeError}"),
+            "date time is out of range"
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn source_offset_date_time_range_error() {
+        use std::error::Error;
+
+        assert!(OffsetDateTimeRangeError.source().is_none());
+    }
+
+    #[test]
+    fn clone_file_time_range_error() {
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative).clone(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow).clone(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn copy_file_time_range_error() {
+        let a = FileTimeRangeError::new(FileTimeRangeErrorKind::Negative);
+        let b = a;
+        assert_eq!(a, b);
+
+        let c = FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow);
+        let d = c;
+        assert_eq!(c, d);
+    }
+
+    #[test]
+    fn debug_file_time_range_error() {
+        assert_eq!(
+            format!(
+                "{:?}",
+                FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            ),
+            "FileTimeRangeError(Negative)"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            ),
+            "FileTimeRangeError(Overflow)"
+        );
+    }
+
+    #[test]
+    fn partial_eq_file_time_range_error() {
+        assert!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+                == FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+                == FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn display_file_time_range_error() {
+        assert_eq!(
+            format!(
+                "{}",
+                FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            ),
+            "file time is before `1601-01-01 00:00:00 UTC`"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            ),
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn source_file_time_range_error() {
+        use std::error::Error;
+
+        assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            .source()
+            .is_none());
+        assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            .source()
+            .is_none());
     }
 }

@@ -8,7 +8,9 @@
 //!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
-use time::{macros::datetime, Duration, OffsetDateTime};
+use time::{macros::datetime, OffsetDateTime};
+
+use crate::error;
 
 /// `FileTime` is a type that represents the [Windows NT system
 /// time][file-time-docs-url].
@@ -81,7 +83,7 @@ impl From<FileTime> for u64 {
 #[cfg(feature = "std")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl TryFrom<FileTime> for std::time::SystemTime {
-    type Error = crate::TryFromFileTimeError;
+    type Error = error::OffsetDateTimeRangeError;
 
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
     ///
@@ -96,7 +98,7 @@ impl TryFrom<FileTime> for std::time::SystemTime {
 }
 
 impl TryFrom<FileTime> for OffsetDateTime {
-    type Error = crate::TryFromFileTimeError;
+    type Error = error::OffsetDateTimeRangeError;
 
     /// Converts a `FileTime` to a [`OffsetDateTime`].
     ///
@@ -106,7 +108,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// out of range of [`OffsetDateTime`].
     fn try_from(time: FileTime) -> Result<Self, Self::Error> {
         const NT_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
-        let duration = Duration::new(
+        let duration = time::Duration::new(
             i64::try_from(time.0 / 10_000_000)
                 .expect("the number of seconds should be in the range of `i64`"),
             i32::try_from((time.0 % 10_000_000) * 100)
@@ -114,7 +116,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
         );
         NT_EPOCH
             .checked_add(duration)
-            .ok_or(crate::TryFromFileTimeError)
+            .ok_or(error::OffsetDateTimeRangeError)
     }
 }
 
@@ -128,7 +130,7 @@ impl From<u64> for FileTime {
 #[cfg(feature = "std")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl TryFrom<std::time::SystemTime> for FileTime {
-    type Error = crate::TryFromOffsetDateTimeError;
+    type Error = error::FileTimeRangeError;
 
     /// Converts a [`SystemTime`](std::time::SystemTime) to a `FileTime`.
     ///
@@ -141,7 +143,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
 }
 
 impl TryFrom<OffsetDateTime> for FileTime {
-    type Error = crate::TryFromOffsetDateTimeError;
+    type Error = error::FileTimeRangeError;
 
     /// Converts a [`OffsetDateTime`] to a `FileTime`.
     ///
@@ -150,11 +152,12 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// Returns [`Err`] if `dt` is out of range of the Windows NT system time.
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         const NT_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
-        let elapsed = (dt - NT_EPOCH).whole_nanoseconds();
-        match u64::try_from(elapsed / 100) {
-            Ok(ft) if !elapsed.is_negative() => Ok(Self(ft)),
-            _ => Err(crate::TryFromOffsetDateTimeError),
-        }
+        let elapsed = core::time::Duration::try_from(dt - NT_EPOCH)
+            .map(|d| d.as_nanos())
+            .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Negative))?;
+        let ft = u64::try_from(elapsed / 100)
+            .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow))?;
+        Ok(Self(ft))
     }
 }
 
@@ -302,7 +305,7 @@ mod tests {
     #[test]
     fn file_time_to_offset_date_time_with_invalid_file_time() {
         let dt = OffsetDateTime::try_from(FileTime(2_650_467_744_000_000_000)).unwrap_err();
-        assert!(matches!(dt, crate::TryFromFileTimeError));
+        assert_eq!(dt, error::OffsetDateTimeRangeError);
     }
 
     #[cfg(feature = "large-dates")]
@@ -331,9 +334,12 @@ mod tests {
 
     #[test]
     fn offset_date_time_to_file_time_before_epoch() {
-        let ft =
-            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::NANOSECOND).unwrap_err();
-        assert!(matches!(ft, crate::TryFromOffsetDateTimeError));
+        let ft = FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - time::Duration::NANOSECOND)
+            .unwrap_err();
+        assert_eq!(
+            ft,
+            error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Negative)
+        );
     }
 
     #[test]
@@ -365,9 +371,12 @@ mod tests {
     #[test]
     fn offset_date_time_to_file_time_with_too_big_date_time() {
         let ft = FileTime::try_from(
-            datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100),
+            datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + time::Duration::nanoseconds(100),
         )
         .unwrap_err();
-        assert!(matches!(ft, crate::TryFromOffsetDateTimeError));
+        assert_eq!(
+            ft,
+            error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow)
+        );
     }
 }

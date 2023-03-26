@@ -40,10 +40,7 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-mod error;
+pub mod error;
 mod filetime;
 
-pub use crate::{
-    error::{TryFromFileTimeError, TryFromOffsetDateTimeError},
-    filetime::FileTime,
-};
+pub use crate::filetime::FileTime;
