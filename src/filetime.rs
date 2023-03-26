@@ -68,6 +68,7 @@ impl FileTime {
 
 impl Default for FileTime {
     /// Returns the default value of "1601-01-01 00:00:00 UTC".
+    #[inline]
     fn default() -> Self {
         Self::NT_EPOCH
     }
@@ -75,6 +76,7 @@ impl Default for FileTime {
 
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the Windows NT system time.
+    #[inline]
     fn from(time: FileTime) -> Self {
         time.as_u64()
     }
@@ -122,6 +124,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
 
 impl From<u64> for FileTime {
     /// Converts the Windows NT system time to a `FileTime`.
+    #[inline]
     fn from(time: u64) -> Self {
         Self::new(time)
     }
