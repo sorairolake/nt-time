@@ -271,14 +271,14 @@ mod tests {
     }
 
     #[test]
-    fn file_time_to_u64() {
+    fn from_file_time_to_u64() {
         assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
     #[cfg(feature = "std")]
     #[test]
-    fn file_time_to_system_time() {
+    fn try_from_file_time_to_system_time() {
         assert_eq!(
             std::time::SystemTime::try_from(FileTime(116_444_736_000_000_000)).unwrap(),
             std::time::UNIX_EPOCH
@@ -286,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn file_time_to_offset_date_time() {
+    fn try_from_file_time_to_offset_date_time() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
             datetime!(1601-01-01 00:00 UTC)
@@ -303,14 +303,14 @@ mod tests {
 
     #[cfg(not(feature = "large-dates"))]
     #[test]
-    fn file_time_to_offset_date_time_with_invalid_file_time() {
+    fn try_from_file_time_to_offset_date_time_with_invalid_file_time() {
         let dt = OffsetDateTime::try_from(FileTime(2_650_467_744_000_000_000)).unwrap_err();
         assert_eq!(dt, error::OffsetDateTimeRangeError);
     }
 
     #[cfg(feature = "large-dates")]
     #[test]
-    fn file_time_to_offset_date_time_with_large_dates() {
+    fn try_from_file_time_to_offset_date_time_with_large_dates() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::MAX).unwrap(),
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
@@ -318,14 +318,14 @@ mod tests {
     }
 
     #[test]
-    fn u64_to_file_time() {
+    fn from_u64_to_file_time() {
         assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
     #[cfg(feature = "std")]
     #[test]
-    fn system_time_to_file_time() {
+    fn try_from_system_time_to_file_time() {
         assert_eq!(
             FileTime::try_from(std::time::UNIX_EPOCH).unwrap(),
             FileTime(116_444_736_000_000_000)
@@ -333,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_date_time_to_file_time_before_epoch() {
+    fn try_from_offset_date_time_to_file_time_before_epoch() {
         let ft = FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - time::Duration::NANOSECOND)
             .unwrap_err();
         assert_eq!(
@@ -343,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_date_time_to_file_time() {
+    fn try_from_offset_date_time_to_file_time() {
         assert_eq!(
             FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
             FileTime::NT_EPOCH
@@ -360,7 +360,7 @@ mod tests {
 
     #[cfg(feature = "large-dates")]
     #[test]
-    fn offset_date_time_to_file_time_with_large_dates() {
+    fn try_from_offset_date_time_to_file_time_with_large_dates() {
         assert_eq!(
             FileTime::try_from(datetime!(+60056-05-28 05:36:10.955_161_500 UTC)).unwrap(),
             FileTime::MAX
@@ -369,7 +369,7 @@ mod tests {
 
     #[cfg(feature = "large-dates")]
     #[test]
-    fn offset_date_time_to_file_time_with_too_big_date_time() {
+    fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
         let ft = FileTime::try_from(
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + time::Duration::nanoseconds(100),
         )
