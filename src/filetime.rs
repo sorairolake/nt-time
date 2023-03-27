@@ -43,7 +43,7 @@ impl FileTime {
     ///     datetime!(1601-01-01 00:00 UTC)
     /// );
     /// ```
-    pub const NT_EPOCH: Self = Self(u64::MIN);
+    pub const NT_EPOCH: Self = Self::new(u64::MIN);
 
     /// The largest value that can be represented by the Windows NT system time.
     ///
@@ -61,7 +61,7 @@ impl FileTime {
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
     /// ```
-    pub const MAX: Self = Self(u64::MAX);
+    pub const MAX: Self = Self::new(u64::MAX);
 
     /// Creates a new `FileTime` with the given Windows NT system time.
     ///
@@ -392,7 +392,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
             .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
             .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow))?;
-        Ok(Self(ft))
+        Ok(Self::new(ft))
     }
 }
 
@@ -808,7 +808,7 @@ mod tests {
     #[test]
     fn try_from_file_time_to_system_time() {
         assert_eq!(
-            std::time::SystemTime::try_from(FileTime(116_444_736_000_000_000)).unwrap(),
+            std::time::SystemTime::try_from(FileTime::new(116_444_736_000_000_000)).unwrap(),
             std::time::UNIX_EPOCH
         );
     }
@@ -820,11 +820,11 @@ mod tests {
             datetime!(1601-01-01 00:00 UTC)
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime(116_444_736_000_000_000)).unwrap(),
+            OffsetDateTime::try_from(FileTime::new(116_444_736_000_000_000)).unwrap(),
             OffsetDateTime::UNIX_EPOCH
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime(2_650_467_743_999_999_999)).unwrap(),
+            OffsetDateTime::try_from(FileTime::new(2_650_467_743_999_999_999)).unwrap(),
             datetime!(9999-12-31 23:59:59.999_999_900 UTC)
         );
     }
@@ -832,7 +832,7 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn try_from_file_time_to_offset_date_time_with_invalid_file_time() {
-        let dt = OffsetDateTime::try_from(FileTime(2_650_467_744_000_000_000)).unwrap_err();
+        let dt = OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err();
         assert_eq!(dt, error::OffsetDateTimeRangeError);
     }
 
@@ -856,7 +856,7 @@ mod tests {
     fn try_from_system_time_to_file_time() {
         assert_eq!(
             FileTime::try_from(std::time::UNIX_EPOCH).unwrap(),
-            FileTime(116_444_736_000_000_000)
+            FileTime::new(116_444_736_000_000_000)
         );
     }
 
@@ -878,11 +878,11 @@ mod tests {
         );
         assert_eq!(
             FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
-            FileTime(116_444_736_000_000_000)
+            FileTime::new(116_444_736_000_000_000)
         );
         assert_eq!(
             FileTime::try_from(datetime!(9999-12-31 23:59:59.999_999_999 UTC)).unwrap(),
-            FileTime(2_650_467_743_999_999_999)
+            FileTime::new(2_650_467_743_999_999_999)
         );
     }
 
