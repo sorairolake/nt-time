@@ -26,11 +26,36 @@ impl FileTime {
     /// The NT time epoch.
     ///
     /// This is defined as "1601-01-01 00:00:00 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{macros::datetime, OffsetDateTime};
+    /// #
+    /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
+    ///     datetime!(1601-01-01 00:00 UTC)
+    /// );
+    /// ```
     pub const NT_EPOCH: Self = Self(u64::MIN);
 
     /// The largest value that can be represented by the Windows NT system time.
     ///
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{macros::datetime, OffsetDateTime};
+    /// #
+    /// # #[cfg(feature = "large-dates")]
+    /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
+    ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
+    /// );
+    /// ```
     pub const MAX: Self = Self(u64::MAX);
 
     /// Creates a new `FileTime` with the given Windows NT system time.
@@ -68,6 +93,14 @@ impl FileTime {
 
 impl Default for FileTime {
     /// Returns the default value of "1601-01-01 00:00:00 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
+    /// ```
     #[inline]
     fn default() -> Self {
         Self::NT_EPOCH
@@ -76,6 +109,15 @@ impl Default for FileTime {
 
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
+    /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
+    /// ```
     #[inline]
     fn from(time: FileTime) -> Self {
         time.as_u64()
@@ -124,6 +166,15 @@ impl TryFrom<FileTime> for OffsetDateTime {
 
 impl From<u64> for FileTime {
     /// Converts the Windows NT system time to a `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
+    /// ```
     #[inline]
     fn from(time: u64) -> Self {
         Self::new(time)
