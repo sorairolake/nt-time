@@ -329,7 +329,7 @@ mod tests {
     }
 
     #[test]
-    fn default_file_time() {
+    fn default() {
         assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
     }
 
