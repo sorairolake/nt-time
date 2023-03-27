@@ -43,4 +43,6 @@ extern crate std;
 pub mod error;
 mod filetime;
 
+pub use time;
+
 pub use crate::filetime::FileTime;
