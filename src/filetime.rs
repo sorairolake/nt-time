@@ -8,6 +8,8 @@
 //!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
+use core::fmt;
+
 use time::{macros::datetime, OffsetDateTime};
 
 use crate::error;
@@ -104,6 +106,13 @@ impl Default for FileTime {
     #[inline]
     fn default() -> Self {
         Self::NT_EPOCH
+    }
+}
+
+impl fmt::Display for FileTime {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
     }
 }
 
@@ -322,6 +331,12 @@ mod tests {
     #[test]
     fn default_file_time() {
         assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(format!("{}", FileTime::NT_EPOCH), "0");
+        assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     }
 
     #[test]
