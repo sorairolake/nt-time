@@ -12,6 +12,7 @@ license = "Apache-2.0 OR MIT"
 keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
 exclude = [
+  "/.bumpversion.cfg",
   "/.github",
   "/clippy.toml",
   "/examples",
