@@ -17,6 +17,12 @@ use time::{macros::datetime, OffsetDateTime};
 
 use crate::error;
 
+#[cfg(feature = "std")]
+static SYSTEM_TIME_NT_EPOCH: once_cell::sync::Lazy<std::time::SystemTime> =
+    once_cell::sync::Lazy::new(|| {
+        std::time::SystemTime::UNIX_EPOCH - std::time::Duration::from_secs(11_644_473_600)
+    });
+
 /// `FileTime` is a type that represents the [Windows NT system
 /// time][file-time-docs-url].
 ///
@@ -307,18 +313,17 @@ impl From<FileTime> for u64 {
 
 #[cfg(feature = "std")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
-impl TryFrom<FileTime> for std::time::SystemTime {
-    type Error = error::OffsetDateTimeRangeError;
-
+impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if the `large-dates` feature is disabled and `time` is
-    /// out of range of [`OffsetDateTime`].
-    fn try_from(time: FileTime) -> Result<Self, Self::Error> {
-        let dt = OffsetDateTime::try_from(time)?;
-        Ok(Self::from(dt))
+    fn from(time: FileTime) -> Self {
+        use std::time::Duration;
+
+        let duration = Duration::new(
+            time.as_u64() / 10_000_000,
+            u32::try_from((time.as_u64() % 10_000_000) * 100)
+                .expect("the number of nanoseconds should be in the range of `u32`"),
+        );
+        *SYSTEM_TIME_NT_EPOCH + duration
     }
 }
 
@@ -373,7 +378,13 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///
     /// Returns [`Err`] if `time` is out of range of the Windows NT system time.
     fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
-        Self::try_from(OffsetDateTime::from(time))
+        let elapsed = time
+            .duration_since(*SYSTEM_TIME_NT_EPOCH)
+            .map(|d| d.as_nanos())
+            .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Negative))?;
+        let ft = u64::try_from(elapsed / 100)
+            .map_err(|_| error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow))?;
+        Ok(Self::new(ft))
     }
 }
 
@@ -806,43 +817,27 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    fn try_from_file_time_to_system_time() {
+    fn from_file_time_to_system_time() {
         use std::time::{Duration, SystemTime};
 
         assert_eq!(
-            SystemTime::try_from(FileTime::NT_EPOCH).unwrap(),
+            SystemTime::from(FileTime::NT_EPOCH),
             SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
         );
         assert_eq!(
-            SystemTime::try_from(FileTime::new(116_444_736_000_000_000)).unwrap(),
+            SystemTime::from(FileTime::new(116_444_736_000_000_000)),
             SystemTime::UNIX_EPOCH
         );
         assert_eq!(
-            SystemTime::try_from(FileTime::new(2_650_467_743_999_999_999)).unwrap(),
+            SystemTime::from(FileTime::new(2_650_467_743_999_999_999)),
             SystemTime::UNIX_EPOCH + Duration::new(253_402_300_799, 999_999_900)
         );
-    }
-
-    #[cfg(all(feature = "std", not(feature = "large-dates")))]
-    #[test]
-    fn try_from_file_time_to_system_time_with_invalid_file_time() {
-        use std::time::SystemTime;
-
-        let st = SystemTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err();
-        assert_eq!(st, error::OffsetDateTimeRangeError);
-    }
-
-    #[cfg(all(feature = "std", feature = "large-dates"))]
-    #[test]
-    fn try_from_file_time_to_system_time_with_large_dates() {
-        use std::time::{Duration, SystemTime};
-
         assert_eq!(
-            SystemTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
+            SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
             SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
         );
         assert_eq!(
-            SystemTime::try_from(FileTime::MAX).unwrap(),
+            SystemTime::from(FileTime::MAX),
             SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
         );
     }
@@ -925,22 +920,6 @@ mod tests {
             .unwrap(),
             FileTime::new(2_650_467_743_999_999_999)
         );
-    }
-
-    #[cfg(all(feature = "std", not(feature = "large-dates")))]
-    #[test]
-    #[should_panic]
-    fn try_from_system_time_to_file_time_with_invalid_system_time() {
-        use std::time::{Duration, SystemTime};
-
-        let _ = FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800));
-    }
-
-    #[cfg(all(feature = "std", feature = "large-dates"))]
-    #[test]
-    fn try_from_system_time_to_file_time_with_large_dates() {
-        use std::time::{Duration, SystemTime};
-
         assert_eq!(
             FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800))
                 .unwrap(),
@@ -955,9 +934,9 @@ mod tests {
         );
     }
 
-    #[cfg(all(feature = "std", feature = "large-dates"))]
+    #[cfg(feature = "std")]
     #[test]
-    fn try_from_system_time_to_file_time_with_too_big_date_time() {
+    fn try_from_system_time_to_file_time_with_too_big_system_time() {
         use std::time::{Duration, SystemTime};
 
         let st = FileTime::try_from(
