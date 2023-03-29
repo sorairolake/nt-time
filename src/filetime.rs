@@ -836,6 +836,7 @@ mod tests {
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
             SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
         );
+        #[cfg(not(windows))]
         assert_eq!(
             SystemTime::from(FileTime::MAX),
             SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
@@ -889,12 +890,14 @@ mod tests {
     fn try_from_system_time_to_file_time_before_epoch() {
         use std::time::{Duration, SystemTime};
 
-        let st = FileTime::try_from(
-            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001),
-        )
-        .unwrap_err();
+        let st = if cfg!(windows) {
+            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
+        } else {
+            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
+        };
+        let ft = FileTime::try_from(st).unwrap_err();
         assert_eq!(
-            st,
+            ft,
             error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Negative)
         );
     }
@@ -925,6 +928,7 @@ mod tests {
                 .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
+        #[cfg(not(windows))]
         assert_eq!(
             FileTime::try_from(
                 SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
@@ -934,7 +938,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
+    #[cfg(all(feature = "std", not(windows)))]
     #[test]
     fn try_from_system_time_to_file_time_with_too_big_system_time() {
         use std::time::{Duration, SystemTime};
