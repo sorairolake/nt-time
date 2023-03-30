@@ -836,11 +836,18 @@ mod tests {
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
             SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
         );
-        #[cfg(not(windows))]
-        assert_eq!(
-            SystemTime::from(FileTime::MAX),
-            SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
-        );
+        if cfg!(windows) {
+            // Maximum `SystemTime` on Windows.
+            assert_eq!(
+                SystemTime::from(FileTime::new(9_223_372_036_854_775_807)),
+                SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
+            );
+        } else {
+            assert_eq!(
+                SystemTime::from(FileTime::MAX),
+                SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
+            );
+        }
     }
 
     #[test]
@@ -928,29 +935,45 @@ mod tests {
                 .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
-        #[cfg(not(windows))]
-        assert_eq!(
-            FileTime::try_from(
-                SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
-            )
-            .unwrap(),
-            FileTime::MAX
-        );
+        if cfg!(windows) {
+            // Maximum `SystemTime` on Windows.
+            assert_eq!(
+                FileTime::try_from(
+                    SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
+                )
+                .unwrap(),
+                FileTime::new(9_223_372_036_854_775_807)
+            );
+        } else {
+            assert_eq!(
+                FileTime::try_from(
+                    SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
+                )
+                .unwrap(),
+                FileTime::MAX
+            );
+        }
     }
 
-    #[cfg(all(feature = "std", not(windows)))]
+    #[cfg(feature = "std")]
     #[test]
     fn try_from_system_time_to_file_time_with_too_big_system_time() {
         use std::time::{Duration, SystemTime};
 
-        let st = FileTime::try_from(
-            SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600),
-        )
-        .unwrap_err();
-        assert_eq!(
-            st,
-            error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow)
-        );
+        if cfg!(windows) {
+            assert!(SystemTime::UNIX_EPOCH
+                .checked_add(Duration::new(910_692_730_085, 477_580_800))
+                .is_none());
+        } else {
+            let st = FileTime::try_from(
+                SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600),
+            )
+            .unwrap_err();
+            assert_eq!(
+                st,
+                error::FileTimeRangeError::new(error::FileTimeRangeErrorKind::Overflow)
+            );
+        }
     }
 
     #[test]
