@@ -334,6 +334,11 @@ impl From<FileTime> for u64 {
 #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
+    ///
+    /// # Panics
+    ///
+    /// Panics if the resulting point in time cannot be represented by the
+    /// underlying OS-specific time format.
     fn from(time: FileTime) -> Self {
         use std::time::Duration;
 
@@ -353,8 +358,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if the `large-dates` feature is disabled and `time` is
-    /// out of range of [`OffsetDateTime`].
+    /// Returns [`Err`] if `time` is out of range of [`OffsetDateTime`].
     fn try_from(time: FileTime) -> Result<Self, Self::Error> {
         use time::Duration;
 
