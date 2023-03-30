@@ -88,6 +88,30 @@ impl FileTime {
     /// ```
     pub const MAX: Self = Self::new(u64::MAX);
 
+    /// Returns the Windows NT system time corresponding to "now".
+    ///
+    /// # Panics
+    ///
+    /// Panics if "now" is out of range of the Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// let now = FileTime::now();
+    /// ```
+    #[cfg(feature = "std")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+    #[must_use]
+    pub fn now() -> Self {
+        use std::time::SystemTime;
+
+        SystemTime::now()
+            .try_into()
+            .expect("file time is out of range")
+    }
+
     /// Creates a new `FileTime` with the given Windows NT system time.
     ///
     /// # Examples
@@ -596,6 +620,14 @@ mod tests {
             OffsetDateTime::try_from(FileTime::MAX).unwrap(),
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn now() {
+        let now = FileTime::now();
+        // After "2023-01-01 00:00:00 UTC".
+        assert!(now >= FileTime::new(133_170_048_000_000_000));
     }
 
     #[test]
