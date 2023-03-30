@@ -339,6 +339,23 @@ impl From<FileTime> for std::time::SystemTime {
     ///
     /// Panics if the resulting point in time cannot be represented by the
     /// underlying OS-specific time format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::time::{Duration, SystemTime};
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     SystemTime::from(FileTime::NT_EPOCH),
+    ///     SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(FileTime::UNIX_EPOCH),
+    ///     SystemTime::UNIX_EPOCH
+    /// );
+    /// ```
     fn from(time: FileTime) -> Self {
         use std::time::Duration;
 
@@ -359,6 +376,22 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # Errors
     ///
     /// Returns [`Err`] if `time` is out of range of [`OffsetDateTime`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{macros::datetime, OffsetDateTime};
+    /// #
+    /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
+    ///     datetime!(1601-01-01 00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
+    ///     OffsetDateTime::UNIX_EPOCH
+    /// );
+    /// ```
     fn try_from(time: FileTime) -> Result<Self, Self::Error> {
         use time::Duration;
 
@@ -401,6 +434,23 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// # Errors
     ///
     /// Returns [`Err`] if `time` is out of range of the Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::time::{Duration, SystemTime};
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)).unwrap(),
+    ///     FileTime::NT_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// ```
     fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
         let elapsed = time
             .duration_since(*SYSTEM_TIME_NT_EPOCH)
@@ -420,6 +470,22 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # Errors
     ///
     /// Returns [`Err`] if `dt` is out of range of the Windows NT system time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{macros::datetime, OffsetDateTime};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
+    ///     FileTime::NT_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// ```
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         use core::time::Duration;
 
