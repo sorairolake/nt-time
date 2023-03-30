@@ -53,6 +53,23 @@ impl FileTime {
     /// ```
     pub const NT_EPOCH: Self = Self::new(u64::MIN);
 
+    /// The Unix epoch.
+    ///
+    /// This is defined as "1970-01-01 00:00:00 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::OffsetDateTime;
+    /// #
+    /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
+    ///     OffsetDateTime::UNIX_EPOCH
+    /// );
+    /// ```
+    pub const UNIX_EPOCH: Self = Self::new(116_444_736_000_000_000);
+
     /// The largest value that can be represented by the Windows NT system time.
     ///
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
@@ -494,6 +511,14 @@ mod tests {
         );
     }
 
+    #[test]
+    fn unix_epoch() {
+        assert_eq!(
+            OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
+            OffsetDateTime::UNIX_EPOCH
+        );
+    }
+
     #[cfg(feature = "large-dates")]
     #[test]
     fn max() {
@@ -826,7 +851,7 @@ mod tests {
 
         assert_eq!(SystemTime::from(FileTime::NT_EPOCH), *SYSTEM_TIME_NT_EPOCH);
         assert_eq!(
-            SystemTime::from(FileTime::new(116_444_736_000_000_000)),
+            SystemTime::from(FileTime::UNIX_EPOCH),
             SystemTime::UNIX_EPOCH
         );
         assert_eq!(
@@ -858,7 +883,7 @@ mod tests {
             OFFSET_DATE_TIME_NT_EPOCH
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::new(116_444_736_000_000_000)).unwrap(),
+            OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
             OffsetDateTime::UNIX_EPOCH
         );
         assert_eq!(
@@ -921,7 +946,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
-            FileTime::new(116_444_736_000_000_000)
+            FileTime::UNIX_EPOCH
         );
         assert_eq!(
             FileTime::try_from(
@@ -995,7 +1020,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
-            FileTime::new(116_444_736_000_000_000)
+            FileTime::UNIX_EPOCH
         );
         assert_eq!(
             FileTime::try_from(datetime!(9999-12-31 23:59:59.999_999_999 UTC)).unwrap(),

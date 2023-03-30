@@ -17,6 +17,7 @@ toc::[]
 === Added
 
 * Add `impl From<FileTime> for SystemTime`
+* Add `FileTime::UNIX_EPOCH` constant
 
 === Changed
 
