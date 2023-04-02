@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     fn partial_eq_offset_date_time_range_error() {
-        assert!(OffsetDateTimeRangeError == OffsetDateTimeRangeError);
+        assert_eq!(OffsetDateTimeRangeError, OffsetDateTimeRangeError);
     }
 
     #[test]
@@ -153,13 +153,21 @@ mod tests {
 
     #[test]
     fn partial_eq_file_time_range_error() {
-        assert!(
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
-                == FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
-        assert!(
+        assert_ne!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
-                == FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_ne!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }
 

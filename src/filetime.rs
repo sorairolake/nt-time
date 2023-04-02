@@ -576,7 +576,10 @@ mod tests {
 
     #[test]
     fn partial_eq() {
-        assert!(FileTime::NT_EPOCH == FileTime::NT_EPOCH);
+        assert_eq!(FileTime::NT_EPOCH, FileTime::NT_EPOCH);
+        assert_ne!(FileTime::NT_EPOCH, FileTime::MAX);
+        assert_ne!(FileTime::MAX, FileTime::NT_EPOCH);
+        assert_eq!(FileTime::MAX, FileTime::MAX);
     }
 
     #[test]
