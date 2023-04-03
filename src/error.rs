@@ -36,12 +36,16 @@ impl FileTimeRangeError {
     pub(crate) const fn new(kind: FileTimeRangeErrorKind) -> Self {
         Self(kind)
     }
+
+    const fn kind(self) -> FileTimeRangeErrorKind {
+        self.0
+    }
 }
 
 impl fmt::Display for FileTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
+        match self.kind() {
             FileTimeRangeErrorKind::Negative => {
                 write!(f, "file time is before `1601-01-01 00:00:00 UTC`")
             }

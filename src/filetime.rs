@@ -428,9 +428,9 @@ impl TryFrom<FileTime> for OffsetDateTime {
         use time::Duration;
 
         let duration = Duration::new(
-            i64::try_from(time.0 / 10_000_000)
+            i64::try_from(time.as_u64() / 10_000_000)
                 .expect("the number of seconds should be in the range of `i64`"),
-            i32::try_from((time.0 % 10_000_000) * 100)
+            i32::try_from((time.as_u64() % 10_000_000) * 100)
                 .expect("the number of nanoseconds should be in the range of `i32`"),
         );
         OFFSET_DATE_TIME_NT_EPOCH
