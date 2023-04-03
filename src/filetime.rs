@@ -308,11 +308,9 @@ impl Add<core::time::Duration> for FileTime {
 }
 
 impl AddAssign<core::time::Duration> for FileTime {
+    #[inline]
     fn add_assign(&mut self, rhs: core::time::Duration) {
-        let ft = self.as_u64()
-            + u64::try_from(rhs.as_nanos() / 100)
-                .expect("duration should be in the range of `u64`");
-        *self = Self::new(ft);
+        *self = *self + rhs;
     }
 }
 
@@ -337,11 +335,9 @@ impl Sub<core::time::Duration> for FileTime {
 }
 
 impl SubAssign<core::time::Duration> for FileTime {
+    #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
-        let ft = self.as_u64()
-            - u64::try_from(rhs.as_nanos() / 100)
-                .expect("duration should be in the range of `u64`");
-        *self = Self::new(ft);
+        *self = *self - rhs;
     }
 }
 
