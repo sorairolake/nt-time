@@ -9,20 +9,8 @@
 //!
 //! This is used as timestamps such as Windows and [7z][7z-format-url].
 //!
-//! # Features
-//!
-//! ## Default features
-//!
-//! - `std`: Enables features that depend on the standard library.
-//!
-//! ## Optional features
-//!
-//! - `large-dates`: Enables the `large-dates` feature of the
-//!   [`time`][time-crate-url] crate.
-//!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [7z-format-url]: https://www.7-zip.org/7z.html
-//! [time-crate-url]: https://crates.io/crates/time
 
 #![doc(html_root_url = "https://docs.rs/nt-time/0.1.0/")]
 #![no_std]
@@ -43,6 +31,8 @@ extern crate std;
 pub mod error;
 mod filetime;
 
+#[cfg(feature = "chrono")]
+pub use chrono;
 pub use time;
 
 pub use crate::filetime::FileTime;

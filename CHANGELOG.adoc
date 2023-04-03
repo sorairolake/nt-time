@@ -19,6 +19,7 @@ toc::[]
 * Add `impl From<FileTime> for SystemTime`
 * Add `FileTime::UNIX_EPOCH` constant
 * Add `FileTime::now` method
+* Add conversion methods from/to `chrono::DateTime`
 
 === Changed
 

@@ -28,6 +28,10 @@ This is enabled by default.
 
 Enables the `large-dates` feature of the [`time`][time-crate-url] crate.
 
+#### `chrono`
+
+Enables the [`chrono`][chrono-crate-url] crate.
+
 ### `no_std` support
 
 This supports `no_std` mode.
@@ -69,3 +73,4 @@ See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
 [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [rust-official-url]: https://www.rust-lang.org/
 [time-crate-url]: https://crates.io/crates/time
+[chrono-crate-url]: https://crates.io/crates/chrono
