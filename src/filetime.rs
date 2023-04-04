@@ -52,12 +52,14 @@ impl FileTime {
     ///
     /// ```
     /// # use nt_time::FileTime;
-    /// # use time::{macros::datetime, OffsetDateTime};
+    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
     /// #
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
-    ///     datetime!(1601-01-01 00:00 UTC)
-    /// );
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(1601, Month::January, 1).unwrap(),
+    ///     Time::MIDNIGHT,
+    /// )
+    /// .assume_utc();
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(), dt);
     /// ```
     pub const NT_EPOCH: Self = Self::new(u64::MIN);
 
@@ -71,10 +73,8 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// # use time::OffsetDateTime;
     /// #
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
-    ///     OffsetDateTime::UNIX_EPOCH
-    /// );
+    /// let dt = OffsetDateTime::UNIX_EPOCH;
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(), dt);
     /// ```
     pub const UNIX_EPOCH: Self = Self::new(116_444_736_000_000_000);
 
@@ -86,13 +86,16 @@ impl FileTime {
     ///
     /// ```
     /// # use nt_time::FileTime;
-    /// # use time::{macros::datetime, OffsetDateTime};
+    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
     /// #
     /// # #[cfg(feature = "large-dates")]
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
-    ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
-    /// );
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(60056, Month::May, 28).unwrap(),
+    ///     Time::from_hms_nano(5, 36, 10, 955_161_500).unwrap(),
+    /// )
+    /// .assume_utc();
+    /// # #[cfg(feature = "large-dates")]
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::MAX).unwrap(), dt);
     /// ```
     pub const MAX: Self = Self::new(u64::MAX);
 
@@ -375,14 +378,10 @@ impl From<FileTime> for std::time::SystemTime {
     /// #
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     SystemTime::from(FileTime::NT_EPOCH),
-    ///     SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
-    /// );
-    /// assert_eq!(
-    ///     SystemTime::from(FileTime::UNIX_EPOCH),
-    ///     SystemTime::UNIX_EPOCH
-    /// );
+    /// let st = SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600);
+    /// assert_eq!(SystemTime::from(FileTime::NT_EPOCH), st);
+    /// let st = SystemTime::UNIX_EPOCH;
+    /// assert_eq!(SystemTime::from(FileTime::UNIX_EPOCH), st);
     /// ```
     fn from(time: FileTime) -> Self {
         use std::time::Duration;
@@ -409,16 +408,55 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///
     /// ```
     /// # use nt_time::FileTime;
-    /// # use time::{macros::datetime, OffsetDateTime};
+    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
     /// #
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
-    ///     datetime!(1601-01-01 00:00 UTC)
-    /// );
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
-    ///     OffsetDateTime::UNIX_EPOCH
-    /// );
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(1601, Month::January, 1).unwrap(),
+    ///     Time::MIDNIGHT,
+    /// )
+    /// .assume_utc();
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(), dt);
+    /// let dt = OffsetDateTime::UNIX_EPOCH;
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(), dt);
+    /// ```
+    ///
+    /// With the `large-dates` feature disabled, returns [`Err`] if the Windows
+    /// NT system time represents after "9999-12-31 23:59:59.999999900 UTC":
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// #
+    /// # #[cfg(not(feature = "large-dates"))]
+    /// let ft = FileTime::new(2_650_467_744_000_000_000);
+    /// # #[cfg(not(feature = "large-dates"))]
+    /// assert!(OffsetDateTime::try_from(ft).is_err());
+    /// ```
+    ///
+    /// With the `large-dates` feature enabled, this always succeeds:
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// #
+    /// # #[cfg(feature = "large-dates")]
+    /// let ft = FileTime::new(2_650_467_744_000_000_000);
+    /// # #[cfg(feature = "large-dates")]
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(10000, Month::January, 1).unwrap(),
+    ///     Time::MIDNIGHT,
+    /// )
+    /// .assume_utc();
+    /// # #[cfg(feature = "large-dates")]
+    /// assert_eq!(OffsetDateTime::try_from(ft).unwrap(), dt);
+    /// # #[cfg(feature = "large-dates")]
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(60056, Month::May, 28).unwrap(),
+    ///     Time::from_hms_nano(5, 36, 10, 955_161_500).unwrap(),
+    /// )
+    /// .assume_utc();
+    /// # #[cfg(feature = "large-dates")]
+    /// assert_eq!(OffsetDateTime::try_from(FileTime::MAX).unwrap(), dt);
     /// ```
     fn try_from(time: FileTime) -> Result<Self, Self::Error> {
         use time::Duration;
@@ -443,17 +481,13 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, Utc};
+    /// # use chrono::{DateTime, TimeZone, Utc};
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     DateTime::<Utc>::from(FileTime::NT_EPOCH),
-    ///     "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-    /// );
-    /// assert_eq!(
-    ///     DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-    ///     "1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-    /// );
+    /// let dt = Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap();
+    /// assert_eq!(DateTime::<Utc>::from(FileTime::NT_EPOCH), dt);
+    /// let dt = Utc.timestamp_opt(0, 0).unwrap();
+    /// assert_eq!(DateTime::<Utc>::from(FileTime::UNIX_EPOCH), dt);
     /// ```
     fn from(time: FileTime) -> Self {
         use chrono::Duration;
@@ -504,14 +538,18 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// #
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)).unwrap(),
-    ///     FileTime::NT_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
+    /// let st = SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600);
+    /// assert_eq!(FileTime::try_from(st).unwrap(), FileTime::NT_EPOCH);
+    /// let st = SystemTime::UNIX_EPOCH;
+    /// assert_eq!(FileTime::try_from(st).unwrap(), FileTime::UNIX_EPOCH);
+    ///
+    /// let st = SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100);
+    /// assert!(FileTime::try_from(st).is_err());
+    ///
+    /// # #[cfg(not(windows))]
+    /// let st = SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600);
+    /// # #[cfg(not(windows))]
+    /// assert!(FileTime::try_from(st).is_err());
     /// ```
     fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
         let elapsed = time
@@ -537,16 +575,43 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// ```
     /// # use nt_time::FileTime;
-    /// # use time::{macros::datetime, OffsetDateTime};
+    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
     /// #
-    /// assert_eq!(
-    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
-    ///     FileTime::NT_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(1601, Month::January, 1).unwrap(),
+    ///     Time::MIDNIGHT,
+    /// )
+    /// .assume_utc();
+    /// assert_eq!(FileTime::try_from(dt).unwrap(), FileTime::NT_EPOCH);
+    /// let dt = OffsetDateTime::UNIX_EPOCH;
+    /// assert_eq!(FileTime::try_from(dt).unwrap(), FileTime::UNIX_EPOCH);
+    ///
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(1601, Month::January, 1).unwrap(),
+    ///     Time::MIDNIGHT,
+    /// )
+    /// .assume_utc()
+    ///     - Duration::NANOSECOND;
+    /// assert!(FileTime::try_from(dt).is_err());
+    /// ```
+    ///
+    /// With the `large-dates` feature enabled, returns [`Err`] if
+    /// [`OffsetDateTime`] represents after "+60056-05-28 05:36:10.955161500
+    /// UTC":
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// #
+    /// # #[cfg(feature = "large-dates")]
+    /// let dt = PrimitiveDateTime::new(
+    ///     Date::from_calendar_date(60056, Month::May, 28).unwrap(),
+    ///     Time::from_hms_nano(5, 36, 10, 955_161_500).unwrap(),
+    /// )
+    /// .assume_utc()
+    ///     + Duration::nanoseconds(100);
+    /// # #[cfg(feature = "large-dates")]
+    /// assert!(FileTime::try_from(dt).is_err());
     /// ```
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         use core::time::Duration;
@@ -574,17 +639,21 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, Utc};
+    /// # use chrono::{DateTime, Duration, TimeZone, Utc};
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()).unwrap(),
-    ///     FileTime::NT_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::try_from("1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
+    /// let dt = Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap();
+    /// assert_eq!(FileTime::try_from(dt).unwrap(), FileTime::NT_EPOCH);
+    /// let dt = Utc.timestamp_opt(0, 0).unwrap();
+    /// assert_eq!(FileTime::try_from(dt).unwrap(), FileTime::UNIX_EPOCH);
+    ///
+    /// let dt = Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - Duration::nanoseconds(1);
+    /// assert!(FileTime::try_from(dt).is_err());
+    ///
+    /// let dt = Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10).unwrap()
+    ///     + Duration::nanoseconds(955_161_500)
+    ///     + Duration::nanoseconds(100);
+    /// assert!(FileTime::try_from(dt).is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
         let elapsed = (dt - *DATE_TIME_NT_EPOCH)
