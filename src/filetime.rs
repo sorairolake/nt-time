@@ -30,7 +30,7 @@ static DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> 
     once_cell::sync::Lazy::new(|| {
         "1601-01-01 00:00:00 UTC"
             .parse::<chrono::DateTime<chrono::Utc>>()
-            .expect("invalid RFC 3339 date time format")
+            .expect("date time should be valid as RFC 3339")
     });
 
 /// `FileTime` is a type that represents the [Windows NT system
@@ -125,7 +125,7 @@ impl FileTime {
 
         SystemTime::now()
             .try_into()
-            .expect("file time is out of range")
+            .expect("the current date time should be in the range of the Windows NT system time")
     }
 
     /// Creates a new `FileTime` with the given Windows NT system time.
@@ -319,7 +319,7 @@ impl Add<core::time::Duration> for FileTime {
     fn add(self, rhs: core::time::Duration) -> Self::Output {
         let ft = self.as_u64()
             + u64::try_from(rhs.as_nanos() / 100)
-                .expect("duration should be in the range of `u64`");
+                .expect("the duration represented in 100-nanosecond intervals should be in the range of `u64`");
         Self::new(ft)
     }
 }
@@ -346,7 +346,7 @@ impl Sub<core::time::Duration> for FileTime {
     fn sub(self, rhs: core::time::Duration) -> Self::Output {
         let ft = self.as_u64()
             - u64::try_from(rhs.as_nanos() / 100)
-                .expect("duration should be in the range of `u64`");
+                .expect("the duration represented in 100-nanosecond intervals should be in the range of `u64`");
         Self::new(ft)
     }
 }
