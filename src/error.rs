@@ -94,7 +94,7 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq_offset_date_time_range_error() {
+    fn offset_date_time_range_error_equality() {
         assert_eq!(OffsetDateTimeRangeError, OffsetDateTimeRangeError);
     }
 
@@ -156,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq_file_time_range_error() {
+    fn file_time_range_error_equality() {
         assert_eq!(
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)

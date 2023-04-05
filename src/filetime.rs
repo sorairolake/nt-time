@@ -759,7 +759,7 @@ mod tests {
     }
 
     #[test]
-    fn ord() {
+    fn order() {
         use core::cmp::Ordering;
 
         assert_eq!(FileTime::NT_EPOCH.cmp(&FileTime::MAX), Ordering::Less);
@@ -768,29 +768,11 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq() {
+    fn equality() {
         assert_eq!(FileTime::NT_EPOCH, FileTime::NT_EPOCH);
         assert_ne!(FileTime::NT_EPOCH, FileTime::MAX);
         assert_ne!(FileTime::MAX, FileTime::NT_EPOCH);
         assert_eq!(FileTime::MAX, FileTime::MAX);
-    }
-
-    #[test]
-    fn partial_ord() {
-        use core::cmp::Ordering;
-
-        assert_eq!(
-            FileTime::NT_EPOCH.partial_cmp(&FileTime::MAX),
-            Some(Ordering::Less)
-        );
-        assert_eq!(
-            FileTime::NT_EPOCH.partial_cmp(&FileTime::NT_EPOCH),
-            Some(Ordering::Equal)
-        );
-        assert_eq!(
-            FileTime::MAX.partial_cmp(&FileTime::NT_EPOCH),
-            Some(Ordering::Greater)
-        );
     }
 
     #[test]
