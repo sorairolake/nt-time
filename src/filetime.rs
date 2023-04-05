@@ -160,7 +160,7 @@ impl FileTime {
         self.0
     }
 
-    /// Computes `self + duration`, returning [`None`] if overflow occurred.
+    /// Computes `self + rhs`, returning [`None`] if overflow occurred.
     ///
     /// # Examples
     ///
@@ -181,13 +181,13 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.checked_add(Duration::from_nanos(100)), None);
     /// ```
     #[must_use]
-    pub fn checked_add(self, duration: core::time::Duration) -> Option<Self> {
-        let duration = u64::try_from(duration.as_nanos() / 100).ok()?;
+    pub fn checked_add(self, rhs: core::time::Duration) -> Option<Self> {
+        let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
         let ft = self.as_u64().checked_add(duration)?;
         Some(Self::new(ft))
     }
 
-    /// Computes `self - duration`, returning [`None`] if the result would be
+    /// Computes `self - rhs`, returning [`None`] if the result would be
     /// negative or if overflow occurred.
     ///
     /// # Examples
@@ -212,14 +212,13 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
-    pub fn checked_sub(self, duration: core::time::Duration) -> Option<Self> {
-        let duration = u64::try_from(duration.as_nanos() / 100).ok()?;
+    pub fn checked_sub(self, rhs: core::time::Duration) -> Option<Self> {
+        let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
         let ft = self.as_u64().checked_sub(duration)?;
         Some(Self::new(ft))
     }
 
-    /// Computes `self + duration`, returning [`FileTime::MAX`] if overflow
-    /// occurred.
+    /// Computes `self + rhs`, returning [`FileTime::MAX`] if overflow occurred.
     ///
     /// # Examples
     ///
@@ -243,14 +242,14 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
-    pub fn saturating_add(self, duration: core::time::Duration) -> Self {
-        let duration = u64::try_from(duration.as_nanos() / 100).unwrap_or(u64::MAX);
+    pub fn saturating_add(self, rhs: core::time::Duration) -> Self {
+        let duration = u64::try_from(rhs.as_nanos() / 100).unwrap_or(u64::MAX);
         let ft = self.as_u64().saturating_add(duration);
         Self::new(ft)
     }
 
-    /// Computes `self - duration`, returning [`FileTime::NT_EPOCH`] if the
-    /// result would be negative or if overflow occurred.
+    /// Computes `self - rhs`, returning [`FileTime::NT_EPOCH`] if the result
+    /// would be negative or if overflow occurred.
     ///
     /// # Examples
     ///
@@ -274,8 +273,8 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
-    pub fn saturating_sub(self, duration: core::time::Duration) -> Self {
-        let duration = u64::try_from(duration.as_nanos() / 100).unwrap_or(u64::MAX);
+    pub fn saturating_sub(self, rhs: core::time::Duration) -> Self {
+        let duration = u64::try_from(rhs.as_nanos() / 100).unwrap_or(u64::MAX);
         let ft = self.as_u64().saturating_sub(duration);
         Self::new(ft)
     }
