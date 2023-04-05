@@ -17,6 +17,29 @@ Add this to your `Cargo.toml`:
 nt-time = "0.1.0"
 ```
 
+### Example
+
+```rust
+use core::time::Duration;
+
+use nt_time::FileTime;
+use time::OffsetDateTime;
+
+let ft = FileTime::NT_EPOCH;
+assert_eq!(
+    OffsetDateTime::try_from(ft).unwrap().to_string(),
+    "1601-01-01 0:00:00.0 +00:00:00"
+);
+
+let ft = ft + Duration::from_secs(11_644_473_600);
+assert_eq!(
+    OffsetDateTime::try_from(ft).unwrap(),
+    OffsetDateTime::UNIX_EPOCH
+);
+
+assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
+```
+
 ### Crate features
 
 #### `std`
