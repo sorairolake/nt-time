@@ -26,7 +26,7 @@ static SYSTEM_TIME_NT_EPOCH: once_cell::sync::Lazy<std::time::SystemTime> =
 const OFFSET_DATE_TIME_NT_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
 
 #[cfg(feature = "chrono")]
-static DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> =
+static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> =
     once_cell::sync::Lazy::new(|| {
         "1601-01-01 00:00:00 UTC"
             .parse::<chrono::DateTime<chrono::Utc>>()
@@ -324,9 +324,28 @@ impl Add<core::time::Duration> for FileTime {
     }
 }
 
+impl Add<time::Duration> for FileTime {
+    type Output = Self;
+
+    fn add(self, rhs: time::Duration) -> Self::Output {
+        if rhs.is_positive() {
+            self + rhs.unsigned_abs()
+        } else {
+            self - rhs.unsigned_abs()
+        }
+    }
+}
+
 impl AddAssign<core::time::Duration> for FileTime {
     #[inline]
     fn add_assign(&mut self, rhs: core::time::Duration) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<time::Duration> for FileTime {
+    #[inline]
+    fn add_assign(&mut self, rhs: time::Duration) {
         *self = *self + rhs;
     }
 }
@@ -351,9 +370,28 @@ impl Sub<core::time::Duration> for FileTime {
     }
 }
 
+impl Sub<time::Duration> for FileTime {
+    type Output = Self;
+
+    fn sub(self, rhs: time::Duration) -> Self::Output {
+        if rhs.is_positive() {
+            self - rhs.unsigned_abs()
+        } else {
+            self + rhs.unsigned_abs()
+        }
+    }
+}
+
 impl SubAssign<core::time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<time::Duration> for FileTime {
+    #[inline]
+    fn sub_assign(&mut self, rhs: time::Duration) {
         *self = *self - rhs;
     }
 }
@@ -523,7 +561,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
             i64::try_from((time.as_u64() % 10_000_000) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
-        *DATE_TIME_NT_EPOCH + duration
+        *CHRONO_DATE_TIME_NT_EPOCH + duration
     }
 }
 
@@ -705,7 +743,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
-        let elapsed = (dt - *DATE_TIME_NT_EPOCH)
+        let elapsed = (dt - *CHRONO_DATE_TIME_NT_EPOCH)
             .to_std()
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
@@ -953,7 +991,7 @@ mod tests {
     }
 
     #[test]
-    fn add_duration() {
+    fn add_std_duration() {
         use core::time::Duration;
 
         assert_eq!(
@@ -975,14 +1013,72 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn add_duration_with_overflow() {
+    fn add_std_duration_with_overflow() {
         use core::time::Duration;
 
         let _ = FileTime::MAX + Duration::from_nanos(100);
     }
 
     #[test]
-    fn add_assign_duration() {
+    fn add_positive_time_duration() {
+        use time::Duration;
+
+        assert_eq!(
+            FileTime::NT_EPOCH + Duration::NANOSECOND,
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH + Duration::nanoseconds(99),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH + Duration::nanoseconds(100),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX + Duration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX + Duration::nanoseconds(99), FileTime::MAX);
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_positive_time_duration_with_overflow() {
+        use time::Duration;
+
+        let _ = FileTime::MAX + Duration::nanoseconds(100);
+    }
+
+    #[test]
+    fn add_negative_time_duration() {
+        use time::Duration;
+
+        assert_eq!(FileTime::MAX + -Duration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX + Duration::nanoseconds(-99), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX + Duration::nanoseconds(-100),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_EPOCH + -Duration::NANOSECOND,
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH + Duration::nanoseconds(-99),
+            FileTime::NT_EPOCH
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_negative_time_duration_with_overflow() {
+        use time::Duration;
+
+        let _ = FileTime::NT_EPOCH + Duration::nanoseconds(-100);
+    }
+
+    #[test]
+    fn add_assign_std_duration() {
         use core::time::Duration;
 
         {
@@ -1015,11 +1111,93 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn add_assign_duration_with_overflow() {
+    fn add_assign_std_duration_with_overflow() {
         use core::time::Duration;
 
         let mut ft = FileTime::MAX;
         ft += Duration::from_nanos(100);
+    }
+
+    #[test]
+    fn add_assign_positive_time_duration() {
+        use time::Duration;
+
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::nanoseconds(99);
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::nanoseconds(100);
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::nanoseconds(99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_assign_positive_time_duration_with_overflow() {
+        use time::Duration;
+
+        let mut ft = FileTime::MAX;
+        ft += Duration::nanoseconds(100);
+    }
+
+    #[test]
+    fn add_assign_negative_time_duration() {
+        use time::Duration;
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += -Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::nanoseconds(-99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::nanoseconds(-100);
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += -Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::nanoseconds(-99);
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_assign_negative_time_duration_with_overflow() {
+        use time::Duration;
+
+        let mut ft = FileTime::NT_EPOCH;
+        ft += Duration::nanoseconds(-100);
     }
 
     #[test]
@@ -1049,7 +1227,7 @@ mod tests {
     }
 
     #[test]
-    fn sub_duration() {
+    fn sub_std_duration() {
         use core::time::Duration;
 
         assert_eq!(FileTime::MAX - Duration::from_nanos(1), FileTime::MAX);
@@ -1071,14 +1249,72 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn sub_duration_with_overflow() {
+    fn sub_std_duration_with_overflow() {
         use core::time::Duration;
 
         let _ = FileTime::NT_EPOCH - Duration::from_nanos(100);
     }
 
     #[test]
-    fn sub_assign_duration() {
+    fn sub_positive_time_duration() {
+        use time::Duration;
+
+        assert_eq!(FileTime::MAX - Duration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX - Duration::nanoseconds(99), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX - Duration::nanoseconds(100),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_EPOCH - Duration::NANOSECOND,
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH - Duration::nanoseconds(99),
+            FileTime::NT_EPOCH
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn sub_positive_time_duration_with_overflow() {
+        use time::Duration;
+
+        let _ = FileTime::NT_EPOCH - Duration::nanoseconds(100);
+    }
+
+    #[test]
+    fn sub_negative_time_duration() {
+        use time::Duration;
+
+        assert_eq!(
+            FileTime::NT_EPOCH - -Duration::NANOSECOND,
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH - Duration::nanoseconds(-99),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_EPOCH - Duration::nanoseconds(-100),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX - -Duration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX - Duration::nanoseconds(-99), FileTime::MAX);
+    }
+
+    #[test]
+    #[should_panic]
+    fn sub_negative_time_duration_with_overflow() {
+        use time::Duration;
+
+        let _ = FileTime::MAX - Duration::nanoseconds(-100);
+    }
+
+    #[test]
+    fn sub_assign_std_duration() {
         use core::time::Duration;
 
         {
@@ -1111,11 +1347,93 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn sub_assign_duration_with_overflow() {
+    fn sub_assign_std_duration_with_overflow() {
         use core::time::Duration;
 
         let mut ft = FileTime::NT_EPOCH;
         ft -= Duration::from_nanos(100);
+    }
+
+    #[test]
+    fn sub_assign_positive_time_duration() {
+        use time::Duration;
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= Duration::nanoseconds(99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= Duration::nanoseconds(100);
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::nanoseconds(99);
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn sub_assign_positive_time_duration_with_overflow() {
+        use time::Duration;
+
+        let mut ft = FileTime::NT_EPOCH;
+        ft -= Duration::nanoseconds(100);
+    }
+
+    #[test]
+    fn sub_assign_negative_time_duration() {
+        use time::Duration;
+
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= -Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::nanoseconds(-99);
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::nanoseconds(-100);
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= -Duration::NANOSECOND;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= Duration::nanoseconds(-99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn sub_assign_negative_time_duration_with_overflow() {
+        use time::Duration;
+
+        let mut ft = FileTime::MAX;
+        ft -= Duration::nanoseconds(-100);
     }
 
     #[test]
@@ -1194,12 +1512,12 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    fn from_file_time_to_date_time() {
+    fn from_file_time_to_chrono_date_time() {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
             DateTime::<Utc>::from(FileTime::NT_EPOCH),
-            *DATE_TIME_NT_EPOCH
+            *CHRONO_DATE_TIME_NT_EPOCH
         );
         assert_eq!(
             DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
@@ -1371,10 +1689,11 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    fn try_from_date_time_to_file_time_before_epoch() {
+    fn try_from_chrono_date_time_to_file_time_before_epoch() {
         use chrono::Duration;
 
-        let ft = FileTime::try_from(*DATE_TIME_NT_EPOCH - Duration::nanoseconds(1)).unwrap_err();
+        let ft =
+            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH - Duration::nanoseconds(1)).unwrap_err();
         assert_eq!(
             ft,
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
@@ -1383,11 +1702,11 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    fn try_from_date_time_to_file_time() {
+    fn try_from_chrono_date_time_to_file_time() {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
-            FileTime::try_from(*DATE_TIME_NT_EPOCH).unwrap(),
+            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH).unwrap(),
             FileTime::NT_EPOCH
         );
         assert_eq!(
@@ -1426,7 +1745,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    fn try_from_date_time_to_file_time_with_too_big_date_time() {
+    fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
         use chrono::{DateTime, Duration, Utc};
 
         let ft = FileTime::try_from(
