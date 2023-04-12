@@ -17,7 +17,7 @@ pub struct OffsetDateTimeRangeError;
 impl fmt::Display for OffsetDateTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "date time is out of range")
+        write!(f, "date and time is out of range for `OffsetDateTime`")
     }
 }
 
@@ -47,12 +47,12 @@ impl fmt::Display for FileTimeRangeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.kind() {
             FileTimeRangeErrorKind::Negative => {
-                write!(f, "file time is before `1601-01-01 00:00:00 UTC`")
+                write!(f, "date and time is before `1601-01-01 00:00:00 UTC`")
             }
             FileTimeRangeErrorKind::Overflow => {
                 write!(
                     f,
-                    "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+                    "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
                 )
             }
         }
@@ -102,7 +102,7 @@ mod tests {
     fn display_offset_date_time_range_error() {
         assert_eq!(
             format!("{OffsetDateTimeRangeError}"),
-            "date time is out of range"
+            "date and time is out of range for `OffsetDateTime`"
         );
     }
 
@@ -182,14 +182,14 @@ mod tests {
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
             ),
-            "file time is before `1601-01-01 00:00:00 UTC`"
+            "date and time is before `1601-01-01 00:00:00 UTC`"
         );
         assert_eq!(
             format!(
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             ),
-            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
         );
     }
 

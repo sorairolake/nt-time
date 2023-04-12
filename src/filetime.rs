@@ -30,7 +30,7 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
     once_cell::sync::Lazy::new(|| {
         "1601-01-01 00:00:00 UTC"
             .parse::<chrono::DateTime<chrono::Utc>>()
-            .expect("date time should be valid as RFC 3339")
+            .expect("date and time should be valid as RFC 3339")
     });
 
 /// `FileTime` is a type that represents the [Windows NT system
@@ -108,7 +108,7 @@ impl FileTime {
     ///
     /// # Panics
     ///
-    /// Panics if "now" is out of range of the Windows NT system time.
+    /// Panics if "now" is out of range for the Windows NT system time.
     ///
     /// # Examples
     ///
@@ -123,9 +123,9 @@ impl FileTime {
     pub fn now() -> Self {
         use std::time::SystemTime;
 
-        SystemTime::now()
-            .try_into()
-            .expect("the current date time should be in the range of the Windows NT system time")
+        SystemTime::now().try_into().expect(
+            "the current date and time should be in the range of the Windows NT system time",
+        )
     }
 
     /// Creates a new `FileTime` with the given Windows NT system time.
@@ -458,7 +458,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range of [`OffsetDateTime`].
+    /// Returns [`Err`] if `time` is out of range for [`OffsetDateTime`].
     ///
     /// # Examples
     ///
@@ -591,7 +591,8 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range of the Windows NT system time.
+    /// Returns [`Err`] if `time` is out of range for the Windows NT system
+    /// time.
     ///
     /// # Examples
     ///
@@ -638,7 +639,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range of the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
     ///
     /// # Examples
     ///
@@ -713,7 +714,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range of the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
     ///
     /// # Examples
     ///
