@@ -471,6 +471,33 @@ impl Sub<time::Duration> for FileTime {
     }
 }
 
+#[cfg(feature = "std")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+impl Sub<FileTime> for std::time::SystemTime {
+    type Output = std::time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self.duration_since(rhs.into())
+            .expect("RHS provided is later than LHS")
+    }
+}
+
+#[cfg(feature = "std")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
+impl Sub<std::time::SystemTime> for FileTime {
+    type Output = std::time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: std::time::SystemTime) -> Self::Output {
+        use std::time::SystemTime;
+
+        SystemTime::from(self)
+            .duration_since(rhs)
+            .expect("RHS provided is later than LHS")
+    }
+}
+
 impl SubAssign<core::time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
@@ -1536,6 +1563,87 @@ mod tests {
         use time::Duration;
 
         let _ = FileTime::MAX - Duration::nanoseconds(-100);
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn sub_file_time_from_system_time() {
+        use std::time::{Duration, SystemTime};
+
+        assert_eq!(
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::new(9_223_372_036_854_775_807),
+            Duration::ZERO
+        );
+        assert_eq!(
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::new(9_223_372_036_854_775_806),
+            Duration::from_nanos(100)
+        );
+        assert_eq!(
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::UNIX_EPOCH,
+            Duration::new(910_692_730_085, 477_580_700)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[should_panic]
+    fn sub_file_time_from_system_time_with_overflow() {
+        use std::time::{Duration, SystemTime};
+
+        let _ = FileTime::new(9_223_372_036_854_775_806)
+            - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn sub_system_time_from_file_time() {
+        use std::time::{Duration, SystemTime};
+
+        assert_eq!(
+            FileTime::new(9_223_372_036_854_775_807)
+                - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)),
+            Duration::ZERO
+        );
+        assert_eq!(
+            FileTime::new(9_223_372_036_854_775_807)
+                - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_699)),
+            if cfg!(windows) {
+                Duration::from_nanos(100)
+            } else {
+                Duration::from_nanos(1)
+            }
+        );
+        assert_eq!(
+            FileTime::new(9_223_372_036_854_775_807)
+                - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_601)),
+            if cfg!(windows) {
+                Duration::from_nanos(100)
+            } else {
+                Duration::from_nanos(99)
+            }
+        );
+        assert_eq!(
+            FileTime::new(9_223_372_036_854_775_807)
+                - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600)),
+            Duration::from_nanos(100)
+        );
+        assert_eq!(
+            FileTime::new(9_223_372_036_854_775_807) - SystemTime::UNIX_EPOCH,
+            Duration::new(910_692_730_085, 477_580_700)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[should_panic]
+    fn sub_system_time_from_file_time_with_overflow() {
+        use std::time::{Duration, SystemTime};
+
+        let _ = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
+            - FileTime::new(9_223_372_036_854_775_807);
     }
 
     #[test]
