@@ -183,10 +183,10 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.checked_add(Duration::from_nanos(100)), None);
     /// ```
     #[must_use]
+    #[inline]
     pub fn checked_add(self, rhs: core::time::Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
-        let ft = self.as_u64().checked_add(duration)?;
-        Some(Self::new(ft))
+        self.as_u64().checked_add(duration).map(Self::new)
     }
 
     /// Computes `self - rhs`, returning [`None`] if the result would be
@@ -214,10 +214,10 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
+    #[inline]
     pub fn checked_sub(self, rhs: core::time::Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
-        let ft = self.as_u64().checked_sub(duration)?;
-        Some(Self::new(ft))
+        self.as_u64().checked_sub(duration).map(Self::new)
     }
 
     /// Computes `self + rhs`, returning [`FileTime::MAX`] if overflow occurred.
@@ -244,10 +244,9 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
+    #[inline]
     pub fn saturating_add(self, rhs: core::time::Duration) -> Self {
-        let duration = u64::try_from(rhs.as_nanos() / 100).unwrap_or(u64::MAX);
-        let ft = self.as_u64().saturating_add(duration);
-        Self::new(ft)
+        self.checked_add(rhs).unwrap_or(Self::MAX)
     }
 
     /// Computes `self - rhs`, returning [`FileTime::NT_EPOCH`] if the result
@@ -275,10 +274,9 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
+    #[inline]
     pub fn saturating_sub(self, rhs: core::time::Duration) -> Self {
-        let duration = u64::try_from(rhs.as_nanos() / 100).unwrap_or(u64::MAX);
-        let ft = self.as_u64().saturating_sub(duration);
-        Self::new(ft)
+        self.checked_sub(rhs).unwrap_or_default()
     }
 
     /// Returns the memory representation of this `FileTime` as a byte array in
@@ -403,17 +401,17 @@ impl fmt::Display for FileTime {
 impl Add<core::time::Duration> for FileTime {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: core::time::Duration) -> Self::Output {
-        let ft = self.as_u64()
-            + u64::try_from(rhs.as_nanos() / 100)
-                .expect("the duration represented in 100-nanosecond intervals should be in the range of `u64`");
-        Self::new(ft)
+        self.checked_add(rhs)
+            .expect("overflow when adding duration to date and time")
     }
 }
 
 impl Add<time::Duration> for FileTime {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: time::Duration) -> Self::Output {
         if rhs.is_positive() {
             self + rhs.unsigned_abs()
@@ -453,17 +451,17 @@ impl Sub for FileTime {
 impl Sub<core::time::Duration> for FileTime {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: core::time::Duration) -> Self::Output {
-        let ft = self.as_u64()
-            - u64::try_from(rhs.as_nanos() / 100)
-                .expect("the duration represented in 100-nanosecond intervals should be in the range of `u64`");
-        Self::new(ft)
+        self.checked_sub(rhs)
+            .expect("overflow when subtracting duration from date and time")
     }
 }
 
 impl Sub<time::Duration> for FileTime {
     type Output = Self;
 
+    #[inline]
     fn sub(self, rhs: time::Duration) -> Self::Output {
         if rhs.is_positive() {
             self - rhs.unsigned_abs()
