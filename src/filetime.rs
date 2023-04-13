@@ -441,8 +441,12 @@ impl Sub for FileTime {
     type Output = core::time::Duration;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let duration = (self.as_u64() - rhs.as_u64()) * 100;
-        Self::Output::from_nanos(duration)
+        let duration = self.as_u64() - rhs.as_u64();
+        Self::Output::new(
+            duration / 10_000_000,
+            u32::try_from((duration % 10_000_000) * 100)
+                .expect("the number of nanoseconds should be in the range of `u32`"),
+        )
     }
 }
 
@@ -961,6 +965,10 @@ mod tests {
         use core::time::Duration;
 
         assert_eq!(
+            FileTime::NT_EPOCH.checked_add(Duration::ZERO),
+            Some(FileTime::NT_EPOCH)
+        );
+        assert_eq!(
             FileTime::NT_EPOCH.checked_add(Duration::from_nanos(1)),
             Some(FileTime::NT_EPOCH)
         );
@@ -973,6 +981,10 @@ mod tests {
             Some(FileTime::new(1))
         );
 
+        assert_eq!(
+            FileTime::MAX.checked_add(Duration::ZERO),
+            Some(FileTime::MAX)
+        );
         assert_eq!(
             FileTime::MAX.checked_add(Duration::from_nanos(1)),
             Some(FileTime::MAX)
@@ -989,6 +1001,10 @@ mod tests {
         use core::time::Duration;
 
         assert_eq!(
+            FileTime::MAX.checked_sub(Duration::ZERO),
+            Some(FileTime::MAX)
+        );
+        assert_eq!(
             FileTime::MAX.checked_sub(Duration::from_nanos(1)),
             Some(FileTime::MAX)
         );
@@ -1001,6 +1017,10 @@ mod tests {
             Some(FileTime::new(u64::MAX - 1))
         );
 
+        assert_eq!(
+            FileTime::NT_EPOCH.checked_sub(Duration::ZERO),
+            Some(FileTime::NT_EPOCH)
+        );
         assert_eq!(
             FileTime::NT_EPOCH.checked_sub(Duration::from_nanos(1)),
             Some(FileTime::NT_EPOCH)
@@ -1020,6 +1040,10 @@ mod tests {
         use core::time::Duration;
 
         assert_eq!(
+            FileTime::NT_EPOCH.saturating_add(Duration::ZERO),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
             FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(1)),
             FileTime::NT_EPOCH
         );
@@ -1032,6 +1056,7 @@ mod tests {
             FileTime::new(1)
         );
 
+        assert_eq!(FileTime::MAX.saturating_add(Duration::ZERO), FileTime::MAX);
         assert_eq!(
             FileTime::MAX.saturating_add(Duration::from_nanos(1)),
             FileTime::MAX
@@ -1050,6 +1075,7 @@ mod tests {
     fn saturating_sub() {
         use core::time::Duration;
 
+        assert_eq!(FileTime::MAX.saturating_sub(Duration::ZERO), FileTime::MAX);
         assert_eq!(
             FileTime::MAX.saturating_sub(Duration::from_nanos(1)),
             FileTime::MAX
@@ -1063,6 +1089,10 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
+        assert_eq!(
+            FileTime::NT_EPOCH.saturating_sub(Duration::ZERO),
+            FileTime::NT_EPOCH
+        );
         assert_eq!(
             FileTime::NT_EPOCH.saturating_sub(Duration::from_nanos(1)),
             FileTime::NT_EPOCH
@@ -1133,6 +1163,7 @@ mod tests {
     fn add_std_duration() {
         use core::time::Duration;
 
+        assert_eq!(FileTime::NT_EPOCH + Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH + Duration::from_nanos(1),
             FileTime::NT_EPOCH
@@ -1146,6 +1177,7 @@ mod tests {
             FileTime::new(1)
         );
 
+        assert_eq!(FileTime::MAX + Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX + Duration::from_nanos(1), FileTime::MAX);
         assert_eq!(FileTime::MAX + Duration::from_nanos(99), FileTime::MAX);
     }
@@ -1162,6 +1194,7 @@ mod tests {
     fn add_positive_time_duration() {
         use time::Duration;
 
+        assert_eq!(FileTime::NT_EPOCH + Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH + Duration::NANOSECOND,
             FileTime::NT_EPOCH
@@ -1175,6 +1208,7 @@ mod tests {
             FileTime::new(1)
         );
 
+        assert_eq!(FileTime::MAX + Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX + Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(FileTime::MAX + Duration::nanoseconds(99), FileTime::MAX);
     }
@@ -1191,6 +1225,7 @@ mod tests {
     fn add_negative_time_duration() {
         use time::Duration;
 
+        assert_eq!(FileTime::MAX + -Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX + -Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(FileTime::MAX + Duration::nanoseconds(-99), FileTime::MAX);
         assert_eq!(
@@ -1198,6 +1233,7 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
+        assert_eq!(FileTime::NT_EPOCH + -Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH + -Duration::NANOSECOND,
             FileTime::NT_EPOCH
@@ -1222,6 +1258,11 @@ mod tests {
 
         {
             let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
             ft += Duration::from_nanos(1);
             assert_eq!(ft, FileTime::NT_EPOCH);
         }
@@ -1236,6 +1277,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(1));
         }
 
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
         {
             let mut ft = FileTime::MAX;
             ft += Duration::from_nanos(1);
@@ -1263,6 +1309,11 @@ mod tests {
 
         {
             let mut ft = FileTime::NT_EPOCH;
+            ft += Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
             ft += Duration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_EPOCH);
         }
@@ -1277,6 +1328,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(1));
         }
 
+        {
+            let mut ft = FileTime::MAX;
+            ft += Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
         {
             let mut ft = FileTime::MAX;
             ft += Duration::NANOSECOND;
@@ -1304,6 +1360,11 @@ mod tests {
 
         {
             let mut ft = FileTime::MAX;
+            ft += -Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
             ft += -Duration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
@@ -1318,6 +1379,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft += -Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
         {
             let mut ft = FileTime::NT_EPOCH;
             ft += -Duration::NANOSECOND;
@@ -1343,6 +1409,7 @@ mod tests {
     fn sub_file_time() {
         use core::time::Duration;
 
+        assert_eq!(FileTime::MAX - FileTime::MAX, Duration::ZERO);
         assert_eq!(
             FileTime::MAX - (FileTime::MAX - Duration::from_nanos(1)),
             Duration::ZERO
@@ -1354,6 +1421,10 @@ mod tests {
         assert_eq!(
             FileTime::MAX - (FileTime::MAX - Duration::from_nanos(100)),
             Duration::from_nanos(100)
+        );
+        assert_eq!(
+            FileTime::MAX - FileTime::NT_EPOCH,
+            Duration::new(1_844_674_407_370, 955_161_500)
         );
     }
 
@@ -1369,6 +1440,7 @@ mod tests {
     fn sub_std_duration() {
         use core::time::Duration;
 
+        assert_eq!(FileTime::MAX - Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX - Duration::from_nanos(1), FileTime::MAX);
         assert_eq!(FileTime::MAX - Duration::from_nanos(99), FileTime::MAX);
         assert_eq!(
@@ -1376,6 +1448,7 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
+        assert_eq!(FileTime::NT_EPOCH - Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH - Duration::from_nanos(1),
             FileTime::NT_EPOCH
@@ -1398,6 +1471,7 @@ mod tests {
     fn sub_positive_time_duration() {
         use time::Duration;
 
+        assert_eq!(FileTime::MAX - Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX - Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(FileTime::MAX - Duration::nanoseconds(99), FileTime::MAX);
         assert_eq!(
@@ -1405,6 +1479,7 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
+        assert_eq!(FileTime::NT_EPOCH - Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH - Duration::NANOSECOND,
             FileTime::NT_EPOCH
@@ -1427,6 +1502,7 @@ mod tests {
     fn sub_negative_time_duration() {
         use time::Duration;
 
+        assert_eq!(FileTime::NT_EPOCH - -Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
             FileTime::NT_EPOCH - -Duration::NANOSECOND,
             FileTime::NT_EPOCH
@@ -1440,6 +1516,7 @@ mod tests {
             FileTime::new(1)
         );
 
+        assert_eq!(FileTime::MAX - -Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX - -Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(FileTime::MAX - Duration::nanoseconds(-99), FileTime::MAX);
     }
@@ -1458,6 +1535,11 @@ mod tests {
 
         {
             let mut ft = FileTime::MAX;
+            ft -= Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
             ft -= Duration::from_nanos(1);
             assert_eq!(ft, FileTime::MAX);
         }
@@ -1472,6 +1554,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
         {
             let mut ft = FileTime::NT_EPOCH;
             ft -= Duration::from_nanos(1);
@@ -1499,6 +1586,11 @@ mod tests {
 
         {
             let mut ft = FileTime::MAX;
+            ft -= Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
             ft -= Duration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
@@ -1513,6 +1605,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
+        {
+            let mut ft = FileTime::NT_EPOCH;
+            ft -= Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
         {
             let mut ft = FileTime::NT_EPOCH;
             ft -= Duration::NANOSECOND;
@@ -1540,6 +1637,11 @@ mod tests {
 
         {
             let mut ft = FileTime::NT_EPOCH;
+            ft -= -Duration::ZERO;
+            assert_eq!(ft, FileTime::NT_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_EPOCH;
             ft -= -Duration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_EPOCH);
         }
@@ -1554,6 +1656,11 @@ mod tests {
             assert_eq!(ft, FileTime::new(1));
         }
 
+        {
+            let mut ft = FileTime::MAX;
+            ft -= -Duration::ZERO;
+            assert_eq!(ft, FileTime::MAX);
+        }
         {
             let mut ft = FileTime::MAX;
             ft -= -Duration::NANOSECOND;
