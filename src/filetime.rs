@@ -488,12 +488,16 @@ impl SubAssign<time::Duration> for FileTime {
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the Windows NT system time.
     ///
+    /// Equivalent to [`FileTime::as_u64`] except that it is not callable in
+    /// const contexts.
+    ///
     /// # Examples
     ///
     /// ```
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
+    /// assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
     /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     /// ```
     #[inline]
@@ -657,12 +661,19 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
 impl From<u64> for FileTime {
     /// Converts the Windows NT system time to a `FileTime`.
     ///
+    /// Equivalent to [`FileTime::new`] except that it is not callable in const
+    /// contexts.
+    ///
     /// # Examples
     ///
     /// ```
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from(116_444_736_000_000_000),
+    ///     FileTime::UNIX_EPOCH
+    /// );
     /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     /// ```
     #[inline]
@@ -1683,6 +1694,7 @@ mod tests {
     #[test]
     fn from_file_time_to_u64() {
         assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
+        assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
@@ -1790,6 +1802,10 @@ mod tests {
     #[test]
     fn from_u64_to_file_time() {
         assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
+        assert_eq!(
+            FileTime::from(116_444_736_000_000_000),
+            FileTime::UNIX_EPOCH
+        );
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
