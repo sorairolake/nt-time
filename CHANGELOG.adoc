@@ -21,6 +21,7 @@ toc::[]
 * Add `FileTime::now` method
 * Add conversion methods from/to `chrono::DateTime`
 * Add methods for operation with `time::Duration`
+* Add conversion methods from/to byte arrays
 
 === Changed
 

@@ -9,7 +9,7 @@
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
 use core::{
-    fmt,
+    fmt, mem,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
@@ -136,6 +136,7 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     /// ```
     #[must_use]
@@ -152,6 +153,7 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+    /// assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
     /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     /// ```
     #[must_use]
@@ -278,6 +280,90 @@ impl FileTime {
         let ft = self.as_u64().saturating_sub(duration);
         Self::new(ft)
     }
+
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// big-endian byte order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_EPOCH.to_be_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_be_bytes(),
+    ///     [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+    /// );
+    /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.as_u64().to_be_bytes()
+    }
+
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// little-endian byte order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_le_bytes(),
+    ///     [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+    /// );
+    /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.as_u64().to_le_bytes()
+    }
+
+    /// Creates a native endian `FileTime` value from its representation as a
+    /// byte array in big-endian.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::from_be_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn from_be_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
+        Self::new(u64::from_be_bytes(bytes))
+    }
+
+    /// Creates a native endian `FileTime` value from its representation as a
+    /// byte array in little-endian.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::from_le_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
+        Self::new(u64::from_le_bytes(bytes))
+    }
 }
 
 impl Default for FileTime {
@@ -305,6 +391,7 @@ impl fmt::Display for FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(format!("{}", FileTime::NT_EPOCH), "0");
+    /// assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
     /// assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     /// ```
     #[inline]
@@ -773,6 +860,14 @@ mod tests {
     #[test]
     fn debug() {
         assert_eq!(format!("{:?}", FileTime::NT_EPOCH), "FileTime(0)");
+        assert_eq!(
+            format!("{:?}", FileTime::UNIX_EPOCH),
+            "FileTime(116444736000000000)"
+        );
+        assert_eq!(
+            format!("{:?}", FileTime::MAX),
+            "FileTime(18446744073709551615)"
+        );
     }
 
     #[cfg(feature = "std")]
@@ -850,12 +945,14 @@ mod tests {
     #[test]
     fn new() {
         assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
         assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     }
 
     #[test]
     fn as_u64() {
         assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+        assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
         assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     }
 
@@ -981,6 +1078,46 @@ mod tests {
     }
 
     #[test]
+    fn to_be_bytes() {
+        assert_eq!(FileTime::NT_EPOCH.to_be_bytes(), [u8::MIN; 8]);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_be_bytes(),
+            [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+        );
+        assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
+    }
+
+    #[test]
+    fn to_le_bytes() {
+        assert_eq!(FileTime::NT_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_le_bytes(),
+            [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+        );
+        assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    }
+
+    #[test]
+    fn from_be_bytes() {
+        assert_eq!(FileTime::from_be_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+        assert_eq!(
+            FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
+    }
+
+    #[test]
+    fn from_le_bytes() {
+        assert_eq!(FileTime::from_le_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+        assert_eq!(
+            FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
+    }
+
+    #[test]
     fn default() {
         assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
     }
@@ -988,6 +1125,7 @@ mod tests {
     #[test]
     fn display() {
         assert_eq!(format!("{}", FileTime::NT_EPOCH), "0");
+        assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
         assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     }
 
