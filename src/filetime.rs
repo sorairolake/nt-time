@@ -498,6 +498,48 @@ impl Sub<std::time::SystemTime> for FileTime {
     }
 }
 
+impl Sub<FileTime> for OffsetDateTime {
+    type Output = time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self - Self::try_from(rhs).expect("RHS is out of range for `OffsetDateTime`")
+    }
+}
+
+impl Sub<OffsetDateTime> for FileTime {
+    type Output = time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: OffsetDateTime) -> Self::Output {
+        OffsetDateTime::try_from(self).expect("LHS is out of range for `OffsetDateTime`") - rhs
+    }
+}
+
+#[cfg(feature = "chrono")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
+impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
+    type Output = chrono::Duration;
+
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self - Self::from(rhs)
+    }
+}
+
+#[cfg(feature = "chrono")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
+impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
+    type Output = chrono::Duration;
+
+    #[inline]
+    fn sub(self, rhs: chrono::DateTime<chrono::Utc>) -> Self::Output {
+        use chrono::{DateTime, Utc};
+
+        DateTime::<Utc>::from(self) - rhs
+    }
+}
+
 impl SubAssign<core::time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
@@ -1447,14 +1489,6 @@ mod tests {
 
         assert_eq!(FileTime::MAX - FileTime::MAX, Duration::ZERO);
         assert_eq!(
-            FileTime::MAX - (FileTime::MAX - Duration::from_nanos(1)),
-            Duration::ZERO
-        );
-        assert_eq!(
-            FileTime::MAX - (FileTime::MAX - Duration::from_nanos(99)),
-            Duration::ZERO
-        );
-        assert_eq!(
             FileTime::MAX - (FileTime::MAX - Duration::from_nanos(100)),
             Duration::from_nanos(100)
         );
@@ -1610,20 +1644,12 @@ mod tests {
         assert_eq!(
             FileTime::new(9_223_372_036_854_775_807)
                 - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_699)),
-            if cfg!(windows) {
-                Duration::from_nanos(100)
-            } else {
-                Duration::from_nanos(1)
-            }
+            Duration::from_nanos(if cfg!(windows) { 100 } else { 1 })
         );
         assert_eq!(
             FileTime::new(9_223_372_036_854_775_807)
                 - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_601)),
-            if cfg!(windows) {
-                Duration::from_nanos(100)
-            } else {
-                Duration::from_nanos(99)
-            }
+            Duration::from_nanos(if cfg!(windows) { 100 } else { 99 })
         );
         assert_eq!(
             FileTime::new(9_223_372_036_854_775_807)
@@ -1644,6 +1670,128 @@ mod tests {
 
         let _ = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
             - FileTime::new(9_223_372_036_854_775_807);
+    }
+
+    #[test]
+    fn sub_file_time_from_offset_date_time() {
+        use time::Duration;
+
+        assert_eq!(
+            datetime!(9999-12-31 23:59:59.999_999_900 UTC)
+                - FileTime::new(2_650_467_743_999_999_999),
+            Duration::ZERO
+        );
+        assert_eq!(
+            datetime!(9999-12-31 23:59:59.999_999_900 UTC)
+                - (FileTime::new(2_650_467_743_999_999_999) - Duration::nanoseconds(100)),
+            Duration::nanoseconds(100)
+        );
+        assert_eq!(
+            datetime!(9999-12-31 23:59:59.999_999_900 UTC) - FileTime::NT_EPOCH,
+            Duration::new(265_046_774_399, 999_999_900)
+        );
+    }
+
+    #[test]
+    fn sub_offset_date_time_from_file_time() {
+        use time::Duration;
+
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999)
+                - datetime!(9999-12-31 23:59:59.999_999_900 UTC),
+            Duration::ZERO
+        );
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999)
+                - (datetime!(9999-12-31 23:59:59.999_999_900 UTC) - Duration::nanoseconds(1)),
+            Duration::nanoseconds(1)
+        );
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999)
+                - (datetime!(9999-12-31 23:59:59.999_999_900 UTC) - Duration::nanoseconds(99)),
+            Duration::nanoseconds(99)
+        );
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999)
+                - (datetime!(9999-12-31 23:59:59.999_999_900 UTC) - Duration::nanoseconds(100)),
+            Duration::nanoseconds(100)
+        );
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999) - OFFSET_DATE_TIME_NT_EPOCH,
+            Duration::new(265_046_774_399, 999_999_900)
+        );
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_file_time_from_chrono_date_time() {
+        use chrono::{DateTime, Utc};
+
+        assert_eq!(
+            "+60056-05-28 05:36:10.955161500 UTC"
+                .parse::<DateTime<Utc>>()
+                .unwrap()
+                - FileTime::MAX,
+            chrono::Duration::zero()
+        );
+        assert_eq!(
+            "+60056-05-28 05:36:10.955161500 UTC"
+                .parse::<DateTime<Utc>>()
+                .unwrap()
+                - (FileTime::MAX - core::time::Duration::from_nanos(100)),
+            chrono::Duration::nanoseconds(100)
+        );
+        assert_eq!(
+            "+60056-05-28 05:36:10.955161500 UTC"
+                .parse::<DateTime<Utc>>()
+                .unwrap()
+                - FileTime::NT_EPOCH,
+            chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
+                .unwrap()
+        );
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_chrono_date_time_from_file_time() {
+        use chrono::{DateTime, Utc};
+
+        assert_eq!(
+            FileTime::MAX
+                - "+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap(),
+            chrono::Duration::zero()
+        );
+        assert_eq!(
+            FileTime::MAX
+                - ("+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+                    - chrono::Duration::nanoseconds(1)),
+            chrono::Duration::nanoseconds(1)
+        );
+        assert_eq!(
+            FileTime::MAX
+                - ("+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+                    - chrono::Duration::nanoseconds(99)),
+            chrono::Duration::nanoseconds(99)
+        );
+        assert_eq!(
+            FileTime::MAX
+                - ("+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+                    - chrono::Duration::nanoseconds(100)),
+            chrono::Duration::nanoseconds(100)
+        );
+        assert_eq!(
+            FileTime::MAX - *CHRONO_DATE_TIME_NT_EPOCH,
+            chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
+                .unwrap()
+        );
     }
 
     #[test]

@@ -23,6 +23,8 @@ toc::[]
 * Add methods for operation with `time::Duration`
 * Add conversion methods from/to byte arrays
 * Add methods to subtract from/to `SystemTime`
+* Add methods to subtract from/to `time::OffsetDateTime`
+* Add methods to subtract from/to `chrono::DateTime<chrono::Utc>`
 
 === Changed
 
