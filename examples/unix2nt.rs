@@ -20,17 +20,39 @@ use clap::Parser;
 
 #[cfg(feature = "std")]
 #[derive(Debug, Parser)]
-#[clap(version, about)]
+#[clap(version, about, group(clap::ArgGroup::new("time").required(true)))]
 struct Opt {
-    /// Unix time to convert.
-    time: i64,
+    /// Unix time in seconds to convert.
+    #[clap(
+        short,
+        long,
+        value_name("TIME"),
+        allow_hyphen_values(true),
+        group("time")
+    )]
+    secs: Option<i64>,
+
+    /// Unix time in nanoseconds to convert.
+    #[clap(
+        short,
+        long,
+        value_name("TIME"),
+        allow_hyphen_values(true),
+        group("time")
+    )]
+    nanos: Option<i128>,
 }
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ut = time::OffsetDateTime::from_unix_timestamp(opt.time).context("could not read time")?;
+    let ut = match (opt.secs, opt.nanos) {
+        (Some(time), None) => time::OffsetDateTime::from_unix_timestamp(time),
+        (None, Some(time)) => time::OffsetDateTime::from_unix_timestamp_nanos(time),
+        _ => unreachable!(),
+    }
+    .context("could not read time")?;
     let ft = nt_time::FileTime::try_from(ut).context("could not convert time")?;
     println!("{ft}");
     Ok(())
