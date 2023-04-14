@@ -25,6 +25,10 @@ toc::[]
 * Add methods to subtract from/to `SystemTime`
 * Add methods to subtract from/to `time::OffsetDateTime`
 * Add methods to subtract from/to `chrono::DateTime<chrono::Utc>`
+* Add methods for equality comparisons from/to `SystemTime`,
+  `time::OffsetDateTime` and `chrono::DateTime<chrono::Utc>`
+* Add methods for order comparisons from/to `SystemTime`,
+  `time::OffsetDateTime` and `chrono::DateTime<chrono::Utc>`
 
 === Changed
 
