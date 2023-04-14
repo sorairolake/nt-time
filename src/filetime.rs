@@ -368,6 +368,9 @@ impl FileTime {
 impl Default for FileTime {
     /// Returns the default value of "1601-01-01 00:00:00 UTC".
     ///
+    /// Equivalent to [`FileTime::NT_EPOCH`] except that it is not callable in
+    /// const contexts.
+    ///
     /// # Examples
     ///
     /// ```
