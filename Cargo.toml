@@ -1,6 +1,6 @@
 [package]
 name = "nt-time"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.63.0"
@@ -23,6 +23,8 @@ exclude = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+chrono = { version = "0.4.24", default-features = false, optional = true }
+once_cell = { version = "1.17.1", default-features = false, features = ["critical-section"], optional = true }
 time = { version = "0.3.20", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
@@ -31,8 +33,9 @@ clap = { version = "3.2.23", features = ["derive"] }
 
 [features]
 default = ["std"]
-std = ["time/std"]
+std = ["dep:once_cell", "time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
+chrono = ["dep:chrono", "dep:once_cell"]
 
 [package.metadata.docs.rs]
 all-features = true

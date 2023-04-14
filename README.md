@@ -14,7 +14,31 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.1.0"
+nt-time = "0.2.0"
+```
+
+### Example
+
+```rust
+use core::time::Duration;
+
+use nt_time::FileTime;
+use time::OffsetDateTime;
+
+let ft = FileTime::NT_EPOCH;
+assert_eq!(
+    OffsetDateTime::try_from(ft).unwrap().to_string(),
+    "1601-01-01 0:00:00.0 +00:00:00"
+);
+
+let ft = ft + Duration::from_secs(11_644_473_600);
+assert_eq!(
+    OffsetDateTime::try_from(ft).unwrap(),
+    OffsetDateTime::UNIX_EPOCH
+);
+assert_eq!(ft.as_u64(), 116_444_736_000_000_000);
+
+assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 ```
 
 ### Crate features
@@ -27,6 +51,10 @@ This is enabled by default.
 #### `large-dates`
 
 Enables the `large-dates` feature of the [`time`][time-crate-url] crate.
+
+#### `chrono`
+
+Enables the [`chrono`][chrono-crate-url] crate.
 
 ### `no_std` support
 
@@ -69,3 +97,4 @@ See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
 [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [rust-official-url]: https://www.rust-lang.org/
 [time-crate-url]: https://crates.io/crates/time
+[chrono-crate-url]: https://crates.io/crates/chrono

@@ -17,7 +17,7 @@ pub struct OffsetDateTimeRangeError;
 impl fmt::Display for OffsetDateTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "date time is out of range")
+        write!(f, "date and time is out of range for `OffsetDateTime`")
     }
 }
 
@@ -36,19 +36,23 @@ impl FileTimeRangeError {
     pub(crate) const fn new(kind: FileTimeRangeErrorKind) -> Self {
         Self(kind)
     }
+
+    const fn kind(self) -> FileTimeRangeErrorKind {
+        self.0
+    }
 }
 
 impl fmt::Display for FileTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
+        match self.kind() {
             FileTimeRangeErrorKind::Negative => {
-                write!(f, "file time is before `1601-01-01 00:00:00 UTC`")
+                write!(f, "date and time is before `1601-01-01 00:00:00 UTC`")
             }
             FileTimeRangeErrorKind::Overflow => {
                 write!(
                     f,
-                    "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+                    "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
                 )
             }
         }
@@ -90,15 +94,15 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq_offset_date_time_range_error() {
-        assert!(OffsetDateTimeRangeError == OffsetDateTimeRangeError);
+    fn offset_date_time_range_error_equality() {
+        assert_eq!(OffsetDateTimeRangeError, OffsetDateTimeRangeError);
     }
 
     #[test]
     fn display_offset_date_time_range_error() {
         assert_eq!(
             format!("{OffsetDateTimeRangeError}"),
-            "date time is out of range"
+            "date and time is out of range for `OffsetDateTime`"
         );
     }
 
@@ -152,14 +156,22 @@ mod tests {
     }
 
     #[test]
-    fn partial_eq_file_time_range_error() {
-        assert!(
+    fn file_time_range_error_equality() {
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
-                == FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
-        assert!(
+        assert_ne!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
-                == FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_ne!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }
 
@@ -170,14 +182,14 @@ mod tests {
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
             ),
-            "file time is before `1601-01-01 00:00:00 UTC`"
+            "date and time is before `1601-01-01 00:00:00 UTC`"
         );
         assert_eq!(
             format!(
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             ),
-            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
         );
     }
 

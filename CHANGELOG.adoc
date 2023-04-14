@@ -12,6 +12,39 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.1.0\...v0.2.0[0.2.0] - 2023-04-14
+
+=== Added
+
+* Add `impl From<FileTime> for SystemTime`
+* Add `FileTime::UNIX_EPOCH` constant
+* Add `FileTime::now` method
+* Add conversion methods from/to `chrono::DateTime`
+* Add methods for operation with `time::Duration`
+* Add conversion methods from/to byte arrays
+* Add methods to subtract from/to `SystemTime`
+* Add methods to subtract from/to `time::OffsetDateTime`
+* Add methods to subtract from/to `chrono::DateTime<chrono::Utc>`
+* Add methods for equality comparisons from/to `SystemTime`,
+  `time::OffsetDateTime` and `chrono::DateTime<chrono::Utc>`
+* Add methods for order comparisons from/to `SystemTime`,
+  `time::OffsetDateTime` and `chrono::DateTime<chrono::Utc>`
+
+=== Changed
+
+* `impl TryFrom<SystemTime> for FileTime` always supports after
+  `9999-12-31 23:59:59.999999900 UTC`
+
+=== Removed
+
+* Remove `impl TryFrom<FileTime> for SystemTime`
+
+=== Fixed
+
+* Fix `OffsetDateTimeRangeError` description
+* Fix `FileTimeRangeError` description
+* Fix operation of `impl Sub for FileTime` if the difference is large
+
 == {project-url}/releases/tag/v0.1.0[0.1.0] - 2023-03-27
 
 === Added
