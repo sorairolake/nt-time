@@ -56,6 +56,10 @@ Enables the `large-dates` feature of the [`time`][time-crate-url] crate.
 
 Enables the [`chrono`][chrono-crate-url] crate.
 
+#### `serde`
+
+Enables the [`serde`][serde-official-url] crate.
+
 ### `no_std` support
 
 This supports `no_std` mode.
@@ -98,3 +102,4 @@ See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
 [rust-official-url]: https://www.rust-lang.org/
 [time-crate-url]: https://crates.io/crates/time
 [chrono-crate-url]: https://crates.io/crates/chrono
+[serde-official-url]: https://serde.rs/

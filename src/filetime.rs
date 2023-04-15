@@ -42,6 +42,7 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
 ///
 /// [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -2634,6 +2635,65 @@ mod tests {
         assert_eq!(
             ft,
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde() {
+        use serde_test::{assert_tokens, Token};
+
+        assert_tokens(
+            &FileTime::NT_EPOCH,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MIN),
+            ],
+        );
+        assert_tokens(
+            &FileTime::UNIX_EPOCH,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(116_444_736_000_000_000),
+            ],
+        );
+        assert_tokens(
+            &FileTime::MAX,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MAX),
+            ],
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialize_json() {
+        assert_eq!(serde_json::to_string(&FileTime::NT_EPOCH).unwrap(), "0");
+        assert_eq!(
+            serde_json::to_string(&FileTime::UNIX_EPOCH).unwrap(),
+            "116444736000000000"
+        );
+        assert_eq!(
+            serde_json::to_string(&FileTime::MAX).unwrap(),
+            "18446744073709551615"
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialize_json() {
+        assert_eq!(
+            serde_json::from_str::<FileTime>("0").unwrap(),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            serde_json::from_str::<FileTime>("116444736000000000").unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            serde_json::from_str::<FileTime>("18446744073709551615").unwrap(),
+            FileTime::MAX
         );
     }
 }
