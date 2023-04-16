@@ -39,6 +39,7 @@ default = ["std"]
 std = ["dep:once_cell", "time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
 chrono = ["dep:chrono", "dep:once_cell"]
+serde-human-readable = ["serde", "time/serde-human-readable"]
 
 [package.metadata.docs.rs]
 all-features = true

@@ -60,6 +60,11 @@ Enables the [`chrono`][chrono-crate-url] crate.
 
 Enables the [`serde`][serde-official-url] crate.
 
+#### `serde-human-readable`
+
+Enables the `serde-human-readable` feature of the [`serde`][serde-official-url]
+crate.
+
 ### `no_std` support
 
 This supports `no_std` mode.

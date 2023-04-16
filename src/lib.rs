@@ -54,6 +54,9 @@ extern crate std;
 
 pub mod error;
 mod filetime;
+#[cfg(feature = "serde-human-readable")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "serde-human-readable")))]
+pub mod serde;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
