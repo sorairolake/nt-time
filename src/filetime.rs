@@ -2651,6 +2651,38 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
+    fn serde_optional() {
+        use serde_test::{assert_tokens, Token};
+
+        assert_tokens(
+            &Some(FileTime::NT_EPOCH),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MIN),
+            ],
+        );
+        assert_tokens(
+            &Some(FileTime::UNIX_EPOCH),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(116_444_736_000_000_000),
+            ],
+        );
+        assert_tokens(
+            &Some(FileTime::MAX),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MAX),
+            ],
+        );
+        assert_tokens(&None::<FileTime>, &[Token::None]);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
     fn serialize_json() {
         assert_eq!(serde_json::to_string(&FileTime::NT_EPOCH).unwrap(), "0");
         assert_eq!(
@@ -2661,6 +2693,24 @@ mod tests {
             serde_json::to_string(&FileTime::MAX).unwrap(),
             "18446744073709551615"
         );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialize_optional_json() {
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::NT_EPOCH)).unwrap(),
+            "0"
+        );
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::UNIX_EPOCH)).unwrap(),
+            "116444736000000000"
+        );
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::MAX)).unwrap(),
+            "18446744073709551615"
+        );
+        assert_eq!(serde_json::to_string(&None::<FileTime>).unwrap(), "null");
     }
 
     #[cfg(feature = "serde")]
@@ -2677,6 +2727,27 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<FileTime>("18446744073709551615").unwrap(),
             FileTime::MAX
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialize_optional_json() {
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("0").unwrap(),
+            Some(FileTime::NT_EPOCH)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("116444736000000000").unwrap(),
+            Some(FileTime::UNIX_EPOCH)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("18446744073709551615").unwrap(),
+            Some(FileTime::MAX)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("null").unwrap(),
+            None
         );
     }
 }
