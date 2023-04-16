@@ -120,7 +120,6 @@ impl FileTime {
     /// let now = FileTime::now();
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
     #[must_use]
     pub fn now() -> Self {
         use std::time::SystemTime;
@@ -404,7 +403,6 @@ impl fmt::Display for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialEq<FileTime> for std::time::SystemTime {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
@@ -413,7 +411,6 @@ impl PartialEq<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialEq<std::time::SystemTime> for FileTime {
     #[inline]
     fn eq(&self, other: &std::time::SystemTime) -> bool {
@@ -439,7 +436,6 @@ impl PartialEq<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialEq<FileTime> for chrono::DateTime<chrono::Utc> {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
@@ -448,7 +444,6 @@ impl PartialEq<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
     #[inline]
     fn eq(&self, other: &chrono::DateTime<chrono::Utc>) -> bool {
@@ -459,7 +454,6 @@ impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialOrd<FileTime> for std::time::SystemTime {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
@@ -468,7 +462,6 @@ impl PartialOrd<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialOrd<std::time::SystemTime> for FileTime {
     #[inline]
     fn partial_cmp(&self, other: &std::time::SystemTime) -> Option<Ordering> {
@@ -497,7 +490,6 @@ impl PartialOrd<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialOrd<FileTime> for chrono::DateTime<chrono::Utc> {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
@@ -506,7 +498,6 @@ impl PartialOrd<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialOrd<chrono::DateTime<chrono::Utc>> for FileTime {
     #[inline]
     fn partial_cmp(&self, other: &chrono::DateTime<chrono::Utc>) -> Option<Ordering> {
@@ -590,7 +581,6 @@ impl Sub<time::Duration> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl Sub<FileTime> for std::time::SystemTime {
     type Output = std::time::Duration;
 
@@ -602,7 +592,6 @@ impl Sub<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl Sub<std::time::SystemTime> for FileTime {
     type Output = std::time::Duration;
 
@@ -635,7 +624,6 @@ impl Sub<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
     type Output = chrono::Duration;
 
@@ -646,7 +634,6 @@ impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
     type Output = chrono::Duration;
 
@@ -694,7 +681,6 @@ impl From<FileTime> for u64 {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
     ///
@@ -812,7 +798,6 @@ impl TryFrom<FileTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// Converts a `FileTime` to a [`DateTime<Utc>`](chrono::DateTime).
     ///
@@ -870,7 +855,6 @@ impl From<u64> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl TryFrom<std::time::SystemTime> for FileTime {
     type Error = FileTimeRangeError;
 
@@ -993,7 +977,6 @@ impl TryFrom<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     type Error = FileTimeRangeError;
 
