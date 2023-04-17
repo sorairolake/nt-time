@@ -53,7 +53,7 @@ extern crate alloc;
 extern crate std;
 
 pub mod error;
-mod filetime;
+mod file_time;
 #[cfg(feature = "serde-human-readable")]
 pub mod serde;
 
@@ -61,4 +61,4 @@ pub mod serde;
 pub use chrono;
 pub use time;
 
-pub use crate::filetime::FileTime;
+pub use crate::file_time::FileTime;
