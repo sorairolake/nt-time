@@ -36,7 +36,10 @@ impl FileTimeRangeError {
         Self(kind)
     }
 
-    const fn kind(self) -> FileTimeRangeErrorKind {
+    /// Returns the corresponding [`FileTimeRangeErrorKind`] for this error.
+    #[must_use]
+    #[inline]
+    pub const fn kind(self) -> FileTimeRangeErrorKind {
         self.0
     }
 }
@@ -44,11 +47,36 @@ impl FileTimeRangeError {
 impl fmt::Display for FileTimeRangeError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.kind() {
-            FileTimeRangeErrorKind::Negative => {
+        self.kind().fmt(f)
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for FileTimeRangeError {}
+
+/// Details of the error that caused a [`FileTimeRangeError`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FileTimeRangeErrorKind {
+    /// Value was negative.
+    ///
+    /// This means the date and time was before "1601-01-01 00:00:00 UTC".
+    Negative,
+
+    /// Value was too big to be represented as [`FileTime`](crate::FileTime).
+    ///
+    /// This means the date and time was after "+60056-05-28 05:36:10.955161500
+    /// UTC".
+    Overflow,
+}
+
+impl fmt::Display for FileTimeRangeErrorKind {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Negative => {
                 write!(f, "date and time is before `1601-01-01 00:00:00 UTC`")
             }
-            FileTimeRangeErrorKind::Overflow => {
+            Self::Overflow => {
                 write!(
                     f,
                     "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
@@ -56,15 +84,6 @@ impl fmt::Display for FileTimeRangeError {
             }
         }
     }
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for FileTimeRangeError {}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum FileTimeRangeErrorKind {
-    Negative,
-    Overflow,
 }
 
 #[cfg(test)]
@@ -126,13 +145,17 @@ mod tests {
 
     #[test]
     fn copy_file_time_range_error() {
-        let a = FileTimeRangeError::new(FileTimeRangeErrorKind::Negative);
-        let b = a;
-        assert_eq!(a, b);
+        {
+            let a = FileTimeRangeError::new(FileTimeRangeErrorKind::Negative);
+            let b = a;
+            assert_eq!(a, b);
+        }
 
-        let c = FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow);
-        let d = c;
-        assert_eq!(c, d);
+        {
+            let a = FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow);
+            let b = a;
+            assert_eq!(a, b);
+        }
     }
 
     #[test]
@@ -202,5 +225,76 @@ mod tests {
         assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             .source()
             .is_none());
+    }
+
+    #[test]
+    fn clone_file_time_range_error_kind() {
+        assert_eq!(
+            FileTimeRangeErrorKind::Negative.clone(),
+            FileTimeRangeErrorKind::Negative
+        );
+        assert_eq!(
+            FileTimeRangeErrorKind::Overflow.clone(),
+            FileTimeRangeErrorKind::Overflow
+        );
+    }
+
+    #[test]
+    fn copy_file_time_range_error_kind() {
+        {
+            let a = FileTimeRangeErrorKind::Negative;
+            let b = a;
+            assert_eq!(a, b);
+        }
+
+        {
+            let a = FileTimeRangeErrorKind::Overflow;
+            let b = a;
+            assert_eq!(a, b);
+        }
+    }
+
+    #[test]
+    fn debug_file_time_range_error_kind() {
+        assert_eq!(
+            format!("{:?}", FileTimeRangeErrorKind::Negative),
+            "Negative"
+        );
+        assert_eq!(
+            format!("{:?}", FileTimeRangeErrorKind::Overflow),
+            "Overflow"
+        );
+    }
+
+    #[test]
+    fn file_time_range_error_kind_equality() {
+        assert_eq!(
+            FileTimeRangeErrorKind::Negative,
+            FileTimeRangeErrorKind::Negative
+        );
+        assert_ne!(
+            FileTimeRangeErrorKind::Negative,
+            FileTimeRangeErrorKind::Overflow
+        );
+        assert_ne!(
+            FileTimeRangeErrorKind::Overflow,
+            FileTimeRangeErrorKind::Negative
+        );
+        assert_eq!(
+            FileTimeRangeErrorKind::Overflow,
+            FileTimeRangeErrorKind::Overflow
+        );
+    }
+
+    #[test]
+    fn display_file_time_range_error_kind() {
+        assert_eq!(
+            format!("{}", FileTimeRangeErrorKind::Negative),
+            "date and time is before `1601-01-01 00:00:00 UTC`"
+        );
+        assert_eq!(
+            format!("{}", FileTimeRangeErrorKind::Overflow),
+            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+        );
     }
 }

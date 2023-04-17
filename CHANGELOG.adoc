@@ -18,6 +18,10 @@ toc::[]
 
 * Add Serde support
 
+=== Changed
+
+* Change `FileTimeRangeErrorKind` to public
+
 == {compare-url}/v0.1.0\...v0.2.0[0.2.0] - 2023-04-14
 
 === Added
