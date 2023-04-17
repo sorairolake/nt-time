@@ -39,18 +39,16 @@ jobs:
       uses: Swatinem/rust-cache@v2.2.1
       with:
         key: ${{ matrix.target }}
-    - name: Build a package
-      run: cargo build --target ${{ matrix.target }}
-    - name: Build a package (all features)
-      run: cargo build --target ${{ matrix.target }} --all-features
-    - name: Build a package (no default features)
-      run: cargo build --target ${{ matrix.target }} --no-default-features
     - name: Run tests
       run: cargo test --target ${{ matrix.target }}
     - name: Run tests (all features)
       run: cargo test --target ${{ matrix.target }} --all-features
     - name: Run tests (no default features)
       run: cargo test --target ${{ matrix.target }} --no-default-features
+    - run: cargo test --target ${{ matrix.target }} -F serde-human-readable
+    - run: cargo test --target ${{ matrix.target }} -F large-dates,serde-human-readable
+    - run: cargo test --target ${{ matrix.target }} --no-default-features -F serde-human-readable
+    - run: cargo test --target ${{ matrix.target }} --no-default-features -F large-dates,serde-human-readable
 
   rustfmt:
     name: Rustfmt
