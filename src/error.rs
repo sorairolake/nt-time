@@ -22,7 +22,6 @@ impl fmt::Display for OffsetDateTimeRangeError {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl std::error::Error for OffsetDateTimeRangeError {}
 
 /// The error type indicating that a [`FileTime`](crate::FileTime) was out of
@@ -60,7 +59,6 @@ impl fmt::Display for FileTimeRangeError {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl std::error::Error for FileTimeRangeError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

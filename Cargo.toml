@@ -25,17 +25,21 @@ exclude = [
 [dependencies]
 chrono = { version = "0.4.24", default-features = false, optional = true }
 once_cell = { version = "1.17.1", default-features = false, features = ["critical-section"], optional = true }
+serde = { version = "1.0.160", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.20", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.70"
 clap = { version = "3.2.23", features = ["derive"] }
+serde_json = "1.0.96"
+serde_test = "1.0.160"
 
 [features]
 default = ["std"]
 std = ["dep:once_cell", "time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
 chrono = ["dep:chrono", "dep:once_cell"]
+serde-human-readable = ["serde", "time/serde-human-readable"]
 
 [package.metadata.docs.rs]
 all-features = true
