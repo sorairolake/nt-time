@@ -53,8 +53,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
@@ -74,8 +76,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::OffsetDateTime;
+    /// # use nt_time::{time::OffsetDateTime, FileTime};
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
@@ -91,8 +92,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
@@ -729,8 +732,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
@@ -750,8 +755,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// NT system time represents after "9999-12-31 23:59:59.999999900 UTC":
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(not(feature = "large-dates"))]
     /// assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
@@ -760,8 +767,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// With the `large-dates` feature enabled, this always succeeds:
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
@@ -804,8 +813,10 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, TimeZone, Utc};
-    /// # use nt_time::FileTime;
+    /// # use nt_time::{
+    /// #     chrono::{DateTime, TimeZone, Utc},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     DateTime::<Utc>::from(FileTime::NT_EPOCH),
@@ -915,8 +926,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(
@@ -950,8 +963,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// UTC":
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert!(FileTime::try_from(
@@ -989,8 +1004,10 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, Duration, TimeZone, Utc};
-    /// # use nt_time::FileTime;
+    /// # use nt_time::{
+    /// #     chrono::{DateTime, Duration, TimeZone, Utc},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()).unwrap(),

@@ -14,8 +14,7 @@
 //! ```
 //! use core::time::Duration;
 //!
-//! use nt_time::FileTime;
-//! use time::OffsetDateTime;
+//! use nt_time::{time::OffsetDateTime, FileTime};
 //!
 //! let ft = FileTime::NT_EPOCH;
 //! assert_eq!(
