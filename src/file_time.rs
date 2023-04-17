@@ -42,7 +42,6 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
 ///
 /// [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -1038,6 +1037,88 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
         let ft = u64::try_from(elapsed / 100)
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Overflow))?;
         Ok(Self::new(ft))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for FileTime {
+    /// Serializes a [`FileTime`] into the given Serde serializer.
+    ///
+    /// This serializes using the underlying [`u64`] format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     serde_json::to_string(&FileTime::UNIX_EPOCH).unwrap(),
+    ///     "116444736000000000"
+    /// );
+    ///
+    /// assert_eq!(
+    ///     serde_json::to_string(&Some(FileTime::UNIX_EPOCH)).unwrap(),
+    ///     "116444736000000000"
+    /// );
+    /// assert_eq!(serde_json::to_string(&None::<FileTime>).unwrap(), "null");
+    /// ```
+    #[inline]
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_newtype_struct("FileTime", &self.as_u64())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for FileTime {
+    /// Deserializes a [`FileTime`] from the given Serde deserializer.
+    ///
+    /// This deserializes from its underlying [`u64`] representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     serde_json::from_str::<FileTime>("116444736000000000").unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    ///
+    /// assert_eq!(
+    ///     serde_json::from_str::<Option<FileTime>>("116444736000000000").unwrap(),
+    ///     Some(FileTime::UNIX_EPOCH)
+    /// );
+    /// assert_eq!(
+    ///     serde_json::from_str::<Option<FileTime>>("null").unwrap(),
+    ///     None
+    /// );
+    /// ```
+    #[inline]
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        use serde::{de::Visitor, Deserializer};
+
+        struct FileTimeVisitor;
+
+        impl<'de> Visitor<'de> for FileTimeVisitor {
+            type Value = FileTime;
+
+            #[inline]
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(formatter, "a newtype struct `FileTime`")
+            }
+
+            #[inline]
+            fn visit_newtype_struct<D: Deserializer<'de>>(
+                self,
+                deserializer: D,
+            ) -> Result<Self::Value, D::Error> {
+                use serde::Deserialize;
+
+                u64::deserialize(deserializer).map(FileTime::new)
+            }
+        }
+
+        deserializer.deserialize_newtype_struct("FileTime", FileTimeVisitor)
     }
 }
 
@@ -2668,6 +2749,31 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
+    fn deserialize_error() {
+        use serde_test::{assert_de_tokens_error, Token};
+
+        assert_de_tokens_error::<FileTime>(
+            &[Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+        );
+        assert_de_tokens_error::<FileTime>(
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::Bool(bool::default()),
+            ],
+            "invalid type: boolean `false`, expected u64",
+        );
+        assert_de_tokens_error::<FileTime>(
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::I64(i64::MIN),
+            ],
+            "invalid value: integer `-9223372036854775808`, expected u64",
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
     fn serde_optional() {
         use serde_test::{assert_tokens, Token};
 
@@ -2696,6 +2802,37 @@ mod tests {
             ],
         );
         assert_tokens(&None::<FileTime>, &[Token::None]);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialize_optional_error() {
+        use serde_test::{assert_de_tokens_error, Token};
+
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected option"#,
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[Token::Some, Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::Bool(bool::default()),
+            ],
+            "invalid type: boolean `false`, expected u64",
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::I64(i64::MIN),
+            ],
+            "invalid value: integer `-9223372036854775808`, expected u64",
+        );
     }
 
     #[cfg(feature = "serde")]

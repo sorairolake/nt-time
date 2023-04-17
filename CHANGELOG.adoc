@@ -12,6 +12,12 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.3.0\...HEAD[Unreleased]
+
+=== Added
+
+* Add doctests for `Serialize` and `Deserialize`
+
 == {compare-url}/v0.2.0\...v0.3.0[0.3.0] - 2023-04-17
 
 === Added
