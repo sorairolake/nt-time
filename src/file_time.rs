@@ -42,6 +42,7 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
 ///
 /// [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -52,8 +53,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
@@ -73,8 +76,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::OffsetDateTime;
+    /// # use nt_time::{time::OffsetDateTime, FileTime};
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
@@ -90,8 +92,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
@@ -119,7 +123,6 @@ impl FileTime {
     /// let now = FileTime::now();
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
     #[must_use]
     pub fn now() -> Self {
         use std::time::SystemTime;
@@ -403,7 +406,6 @@ impl fmt::Display for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialEq<FileTime> for std::time::SystemTime {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
@@ -412,7 +414,6 @@ impl PartialEq<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialEq<std::time::SystemTime> for FileTime {
     #[inline]
     fn eq(&self, other: &std::time::SystemTime) -> bool {
@@ -438,7 +439,6 @@ impl PartialEq<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialEq<FileTime> for chrono::DateTime<chrono::Utc> {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
@@ -447,7 +447,6 @@ impl PartialEq<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
     #[inline]
     fn eq(&self, other: &chrono::DateTime<chrono::Utc>) -> bool {
@@ -458,7 +457,6 @@ impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialOrd<FileTime> for std::time::SystemTime {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
@@ -467,7 +465,6 @@ impl PartialOrd<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl PartialOrd<std::time::SystemTime> for FileTime {
     #[inline]
     fn partial_cmp(&self, other: &std::time::SystemTime) -> Option<Ordering> {
@@ -496,7 +493,6 @@ impl PartialOrd<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialOrd<FileTime> for chrono::DateTime<chrono::Utc> {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
@@ -505,7 +501,6 @@ impl PartialOrd<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl PartialOrd<chrono::DateTime<chrono::Utc>> for FileTime {
     #[inline]
     fn partial_cmp(&self, other: &chrono::DateTime<chrono::Utc>) -> Option<Ordering> {
@@ -589,7 +584,6 @@ impl Sub<time::Duration> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl Sub<FileTime> for std::time::SystemTime {
     type Output = std::time::Duration;
 
@@ -601,7 +595,6 @@ impl Sub<FileTime> for std::time::SystemTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl Sub<std::time::SystemTime> for FileTime {
     type Output = std::time::Duration;
 
@@ -634,7 +627,6 @@ impl Sub<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
     type Output = chrono::Duration;
 
@@ -645,7 +637,6 @@ impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
     type Output = chrono::Duration;
 
@@ -693,7 +684,6 @@ impl From<FileTime> for u64 {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
     ///
@@ -742,8 +732,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
@@ -763,8 +755,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// NT system time represents after "9999-12-31 23:59:59.999999900 UTC":
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(not(feature = "large-dates"))]
     /// assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
@@ -773,8 +767,10 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// With the `large-dates` feature enabled, this always succeeds:
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
@@ -811,15 +807,16 @@ impl TryFrom<FileTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// Converts a `FileTime` to a [`DateTime<Utc>`](chrono::DateTime).
     ///
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, TimeZone, Utc};
-    /// # use nt_time::FileTime;
+    /// # use nt_time::{
+    /// #     chrono::{DateTime, TimeZone, Utc},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     DateTime::<Utc>::from(FileTime::NT_EPOCH),
@@ -869,7 +866,6 @@ impl From<u64> for FileTime {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "std")))]
 impl TryFrom<std::time::SystemTime> for FileTime {
     type Error = FileTimeRangeError;
 
@@ -930,8 +926,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(
@@ -965,8 +963,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// UTC":
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// # use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time};
+    /// # use nt_time::{
+    /// #     time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time},
+    /// #     FileTime,
+    /// # };
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert!(FileTime::try_from(
@@ -992,7 +992,6 @@ impl TryFrom<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "chrono")))]
 impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     type Error = FileTimeRangeError;
 
@@ -1005,8 +1004,10 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use chrono::{DateTime, Duration, TimeZone, Utc};
-    /// # use nt_time::FileTime;
+    /// # use nt_time::{
+    /// #     chrono::{DateTime, Duration, TimeZone, Utc},
+    /// #     FileTime,
+    /// # };
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()).unwrap(),
@@ -2634,6 +2635,136 @@ mod tests {
         assert_eq!(
             ft,
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde() {
+        use serde_test::{assert_tokens, Token};
+
+        assert_tokens(
+            &FileTime::NT_EPOCH,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MIN),
+            ],
+        );
+        assert_tokens(
+            &FileTime::UNIX_EPOCH,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(116_444_736_000_000_000),
+            ],
+        );
+        assert_tokens(
+            &FileTime::MAX,
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MAX),
+            ],
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serde_optional() {
+        use serde_test::{assert_tokens, Token};
+
+        assert_tokens(
+            &Some(FileTime::NT_EPOCH),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MIN),
+            ],
+        );
+        assert_tokens(
+            &Some(FileTime::UNIX_EPOCH),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(116_444_736_000_000_000),
+            ],
+        );
+        assert_tokens(
+            &Some(FileTime::MAX),
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::U64(u64::MAX),
+            ],
+        );
+        assert_tokens(&None::<FileTime>, &[Token::None]);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialize_json() {
+        assert_eq!(serde_json::to_string(&FileTime::NT_EPOCH).unwrap(), "0");
+        assert_eq!(
+            serde_json::to_string(&FileTime::UNIX_EPOCH).unwrap(),
+            "116444736000000000"
+        );
+        assert_eq!(
+            serde_json::to_string(&FileTime::MAX).unwrap(),
+            "18446744073709551615"
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialize_optional_json() {
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::NT_EPOCH)).unwrap(),
+            "0"
+        );
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::UNIX_EPOCH)).unwrap(),
+            "116444736000000000"
+        );
+        assert_eq!(
+            serde_json::to_string(&Some(FileTime::MAX)).unwrap(),
+            "18446744073709551615"
+        );
+        assert_eq!(serde_json::to_string(&None::<FileTime>).unwrap(), "null");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialize_json() {
+        assert_eq!(
+            serde_json::from_str::<FileTime>("0").unwrap(),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            serde_json::from_str::<FileTime>("116444736000000000").unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            serde_json::from_str::<FileTime>("18446744073709551615").unwrap(),
+            FileTime::MAX
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialize_optional_json() {
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("0").unwrap(),
+            Some(FileTime::NT_EPOCH)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("116444736000000000").unwrap(),
+            Some(FileTime::UNIX_EPOCH)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("18446744073709551615").unwrap(),
+            Some(FileTime::MAX)
+        );
+        assert_eq!(
+            serde_json::from_str::<Option<FileTime>>("null").unwrap(),
+            None
         );
     }
 }

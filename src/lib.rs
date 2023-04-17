@@ -14,8 +14,7 @@
 //! ```
 //! use core::time::Duration;
 //!
-//! use nt_time::FileTime;
-//! use time::OffsetDateTime;
+//! use nt_time::{time::OffsetDateTime, FileTime};
 //!
 //! let ft = FileTime::NT_EPOCH;
 //! assert_eq!(
@@ -36,9 +35,9 @@
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [7z-format-url]: https://www.7-zip.org/7z.html
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.2.0/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.3.0/")]
 #![no_std]
-#![cfg_attr(doc_cfg, feature(doc_cfg))]
+#![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
 #![deny(missing_debug_implementations, missing_docs)]
@@ -53,10 +52,12 @@ extern crate alloc;
 extern crate std;
 
 pub mod error;
-mod filetime;
+mod file_time;
+#[cfg(feature = "serde-human-readable")]
+pub mod serde;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
 pub use time;
 
-pub use crate::filetime::FileTime;
+pub use crate::file_time::FileTime;

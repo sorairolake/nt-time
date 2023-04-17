@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.2.0"
+nt-time = "0.3.0"
 ```
 
 ### Example
@@ -22,8 +22,7 @@ nt-time = "0.2.0"
 ```rust
 use core::time::Duration;
 
-use nt_time::FileTime;
-use time::OffsetDateTime;
+use nt_time::{time::OffsetDateTime, FileTime};
 
 let ft = FileTime::NT_EPOCH;
 assert_eq!(
@@ -55,6 +54,17 @@ Enables the `large-dates` feature of the [`time`][time-crate-url] crate.
 #### `chrono`
 
 Enables the [`chrono`][chrono-crate-url] crate.
+
+#### `serde`
+
+Enables the [`serde`][serde-official-url] crate.
+
+#### `serde-human-readable`
+
+Allows Serde representations to use a human-readable format.
+This implicitly enables the `serde` feature.
+If this feature is not enabled, the underlying 64-bit unsigned integer format
+will be used.
 
 ### `no_std` support
 
@@ -98,3 +108,4 @@ See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
 [rust-official-url]: https://www.rust-lang.org/
 [time-crate-url]: https://crates.io/crates/time
 [chrono-crate-url]: https://crates.io/crates/chrono
+[serde-official-url]: https://serde.rs/
