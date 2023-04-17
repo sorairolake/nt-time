@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! An example of converting the Windows NT system time to Unix time.
+//! An example of converting the file time to Unix time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
@@ -26,7 +26,7 @@ struct Opt {
     #[clap(short, long, value_enum, default_value_t, ignore_case(true))]
     unit: Unit,
 
-    /// Windows NT system time to convert.
+    /// File time to convert.
     time: u64,
 }
 

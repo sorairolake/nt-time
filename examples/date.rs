@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! An example of printing the Windows NT system time.
+//! An example of printing the file time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
@@ -22,7 +22,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[clap(version, about)]
 struct Opt {
-    /// Windows NT system time to print.
+    /// File time to print.
     time: u64,
 }
 

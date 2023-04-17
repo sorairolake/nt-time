@@ -4,8 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! The `nt-time` crate is a [Windows NT system time][file-time-docs-url]
-//! library.
+//! The `nt-time` crate is a [Windows file time][file-time-docs-url] library.
 //!
 //! This is used as timestamps such as Windows and [7z][7z-format-url].
 //!

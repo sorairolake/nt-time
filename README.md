@@ -5,7 +5,7 @@
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
 
-**nt-time** is a [Windows NT system time][file-time-docs-url] library for
+**nt-time** is a [Windows file time][file-time-docs-url] library for
 [Rust][rust-official-url].
 
 ## Usage

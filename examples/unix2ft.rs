@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! An example of converting Unix time to the Windows NT system time.
+//! An example of converting Unix time to the file time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]

@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! The [Windows NT system time][file-time-docs-url].
+//! A [Windows file time][file-time-docs-url].
 //!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
@@ -34,7 +34,7 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
             .expect("date and time should be valid as RFC 3339")
     });
 
-/// `FileTime` is a type that represents the [Windows NT system
+/// `FileTime` is a type that represents a [Windows file
 /// time][file-time-docs-url].
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
@@ -84,7 +84,7 @@ impl FileTime {
     /// ```
     pub const UNIX_EPOCH: Self = Self::new(116_444_736_000_000_000);
 
-    /// The largest value that can be represented by the Windows NT system time.
+    /// The largest value that can be represented by the file time.
     ///
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
     ///
@@ -108,11 +108,11 @@ impl FileTime {
     /// ```
     pub const MAX: Self = Self::new(u64::MAX);
 
-    /// Returns the Windows NT system time corresponding to "now".
+    /// Returns the file time corresponding to "now".
     ///
     /// # Panics
     ///
-    /// Panics if "now" is out of range for the Windows NT system time.
+    /// Panics if "now" is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -126,12 +126,12 @@ impl FileTime {
     pub fn now() -> Self {
         use std::time::SystemTime;
 
-        SystemTime::now().try_into().expect(
-            "the current date and time should be in the range of the Windows NT system time",
-        )
+        SystemTime::now()
+            .try_into()
+            .expect("the current date and time should be in the range of the file time")
     }
 
-    /// Creates a new `FileTime` with the given Windows NT system time.
+    /// Creates a new `FileTime` with the given file time.
     ///
     /// # Examples
     ///
@@ -662,7 +662,7 @@ impl SubAssign<time::Duration> for FileTime {
 }
 
 impl From<FileTime> for u64 {
-    /// Converts a `FileTime` to the Windows NT system time.
+    /// Converts a `FileTime` to the file time.
     ///
     /// Equivalent to [`FileTime::as_u64`] except that it is not callable in
     /// const contexts.
@@ -750,8 +750,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// );
     /// ```
     ///
-    /// With the `large-dates` feature disabled, returns [`Err`] if the Windows
-    /// NT system time represents after "9999-12-31 23:59:59.999999900 UTC":
+    /// With the `large-dates` feature disabled, returns [`Err`] if the file
+    /// time represents after "9999-12-31 23:59:59.999999900 UTC":
     ///
     /// ```
     /// # use nt_time::{
@@ -841,7 +841,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 impl From<u64> for FileTime {
-    /// Converts the Windows NT system time to a `FileTime`.
+    /// Converts the file time to a `FileTime`.
     ///
     /// Equivalent to [`FileTime::new`] except that it is not callable in const
     /// contexts.
@@ -872,8 +872,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range for the Windows NT system
-    /// time.
+    /// Returns [`Err`] if `time` is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -920,7 +919,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -998,7 +997,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the file time.
     ///
     /// # Examples
     ///
