@@ -4,26 +4,23 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! Use the well-known [ISO 8601 format][iso-8601-description-url] when
-//! serializing and deserializing an [`Option<FileTime>`].
+//! Use Unix time when serializing and
+//! deserializing an [`Option<FileTime>`].
 //!
 //! Use this module in combination with Serde's
 //! [`#[with]`][serde-with-attribute] attribute.
 //!
-//! If the `large-dates` feature is not enabled, the maximum date and time is
-//! "9999-12-31 23:59:59.999999999 UTC".
-//!
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde::iso_8601, FileTime};
+//! use nt_time::{serde::unix_time, FileTime};
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "iso_8601::option")] Option<FileTime>);
+//! struct DateTime(#[serde(with = "unix_time::option")] Option<FileTime>);
 //!
 //! let json = serde_json::to_string(&DateTime(Some(FileTime::UNIX_EPOCH))).unwrap();
-//! assert_eq!(json, r#""+001970-01-01T00:00:00.000000000Z""#);
+//! assert_eq!(json, "0");
 //!
 //! assert_eq!(
 //!     serde_json::from_str::<DateTime>(&json).unwrap(),
@@ -39,50 +36,45 @@
 //! );
 //! ```
 //!
-//! [iso-8601-description-url]: https://www.iso.org/iso-8601-date-and-time-format.html
 //! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
-use time::{serde::iso8601, OffsetDateTime};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::FileTime;
 
 #[allow(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
-/// This serializes using the well-known ISO 8601 format.
+/// This serializes using Unix time.
 pub fn serialize<S: Serializer>(time: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    iso8601::option::serialize(
-        &(*time)
-            .map(OffsetDateTime::try_from)
-            .transpose()
-            .map_err(S::Error::custom)?,
-        serializer,
-    )
+    time.map(FileTime::to_unix_time).serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
-/// This deserializes from its ISO 8601 representation.
+/// This deserializes from its Unix time.
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
-    iso8601::option::deserialize(deserializer)?
-        .map(FileTime::try_from)
+    Option::deserialize(deserializer)?
+        .map(FileTime::from_unix_time)
         .transpose()
         .map_err(D::Error::custom)
 }
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
-    use serde_test::{assert_de_tokens_error, assert_tokens, Token};
+    use core::time::Duration;
+
+    use serde_test::{
+        assert_de_tokens, assert_de_tokens_error, assert_ser_tokens, assert_tokens, Token,
+    };
 
     use super::*;
 
     #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde::iso_8601::option")] Option<FileTime>);
+    struct Test(#[serde(with = "crate::serde::unix_time::option")] Option<FileTime>);
 
     #[test]
     fn serde() {
@@ -91,7 +83,7 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("+001601-01-01T00:00:00.000000000Z"),
+                Token::I64(-11_644_473_600),
             ],
         );
         assert_tokens(
@@ -99,7 +91,7 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("+001970-01-01T00:00:00.000000000Z"),
+                Token::I64(i64::default()),
             ],
         );
         assert_tokens(
@@ -108,15 +100,26 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "large-dates")]
     #[test]
-    fn serde_with_large_dates() {
-        assert_tokens(
+    fn serialize() {
+        assert_ser_tokens(
             &Test(Some(FileTime::MAX)),
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("+060056-05-28T05:36:10.955161500Z"),
+                Token::I64(1_833_029_933_770),
+            ],
+        );
+    }
+
+    #[test]
+    fn deserialize() {
+        assert_de_tokens(
+            &Test(Some(FileTime::MAX - Duration::from_nanos(955_161_500))),
+            &[
+                Token::NewtypeStruct { name: "Test" },
+                Token::Some,
+                Token::I64(1_833_029_933_770),
             ],
         );
     }
@@ -127,33 +130,15 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("+001600-12-31T23:59:59.999999999Z"),
+                Token::I64(-11_644_473_601),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );
-    }
-
-    #[cfg(not(feature = "large-dates"))]
-    #[test]
-    fn deserialize_error_without_large_dates() {
         assert_de_tokens_error::<Test>(
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("+010000-01-01T00:00:00.000000000Z"),
-            ],
-            "year must be in the range -9999..=9999",
-        );
-    }
-
-    #[cfg(feature = "large-dates")]
-    #[test]
-    fn deserialize_error_with_large_dates() {
-        assert_de_tokens_error::<Test>(
-            &[
-                Token::NewtypeStruct { name: "Test" },
-                Token::Some,
-                Token::BorrowedStr("+060056-05-28T05:36:10.955161600Z"),
+                Token::I64(1_833_029_933_771),
             ],
             "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
@@ -163,43 +148,33 @@ mod tests {
     fn serialize_json() {
         assert_eq!(
             serde_json::to_string(&Test(Some(FileTime::NT_EPOCH))).unwrap(),
-            r#""+001601-01-01T00:00:00.000000000Z""#
+            "-11644473600"
         );
         assert_eq!(
             serde_json::to_string(&Test(Some(FileTime::UNIX_EPOCH))).unwrap(),
-            r#""+001970-01-01T00:00:00.000000000Z""#
+            "0"
         );
-        assert_eq!(serde_json::to_string(&Test(None)).unwrap(), "null");
-    }
-
-    #[cfg(feature = "large-dates")]
-    #[test]
-    fn serialize_json_with_large_dates() {
         assert_eq!(
             serde_json::to_string(&Test(Some(FileTime::MAX))).unwrap(),
-            r#""+060056-05-28T05:36:10.955161500Z""#
+            "1833029933770"
         );
+        assert_eq!(serde_json::to_string(&Test(None)).unwrap(), "null");
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1601-01-01T00:00:00Z""#).unwrap(),
+            serde_json::from_str::<Test>("-11644473600").unwrap(),
             Test(Some(FileTime::NT_EPOCH))
         );
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1970-01-01T00:00:00Z""#).unwrap(),
+            serde_json::from_str::<Test>("0").unwrap(),
             Test(Some(FileTime::UNIX_EPOCH))
         );
-        assert_eq!(serde_json::from_str::<Test>("null").unwrap(), Test(None));
-    }
-
-    #[cfg(feature = "large-dates")]
-    #[test]
-    fn deserialize_json_with_large_dates() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""+060056-05-28T05:36:10.955161500Z""#).unwrap(),
-            Test(Some(FileTime::MAX))
+            serde_json::from_str::<Test>("1833029933770").unwrap(),
+            Test(Some(FileTime::MAX - Duration::from_nanos(955_161_500)))
         );
+        assert_eq!(serde_json::from_str::<Test>("null").unwrap(), Test(None));
     }
 }

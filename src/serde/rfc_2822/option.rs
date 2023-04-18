@@ -40,7 +40,7 @@
 //! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
 
 use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
-use time::serde::rfc2822;
+use time::{serde::rfc2822, OffsetDateTime};
 
 use crate::FileTime;
 
@@ -49,10 +49,13 @@ use crate::FileTime;
 ///
 /// This serializes using the well-known RFC 2822 format.
 pub fn serialize<S: Serializer>(time: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    (*time)
-        .map(|ft| ft.try_into().map_err(S::Error::custom))
-        .transpose()
-        .and_then(|dt| rfc2822::option::serialize(&dt, serializer))
+    rfc2822::option::serialize(
+        &(*time)
+            .map(OffsetDateTime::try_from)
+            .transpose()
+            .map_err(S::Error::custom)?,
+        serializer,
+    )
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -63,8 +66,9 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     rfc2822::option::deserialize(deserializer)?
-        .map(|dt| dt.try_into().map_err(D::Error::custom))
+        .map(FileTime::try_from)
         .transpose()
+        .map_err(D::Error::custom)
 }
 
 #[cfg(test)]

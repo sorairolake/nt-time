@@ -2861,11 +2861,13 @@ mod tests {
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
         use time::Duration;
 
-        assert_eq!(FileTime::try_from(
-            datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
-                + Duration::nanoseconds(100).unwrap_err(),
+        assert_eq!(
+            FileTime::try_from(
+                datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
+            )
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
-        ));
+        );
     }
 
     #[cfg(feature = "chrono")]

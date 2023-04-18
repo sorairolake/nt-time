@@ -52,7 +52,7 @@ extern crate std;
 
 pub mod error;
 mod file_time;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "serde")]
 pub mod serde;
 
 #[cfg(feature = "chrono")]

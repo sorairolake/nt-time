@@ -46,10 +46,7 @@ use crate::FileTime;
 ///
 /// This serializes using the well-known ISO 8601 format.
 pub fn serialize<S: Serializer>(time: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    (*time)
-        .try_into()
-        .map_err(S::Error::custom)
-        .and_then(|dt| iso8601::serialize(&dt, serializer))
+    iso8601::serialize(&(*time).try_into().map_err(S::Error::custom)?, serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -57,7 +54,7 @@ pub fn serialize<S: Serializer>(time: &FileTime, serializer: S) -> Result<S::Ok,
 ///
 /// This deserializes from its ISO 8601 representation.
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    iso8601::deserialize(deserializer).and_then(|dt| dt.try_into().map_err(D::Error::custom))
+    FileTime::try_from(iso8601::deserialize(deserializer)?).map_err(D::Error::custom)
 }
 
 #[cfg(test)]

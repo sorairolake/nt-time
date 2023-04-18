@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! Use the well-known [RFC 3339 format][rfc-3339] when serializing and
+//! Use Unix time when serializing and
 //! deserializing a [`FileTime`].
 //!
 //! Use this module in combination with Serde's
@@ -13,14 +13,14 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde::rfc_3339, FileTime};
+//! use nt_time::{serde::unix_time, FileTime};
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "rfc_3339")] FileTime);
+//! struct DateTime(#[serde(with = "unix_time")] FileTime);
 //!
 //! let json = serde_json::to_string(&DateTime(FileTime::UNIX_EPOCH)).unwrap();
-//! assert_eq!(json, r#""1970-01-01T00:00:00Z""#);
+//! assert_eq!(json, "0");
 //!
 //! assert_eq!(
 //!     serde_json::from_str::<DateTime>(&json).unwrap(),
@@ -28,41 +28,42 @@
 //! );
 //! ```
 //!
-//! [rfc-3339]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 //! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
 
 pub mod option;
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
-use time::serde::rfc3339;
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::FileTime;
 
 #[allow(clippy::missing_errors_doc)]
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
-/// This serializes using the well-known RFC 3339 format.
+/// This serializes using Unix time.
 pub fn serialize<S: Serializer>(time: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    rfc3339::serialize(&(*time).try_into().map_err(S::Error::custom)?, serializer)
+    time.to_unix_time().serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes a [`FileTime`] from the given Serde deserializer.
 ///
-/// This deserializes from its RFC 3339 representation.
+/// This deserializes from its Unix time.
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::try_from(rfc3339::deserialize(deserializer)?).map_err(D::Error::custom)
+    FileTime::from_unix_time(i64::deserialize(deserializer)?).map_err(D::Error::custom)
 }
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
-    use serde_test::{assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Token};
+    use core::time::Duration;
+
+    use serde_test::{
+        assert_de_tokens, assert_de_tokens_error, assert_ser_tokens, assert_tokens, Token,
+    };
 
     use super::*;
 
     #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde::rfc_3339")] FileTime);
+    struct Test(#[serde(with = "crate::serde::unix_time")] FileTime);
 
     #[test]
     fn serde() {
@@ -70,35 +71,37 @@ mod tests {
             &Test(FileTime::NT_EPOCH),
             &[
                 Token::NewtypeStruct { name: "Test" },
-                Token::BorrowedStr("1601-01-01T00:00:00Z"),
+                Token::I64(-11_644_473_600),
             ],
         );
         assert_tokens(
             &Test(FileTime::UNIX_EPOCH),
             &[
                 Token::NewtypeStruct { name: "Test" },
-                Token::BorrowedStr("1970-01-01T00:00:00Z"),
+                Token::I64(i64::default()),
             ],
         );
     }
 
-    #[cfg(not(feature = "large-dates"))]
     #[test]
-    fn serialize_error_without_large_dates() {
-        assert_ser_tokens_error::<Test>(
+    fn serialize() {
+        assert_ser_tokens(
             &Test(FileTime::MAX),
-            &[Token::NewtypeStruct { name: "Test" }],
-            "date and time is out of range for `OffsetDateTime`",
+            &[
+                Token::NewtypeStruct { name: "Test" },
+                Token::I64(1_833_029_933_770),
+            ],
         );
     }
 
-    #[cfg(feature = "large-dates")]
     #[test]
-    fn serialize_error_with_large_dates() {
-        assert_ser_tokens_error::<Test>(
-            &Test(FileTime::MAX),
-            &[Token::NewtypeStruct { name: "Test" }],
-            "The year component cannot be formatted into the requested format.",
+    fn deserialize() {
+        assert_de_tokens(
+            &Test(FileTime::MAX - Duration::from_nanos(955_161_500)),
+            &[
+                Token::NewtypeStruct { name: "Test" },
+                Token::I64(1_833_029_933_770),
+            ],
         );
     }
 
@@ -107,9 +110,16 @@ mod tests {
         assert_de_tokens_error::<Test>(
             &[
                 Token::NewtypeStruct { name: "Test" },
-                Token::BorrowedStr("1600-12-31T23:59:59.999999999Z"),
+                Token::I64(-11_644_473_601),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
+        );
+        assert_de_tokens_error::<Test>(
+            &[
+                Token::NewtypeStruct { name: "Test" },
+                Token::I64(1_833_029_933_771),
+            ],
+            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
     }
 
@@ -117,23 +127,31 @@ mod tests {
     fn serialize_json() {
         assert_eq!(
             serde_json::to_string(&Test(FileTime::NT_EPOCH)).unwrap(),
-            r#""1601-01-01T00:00:00Z""#
+            "-11644473600"
         );
         assert_eq!(
             serde_json::to_string(&Test(FileTime::UNIX_EPOCH)).unwrap(),
-            r#""1970-01-01T00:00:00Z""#
+            "0"
+        );
+        assert_eq!(
+            serde_json::to_string(&Test(FileTime::MAX)).unwrap(),
+            "1833029933770"
         );
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1601-01-01T00:00:00Z""#).unwrap(),
+            serde_json::from_str::<Test>("-11644473600").unwrap(),
             Test(FileTime::NT_EPOCH)
         );
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1970-01-01T00:00:00Z""#).unwrap(),
+            serde_json::from_str::<Test>("0").unwrap(),
             Test(FileTime::UNIX_EPOCH)
+        );
+        assert_eq!(
+            serde_json::from_str::<Test>("1833029933770").unwrap(),
+            Test(FileTime::MAX - Duration::from_nanos(955_161_500))
         );
     }
 }

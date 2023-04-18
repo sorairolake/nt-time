@@ -18,6 +18,7 @@ toc::[]
 
 * Add doctests for `Serialize` and `Deserialize`
 * Add conversion methods from/to Unix time
+* Add Serde support for Unix time
 
 == {compare-url}/v0.2.0\...v0.3.0[0.3.0] - 2023-04-17
 
