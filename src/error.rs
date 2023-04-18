@@ -197,6 +197,18 @@ mod tests {
     }
 
     #[test]
+    fn kind_file_time_range_error() {
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative).kind(),
+            FileTimeRangeErrorKind::Negative
+        );
+        assert_eq!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow).kind(),
+            FileTimeRangeErrorKind::Overflow
+        );
+    }
+
+    #[test]
     fn display_file_time_range_error() {
         assert_eq!(
             format!(
