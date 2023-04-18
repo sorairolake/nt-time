@@ -47,13 +47,12 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ut = match (opt.secs, opt.nanos) {
-        (Some(time), None) => time::OffsetDateTime::from_unix_timestamp(time),
-        (None, Some(time)) => time::OffsetDateTime::from_unix_timestamp_nanos(time),
+    let ft = match (opt.secs, opt.nanos) {
+        (Some(time), None) => nt_time::FileTime::from_unix_time(time),
+        (None, Some(time)) => nt_time::FileTime::from_unix_time_nanos(time),
         _ => unreachable!(),
     }
-    .context("could not read time")?;
-    let ft = nt_time::FileTime::try_from(ut).context("could not convert time")?;
+    .context("could not convert time")?;
     println!("{ft}");
     Ok(())
 }

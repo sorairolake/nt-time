@@ -34,6 +34,12 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
             .expect("date and time should be valid as RFC 3339")
     });
 
+const FILE_TIME_PER_SEC: u64 = 10_000_000;
+const UNIX_TIME_NT_EPOCH: i64 = -11_644_473_600;
+const UNIX_TIME_NANOS_NT_EPOCH: i128 = -11_644_473_600_000_000_000;
+const UNIX_TIME_MAX: i64 = 1_833_029_933_770;
+const UNIX_TIME_NANOS_MAX: i128 = 1_833_029_933_770_955_161_500;
+
 /// `FileTime` is a type that represents a [Windows file
 /// time][file-time-docs-url].
 ///
@@ -163,6 +169,129 @@ impl FileTime {
     #[inline]
     pub const fn as_u64(self) -> u64 {
         self.0
+    }
+
+    /// Returns Unix time represents the same date and time as this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_EPOCH.to_unix_time(), -11_644_473_600);
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), i64::default());
+    /// assert_eq!(FileTime::MAX.to_unix_time(), 1_833_029_933_770);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub fn to_unix_time(self) -> i64 {
+        i64::try_from(self.as_u64() / FILE_TIME_PER_SEC)
+            .expect("Unix time should be in the range of `i64`")
+            + UNIX_TIME_NT_EPOCH
+    }
+
+    /// Returns Unix time in nanoseconds represents the same date and time as
+    /// this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_EPOCH.to_unix_time_nanos(),
+    ///     -11_644_473_600_000_000_000
+    /// );
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), i128::default());
+    /// assert_eq!(
+    ///     FileTime::MAX.to_unix_time_nanos(),
+    ///     1_833_029_933_770_955_161_500
+    /// );
+    /// ```
+    #[must_use]
+    #[inline]
+    pub fn to_unix_time_nanos(self) -> i128 {
+        (i128::from(self.as_u64()) * 100) + UNIX_TIME_NANOS_NT_EPOCH
+    }
+
+    /// Creates a `FileTime` with the given Unix time.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `time` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(-11_644_473_600).unwrap(),
+    ///     FileTime::NT_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::default()).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(1_833_029_933_770).unwrap(),
+    ///     FileTime::MAX - Duration::from_nanos(955_161_500)
+    /// );
+    ///
+    /// assert!(FileTime::from_unix_time(-11_644_473_601).is_err());
+    /// assert!(FileTime::from_unix_time(1_833_029_933_771).is_err());
+    /// ```
+    pub fn from_unix_time(time: i64) -> Result<Self, FileTimeRangeError> {
+        (time <= UNIX_TIME_MAX)
+            .then_some(time)
+            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .and_then(|ut| {
+                u64::try_from(ut - UNIX_TIME_NT_EPOCH)
+                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+            })
+            .map(|t| t * FILE_TIME_PER_SEC)
+            .map(Self::new)
+    }
+
+    /// Creates a `FileTime` with the given Unix time in nanoseconds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `time` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000).unwrap(),
+    ///     FileTime::NT_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(i128::default()).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
+    ///     FileTime::MAX
+    /// );
+    ///
+    /// assert!(FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).is_err());
+    /// assert!(FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).is_err());
+    /// ```
+    pub fn from_unix_time_nanos(time: i128) -> Result<Self, FileTimeRangeError> {
+        (time <= UNIX_TIME_NANOS_MAX)
+            .then_some(time)
+            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .and_then(|ut| {
+                ((ut - UNIX_TIME_NANOS_NT_EPOCH) / 100)
+                    .try_into()
+                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+            })
+            .map(Self::new)
     }
 
     /// Computes `self + rhs`, returning [`None`] if overflow occurred.
@@ -1243,6 +1372,105 @@ mod tests {
         assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
         assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
+    }
+
+    #[test]
+    fn to_unix_time() {
+        assert_eq!(FileTime::NT_EPOCH.to_unix_time(), UNIX_TIME_NT_EPOCH);
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), i64::default());
+        assert_eq!(FileTime::MAX.to_unix_time(), UNIX_TIME_MAX);
+    }
+
+    #[test]
+    fn to_unix_time_nanos() {
+        assert_eq!(
+            FileTime::NT_EPOCH.to_unix_time_nanos(),
+            UNIX_TIME_NANOS_NT_EPOCH
+        );
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), i128::default());
+        assert_eq!(FileTime::MAX.to_unix_time_nanos(), UNIX_TIME_NANOS_MAX);
+    }
+
+    #[test]
+    fn from_unix_time_before_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time(UNIX_TIME_NT_EPOCH - 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn from_unix_time() {
+        use core::time::Duration;
+
+        assert_eq!(
+            FileTime::from_unix_time(UNIX_TIME_NT_EPOCH).unwrap(),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time(UNIX_TIME_MAX).unwrap(),
+            FileTime::MAX - Duration::from_nanos(955_161_500)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time(UNIX_TIME_MAX + 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MAX).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos_before_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(UNIX_TIME_NANOS_NT_EPOCH - 100).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(UNIX_TIME_NANOS_NT_EPOCH).unwrap(),
+            FileTime::NT_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(UNIX_TIME_NANOS_MAX).unwrap(),
+            FileTime::MAX
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(UNIX_TIME_NANOS_MAX + 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::MAX).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
     }
 
     #[test]
@@ -2446,8 +2674,10 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn try_from_file_time_to_offset_date_time_with_invalid_file_time() {
-        let dt = OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err();
-        assert_eq!(dt, OffsetDateTimeRangeError);
+        assert_eq!(
+            OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err(),
+            OffsetDateTimeRangeError
+        );
     }
 
     #[cfg(feature = "large-dates")]
@@ -2511,14 +2741,13 @@ mod tests {
     fn try_from_system_time_to_file_time_before_epoch() {
         use std::time::{Duration, SystemTime};
 
-        let st = if cfg!(windows) {
-            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
-        } else {
-            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
-        };
-        let ft = FileTime::try_from(st).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(if cfg!(windows) {
+                SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
+            } else {
+                SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
+            })
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2578,12 +2807,11 @@ mod tests {
                 .checked_add(Duration::new(910_692_730_085, 477_580_800))
                 .is_none());
         } else {
-            let st = FileTime::try_from(
-                SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600),
-            )
-            .unwrap_err();
             assert_eq!(
-                st,
+                FileTime::try_from(
+                    SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600)
+                )
+                .unwrap_err(),
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             );
         }
@@ -2593,9 +2821,8 @@ mod tests {
     fn try_from_offset_date_time_to_file_time_before_epoch() {
         use time::Duration;
 
-        let ft = FileTime::try_from(OFFSET_DATE_TIME_NT_EPOCH - Duration::NANOSECOND).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(OFFSET_DATE_TIME_NT_EPOCH - Duration::NANOSECOND).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2634,14 +2861,11 @@ mod tests {
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
         use time::Duration;
 
-        let ft = FileTime::try_from(
-            datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100),
-        )
-        .unwrap_err();
-        assert_eq!(
-            ft,
+        assert_eq!(FileTime::try_from(
+            datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
+                + Duration::nanoseconds(100).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
-        );
+        ));
     }
 
     #[cfg(feature = "chrono")]
@@ -2649,10 +2873,8 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_before_epoch() {
         use chrono::Duration;
 
-        let ft =
-            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH - Duration::nanoseconds(1)).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH - Duration::nanoseconds(1)).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2705,15 +2927,14 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
         use chrono::{DateTime, Duration, Utc};
 
-        let ft = FileTime::try_from(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                + Duration::nanoseconds(100),
-        )
-        .unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(
+                "+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+                    + Duration::nanoseconds(100)
+            )
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }
