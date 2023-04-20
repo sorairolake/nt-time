@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn serialize_error() {
         assert_ser_tokens_error::<Test>(
-            &Test(FileTime::NT_EPOCH),
+            &Test(FileTime::NT_TIME_EPOCH),
             &[Token::NewtypeStruct { name: "Test" }],
             "The year component cannot be formatted into the requested format.",
         );

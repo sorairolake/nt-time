@@ -87,7 +87,7 @@ mod tests {
     #[test]
     fn serde() {
         assert_tokens(
-            &Test(Some(FileTime::NT_EPOCH)),
+            &Test(Some(FileTime::NT_TIME_EPOCH)),
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn serialize_json() {
         assert_eq!(
-            serde_json::to_string(&Test(Some(FileTime::NT_EPOCH))).unwrap(),
+            serde_json::to_string(&Test(Some(FileTime::NT_TIME_EPOCH))).unwrap(),
             r#""+001601-01-01T00:00:00.000000000Z""#
         );
         assert_eq!(
@@ -185,7 +185,7 @@ mod tests {
     fn deserialize_json() {
         assert_eq!(
             serde_json::from_str::<Test>(r#""1601-01-01T00:00:00Z""#).unwrap(),
-            Test(Some(FileTime::NT_EPOCH))
+            Test(Some(FileTime::NT_TIME_EPOCH))
         );
         assert_eq!(
             serde_json::from_str::<Test>(r#""1970-01-01T00:00:00Z""#).unwrap(),

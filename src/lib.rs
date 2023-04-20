@@ -15,7 +15,7 @@
 //!
 //! use nt_time::{time::OffsetDateTime, FileTime};
 //!
-//! let ft = FileTime::NT_EPOCH;
+//! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
 //!     OffsetDateTime::try_from(ft).unwrap().to_string(),
 //!     "1601-01-01 0:00:00.0 +00:00:00"
