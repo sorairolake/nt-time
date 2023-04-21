@@ -13,8 +13,11 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde_with::rfc_3339, FileTime};
-//! use serde::{Deserialize, Serialize};
+//! use nt_time::{
+//!     serde::{Deserialize, Serialize},
+//!     serde_with::rfc_3339,
+//!     FileTime,
+//! };
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
 //! struct DateTime(#[serde(with = "rfc_3339::option")] Option<FileTime>);

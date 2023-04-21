@@ -57,6 +57,8 @@ pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "serde")]
+pub use serde;
 pub use time;
 
 pub use crate::file_time::FileTime;

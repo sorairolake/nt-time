@@ -12,8 +12,11 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde_with::unix_time, FileTime};
-//! use serde::{Deserialize, Serialize};
+//! use nt_time::{
+//!     serde::{Deserialize, Serialize},
+//!     serde_with::unix_time,
+//!     FileTime,
+//! };
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
 //! struct DateTime(#[serde(with = "unix_time")] FileTime);

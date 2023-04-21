@@ -63,8 +63,6 @@ Enables the [`serde`][serde-official-url] crate.
 
 Allows Serde representations to use a human-readable format.
 This implicitly enables the `serde` feature.
-If this feature is not enabled, the underlying 64-bit unsigned integer format
-will be used.
 
 ### `no_std` support
 

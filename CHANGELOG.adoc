@@ -19,6 +19,7 @@ toc::[]
 * Add doctests for `Serialize` and `Deserialize`
 * Add conversion methods from/to Unix time
 * Add Serde support for Unix time
+* Re-export `serde` crate
 
 === Changed
 

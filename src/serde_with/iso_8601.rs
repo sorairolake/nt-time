@@ -16,8 +16,11 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde_with::iso_8601, FileTime};
-//! use serde::{Deserialize, Serialize};
+//! use nt_time::{
+//!     serde::{Deserialize, Serialize},
+//!     serde_with::iso_8601,
+//!     FileTime,
+//! };
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
 //! struct DateTime(#[serde(with = "iso_8601")] FileTime);
