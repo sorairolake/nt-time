@@ -5,7 +5,7 @@
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
 
-**nt-time** is a [Windows NT system time][file-time-docs-url] library for
+**nt-time** is a [Windows file time][file-time-docs-url] library for
 [Rust][rust-official-url].
 
 ## Usage
@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.3.0"
+nt-time = "0.4.0"
 ```
 
 ### Example
@@ -24,7 +24,7 @@ use core::time::Duration;
 
 use nt_time::{time::OffsetDateTime, FileTime};
 
-let ft = FileTime::NT_EPOCH;
+let ft = FileTime::NT_TIME_EPOCH;
 assert_eq!(
     OffsetDateTime::try_from(ft).unwrap().to_string(),
     "1601-01-01 0:00:00.0 +00:00:00"
@@ -63,8 +63,6 @@ Enables the [`serde`][serde-official-url] crate.
 
 Allows Serde representations to use a human-readable format.
 This implicitly enables the `serde` feature.
-If this feature is not enabled, the underlying 64-bit unsigned integer format
-will be used.
 
 ### `no_std` support
 

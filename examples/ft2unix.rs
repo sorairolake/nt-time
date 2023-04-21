@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! An example of converting the Windows NT system time to Unix time.
+//! An example of converting the file time to Unix time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
@@ -13,8 +13,6 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
-#[cfg(feature = "std")]
-use anyhow::Context;
 #[cfg(feature = "std")]
 use clap::Parser;
 
@@ -26,7 +24,7 @@ struct Opt {
     #[clap(short, long, value_enum, default_value_t, ignore_case(true))]
     unit: Unit,
 
-    /// Windows NT system time to convert.
+    /// File time to convert.
     time: u64,
 }
 
@@ -42,18 +40,15 @@ enum Unit {
 }
 
 #[cfg(feature = "std")]
-fn main() -> anyhow::Result<()> {
+fn main() {
     let opt = Opt::parse();
 
     let ft = nt_time::FileTime::new(opt.time);
-    let ut = time::OffsetDateTime::try_from(ft)
-        .map(|dt| match opt.unit {
-            Unit::Seconds => time::OffsetDateTime::unix_timestamp(dt).into(),
-            Unit::Nanoseconds => time::OffsetDateTime::unix_timestamp_nanos(dt),
-        })
-        .context("could not convert time")?;
+    let ut = match opt.unit {
+        Unit::Seconds => ft.to_unix_time().into(),
+        Unit::Nanoseconds => ft.to_unix_time_nanos(),
+    };
     println!("{ut}");
-    Ok(())
 }
 
 #[cfg(not(feature = "std"))]

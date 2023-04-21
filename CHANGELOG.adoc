@@ -12,6 +12,20 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.3.0\...v0.4.0[0.4.0] - 2023-04-21
+
+=== Added
+
+* Add doctests for `Serialize` and `Deserialize`
+* Add conversion methods from/to Unix time
+* Add Serde support for Unix time
+* Re-export `serde` crate
+
+=== Changed
+
+* Rename `FileTime::NT_EPOCH` to `FileTime::NT_TIME_EPOCH`
+* Rename `serde` to `serde_with`
+
 == {compare-url}/v0.2.0\...v0.3.0[0.3.0] - 2023-04-17
 
 === Added

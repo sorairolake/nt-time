@@ -4,8 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! The `nt-time` crate is a [Windows NT system time][file-time-docs-url]
-//! library.
+//! The `nt-time` crate is a [Windows file time][file-time-docs-url] library.
 //!
 //! This is used as timestamps such as Windows and [7z][7z-format-url].
 //!
@@ -16,7 +15,7 @@
 //!
 //! use nt_time::{time::OffsetDateTime, FileTime};
 //!
-//! let ft = FileTime::NT_EPOCH;
+//! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
 //!     OffsetDateTime::try_from(ft).unwrap().to_string(),
 //!     "1601-01-01 0:00:00.0 +00:00:00"
@@ -35,7 +34,7 @@
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [7z-format-url]: https://www.7-zip.org/7z.html
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.3.0/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.4.0/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
@@ -53,11 +52,13 @@ extern crate std;
 
 pub mod error;
 mod file_time;
-#[cfg(feature = "serde-human-readable")]
-pub mod serde;
+#[cfg(feature = "serde")]
+pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "serde")]
+pub use serde;
 pub use time;
 
 pub use crate::file_time::FileTime;

@@ -4,7 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! The [Windows NT system time][file-time-docs-url].
+//! A [Windows file time][file-time-docs-url].
 //!
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
@@ -18,23 +18,25 @@ use time::{macros::datetime, OffsetDateTime};
 
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind, OffsetDateTimeRangeError};
 
+const FILE_TIMES_PER_SEC: u64 = 10_000_000;
+
 #[cfg(feature = "std")]
-static SYSTEM_TIME_NT_EPOCH: once_cell::sync::Lazy<std::time::SystemTime> =
+static SYSTEM_TIME_NT_TIME_EPOCH: once_cell::sync::Lazy<std::time::SystemTime> =
     once_cell::sync::Lazy::new(|| {
-        std::time::SystemTime::UNIX_EPOCH - std::time::Duration::from_secs(11_644_473_600)
+        std::time::SystemTime::UNIX_EPOCH - std::time::Duration::from_secs(134_774 * 86400)
     });
 
-const OFFSET_DATE_TIME_NT_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
+const OFFSET_DATE_TIME_NT_TIME_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
 
 #[cfg(feature = "chrono")]
-static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> =
+static CHRONO_DATE_TIME_NT_TIME_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> =
     once_cell::sync::Lazy::new(|| {
         "1601-01-01 00:00:00 UTC"
             .parse::<chrono::DateTime<chrono::Utc>>()
             .expect("date and time should be valid as RFC 3339")
     });
 
-/// `FileTime` is a type that represents the [Windows NT system
+/// `FileTime` is a type that represents a [Windows file
 /// time][file-time-docs-url].
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
@@ -42,7 +44,6 @@ static CHRONO_DATE_TIME_NT_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono:
 ///
 /// [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -59,7 +60,7 @@ impl FileTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
+    ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
     ///     PrimitiveDateTime::new(
     ///         Date::from_calendar_date(1601, Month::January, 1).unwrap(),
     ///         Time::MIDNIGHT
@@ -67,7 +68,7 @@ impl FileTime {
     ///     .assume_utc()
     /// );
     /// ```
-    pub const NT_EPOCH: Self = Self::new(u64::MIN);
+    pub const NT_TIME_EPOCH: Self = Self::new(u64::MIN);
 
     /// The Unix epoch.
     ///
@@ -83,9 +84,9 @@ impl FileTime {
     ///     OffsetDateTime::UNIX_EPOCH
     /// );
     /// ```
-    pub const UNIX_EPOCH: Self = Self::new(116_444_736_000_000_000);
+    pub const UNIX_EPOCH: Self = Self::new(134_774 * 86400 * FILE_TIMES_PER_SEC);
 
-    /// The largest value that can be represented by the Windows NT system time.
+    /// The largest value that can be represented by the file time.
     ///
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
     ///
@@ -109,11 +110,11 @@ impl FileTime {
     /// ```
     pub const MAX: Self = Self::new(u64::MAX);
 
-    /// Returns the Windows NT system time corresponding to "now".
+    /// Returns the file time corresponding to "now".
     ///
     /// # Panics
     ///
-    /// Panics if "now" is out of range for the Windows NT system time.
+    /// Panics if "now" is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -127,19 +128,19 @@ impl FileTime {
     pub fn now() -> Self {
         use std::time::SystemTime;
 
-        SystemTime::now().try_into().expect(
-            "the current date and time should be in the range of the Windows NT system time",
-        )
+        SystemTime::now()
+            .try_into()
+            .expect("the current date and time should be in the range of the file time")
     }
 
-    /// Creates a new `FileTime` with the given Windows NT system time.
+    /// Creates a new `FileTime` with the given file time.
     ///
     /// # Examples
     ///
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     /// ```
@@ -156,7 +157,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
     /// assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
     /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     /// ```
@@ -164,6 +165,127 @@ impl FileTime {
     #[inline]
     pub const fn as_u64(self) -> u64 {
         self.0
+    }
+
+    /// Returns Unix time represents the same date and time as this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time(), -11_644_473_600);
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), i64::default());
+    /// assert_eq!(FileTime::MAX.to_unix_time(), 1_833_029_933_770);
+    /// ```
+    #[must_use]
+    pub fn to_unix_time(self) -> i64 {
+        i64::try_from(self.as_u64() / FILE_TIMES_PER_SEC)
+            .expect("Unix time should be in the range of `i64`")
+            - 11_644_473_600
+    }
+
+    /// Returns Unix time in nanoseconds represents the same date and time as
+    /// this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH.to_unix_time_nanos(),
+    ///     -11_644_473_600_000_000_000
+    /// );
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), i128::default());
+    /// assert_eq!(
+    ///     FileTime::MAX.to_unix_time_nanos(),
+    ///     1_833_029_933_770_955_161_500
+    /// );
+    /// ```
+    #[must_use]
+    pub fn to_unix_time_nanos(self) -> i128 {
+        (i128::from(self.as_u64()) * 100) - 11_644_473_600_000_000_000
+    }
+
+    /// Creates a `FileTime` with the given Unix time.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `time` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(-11_644_473_600).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::default()).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(1_833_029_933_770).unwrap(),
+    ///     FileTime::MAX - Duration::from_nanos(955_161_500)
+    /// );
+    ///
+    /// assert!(FileTime::from_unix_time(-11_644_473_601).is_err());
+    /// assert!(FileTime::from_unix_time(1_833_029_933_771).is_err());
+    /// ```
+    pub fn from_unix_time(time: i64) -> Result<Self, FileTimeRangeError> {
+        (time <= 1_833_029_933_770)
+            .then_some(time)
+            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .and_then(|ut| {
+                u64::try_from(ut + 11_644_473_600)
+                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+            })
+            .map(|t| t * FILE_TIMES_PER_SEC)
+            .map(Self::new)
+    }
+
+    /// Creates a `FileTime` with the given Unix time in nanoseconds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `time` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(i128::default()).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
+    ///     FileTime::MAX
+    /// );
+    ///
+    /// assert!(FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).is_err());
+    /// assert!(FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).is_err());
+    /// ```
+    pub fn from_unix_time_nanos(time: i128) -> Result<Self, FileTimeRangeError> {
+        (time <= 1_833_029_933_770_955_161_500)
+            .then_some(time)
+            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .and_then(|ut| {
+                ((ut + 11_644_473_600_000_000_000) / 100)
+                    .try_into()
+                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+            })
+            .map(Self::new)
     }
 
     /// Computes `self + rhs`, returning [`None`] if overflow occurred.
@@ -176,11 +298,11 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.checked_add(Duration::from_nanos(1)),
-    ///     Some(FileTime::NT_EPOCH)
+    ///     FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(1)),
+    ///     Some(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.checked_add(Duration::from_nanos(100)),
+    ///     FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(100)),
     ///     Some(FileTime::new(1))
     /// );
     ///
@@ -213,7 +335,7 @@ impl FileTime {
     /// );
     ///
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.checked_sub(Duration::from_nanos(100)),
+    ///     FileTime::NT_TIME_EPOCH.checked_sub(Duration::from_nanos(100)),
     ///     None
     /// );
     /// ```
@@ -234,11 +356,11 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(1)),
-    ///     FileTime::NT_EPOCH
+    ///     FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(1)),
+    ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(100)),
+    ///     FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(100)),
     ///     FileTime::new(1)
     /// );
     ///
@@ -253,8 +375,8 @@ impl FileTime {
         self.checked_add(rhs).unwrap_or(Self::MAX)
     }
 
-    /// Computes `self - rhs`, returning [`FileTime::NT_EPOCH`] if the result
-    /// would be negative or if overflow occurred.
+    /// Computes `self - rhs`, returning [`FileTime::NT_TIME_EPOCH`] if the
+    /// result would be negative or if overflow occurred.
     ///
     /// # Examples
     ///
@@ -273,8 +395,8 @@ impl FileTime {
     /// );
     ///
     /// assert_eq!(
-    ///     FileTime::NT_EPOCH.saturating_sub(Duration::from_nanos(100)),
-    ///     FileTime::NT_EPOCH
+    ///     FileTime::NT_TIME_EPOCH.saturating_sub(Duration::from_nanos(100)),
+    ///     FileTime::NT_TIME_EPOCH
     /// );
     /// ```
     #[must_use]
@@ -291,7 +413,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_EPOCH.to_be_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_be_bytes(),
     ///     [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
@@ -312,7 +434,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_le_bytes(),
     ///     [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
@@ -333,7 +455,10 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::from_be_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from_be_bytes([u8::MIN; 8]),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
     /// assert_eq!(
     ///     FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
     ///     FileTime::UNIX_EPOCH
@@ -354,7 +479,10 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::from_le_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from_le_bytes([u8::MIN; 8]),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
     /// assert_eq!(
     ///     FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
     ///     FileTime::UNIX_EPOCH
@@ -371,19 +499,19 @@ impl FileTime {
 impl Default for FileTime {
     /// Returns the default value of "1601-01-01 00:00:00 UTC".
     ///
-    /// Equivalent to [`FileTime::NT_EPOCH`] except that it is not callable in
-    /// const contexts.
+    /// Equivalent to [`FileTime::NT_TIME_EPOCH`] except that it is not callable
+    /// in const contexts.
     ///
     /// # Examples
     ///
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
     /// ```
     #[inline]
     fn default() -> Self {
-        Self::NT_EPOCH
+        Self::NT_TIME_EPOCH
     }
 }
 
@@ -395,7 +523,7 @@ impl fmt::Display for FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(format!("{}", FileTime::NT_EPOCH), "0");
+    /// assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
     /// assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
     /// assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     /// ```
@@ -553,8 +681,8 @@ impl Sub for FileTime {
     fn sub(self, rhs: Self) -> Self::Output {
         let duration = self.as_u64() - rhs.as_u64();
         Self::Output::new(
-            duration / 10_000_000,
-            u32::try_from((duration % 10_000_000) * 100)
+            duration / FILE_TIMES_PER_SEC,
+            u32::try_from((duration % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `u32`"),
         )
     }
@@ -663,7 +791,7 @@ impl SubAssign<time::Duration> for FileTime {
 }
 
 impl From<FileTime> for u64 {
-    /// Converts a `FileTime` to the Windows NT system time.
+    /// Converts a `FileTime` to the file time.
     ///
     /// Equivalent to [`FileTime::as_u64`] except that it is not callable in
     /// const contexts.
@@ -673,7 +801,7 @@ impl From<FileTime> for u64 {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
+    /// assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
     /// assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
     /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     /// ```
@@ -700,7 +828,7 @@ impl From<FileTime> for std::time::SystemTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     SystemTime::from(FileTime::NT_EPOCH),
+    ///     SystemTime::from(FileTime::NT_TIME_EPOCH),
     ///     SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
     /// );
     /// assert_eq!(
@@ -712,11 +840,11 @@ impl From<FileTime> for std::time::SystemTime {
         use std::time::Duration;
 
         let duration = Duration::new(
-            time.as_u64() / 10_000_000,
-            u32::try_from((time.as_u64() % 10_000_000) * 100)
+            time.as_u64() / FILE_TIMES_PER_SEC,
+            u32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `u32`"),
         );
-        *SYSTEM_TIME_NT_EPOCH + duration
+        *SYSTEM_TIME_NT_TIME_EPOCH + duration
     }
 }
 
@@ -738,7 +866,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
+    ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
     ///     PrimitiveDateTime::new(
     ///         Date::from_calendar_date(1601, Month::January, 1).unwrap(),
     ///         Time::MIDNIGHT
@@ -751,8 +879,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// );
     /// ```
     ///
-    /// With the `large-dates` feature disabled, returns [`Err`] if the Windows
-    /// NT system time represents after "9999-12-31 23:59:59.999999900 UTC":
+    /// With the `large-dates` feature disabled, returns [`Err`] if the file
+    /// time represents after "9999-12-31 23:59:59.999999900 UTC":
     ///
     /// ```
     /// # use nt_time::{
@@ -795,12 +923,12 @@ impl TryFrom<FileTime> for OffsetDateTime {
         use time::Duration;
 
         let duration = Duration::new(
-            i64::try_from(time.as_u64() / 10_000_000)
+            i64::try_from(time.as_u64() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
-            i32::try_from((time.as_u64() % 10_000_000) * 100)
+            i32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i32`"),
         );
-        OFFSET_DATE_TIME_NT_EPOCH
+        OFFSET_DATE_TIME_NT_TIME_EPOCH
             .checked_add(duration)
             .ok_or(OffsetDateTimeRangeError)
     }
@@ -819,7 +947,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// # };
     /// #
     /// assert_eq!(
-    ///     DateTime::<Utc>::from(FileTime::NT_EPOCH),
+    ///     DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
     ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()
     /// );
     /// assert_eq!(
@@ -831,18 +959,18 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
         use chrono::Duration;
 
         let duration = Duration::seconds(
-            i64::try_from(time.as_u64() / 10_000_000)
+            i64::try_from(time.as_u64() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
         ) + Duration::nanoseconds(
-            i64::try_from((time.as_u64() % 10_000_000) * 100)
+            i64::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
-        *CHRONO_DATE_TIME_NT_EPOCH + duration
+        *CHRONO_DATE_TIME_NT_TIME_EPOCH + duration
     }
 }
 
 impl From<u64> for FileTime {
-    /// Converts the Windows NT system time to a `FileTime`.
+    /// Converts the file time to a `FileTime`.
     ///
     /// Equivalent to [`FileTime::new`] except that it is not callable in const
     /// contexts.
@@ -852,7 +980,7 @@ impl From<u64> for FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
+    /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from(116_444_736_000_000_000),
     ///     FileTime::UNIX_EPOCH
@@ -873,8 +1001,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range for the Windows NT system
-    /// time.
+    /// Returns [`Err`] if `time` is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -885,7 +1012,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)).unwrap(),
-    ///     FileTime::NT_EPOCH
+    ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
     ///     FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
@@ -905,7 +1032,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// ```
     fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
         let elapsed = time
-            .duration_since(*SYSTEM_TIME_NT_EPOCH)
+            .duration_since(*SYSTEM_TIME_NT_TIME_EPOCH)
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
@@ -921,7 +1048,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -940,7 +1067,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///         .assume_utc()
     ///     )
     ///     .unwrap(),
-    ///     FileTime::NT_EPOCH
+    ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
     ///     FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
@@ -982,7 +1109,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         use core::time::Duration;
 
-        let elapsed = Duration::try_from(dt - OFFSET_DATE_TIME_NT_EPOCH)
+        let elapsed = Duration::try_from(dt - OFFSET_DATE_TIME_NT_TIME_EPOCH)
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
@@ -999,7 +1126,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range for the Windows NT system time.
+    /// Returns [`Err`] if `dt` is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -1011,7 +1138,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// #
     /// assert_eq!(
     ///     FileTime::try_from(Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()).unwrap(),
-    ///     FileTime::NT_EPOCH
+    ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
     ///     FileTime::try_from(Utc.timestamp_opt(0, 0).unwrap()).unwrap(),
@@ -1031,7 +1158,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
-        let elapsed = (dt - *CHRONO_DATE_TIME_NT_EPOCH)
+        let elapsed = (dt - *CHRONO_DATE_TIME_NT_TIME_EPOCH)
             .to_std()
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
@@ -1041,25 +1168,107 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+#[cfg(feature = "serde")]
+impl serde::Serialize for FileTime {
+    /// Serializes a [`FileTime`] into the given Serde serializer.
+    ///
+    /// This serializes using the underlying [`u64`] format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     serde_json::to_string(&FileTime::UNIX_EPOCH).unwrap(),
+    ///     "116444736000000000"
+    /// );
+    ///
+    /// assert_eq!(
+    ///     serde_json::to_string(&Some(FileTime::UNIX_EPOCH)).unwrap(),
+    ///     "116444736000000000"
+    /// );
+    /// assert_eq!(serde_json::to_string(&None::<FileTime>).unwrap(), "null");
+    /// ```
+    #[inline]
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_newtype_struct("FileTime", &self.as_u64())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for FileTime {
+    /// Deserializes a [`FileTime`] from the given Serde deserializer.
+    ///
+    /// This deserializes from its underlying [`u64`] representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     serde_json::from_str::<FileTime>("116444736000000000").unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    ///
+    /// assert_eq!(
+    ///     serde_json::from_str::<Option<FileTime>>("116444736000000000").unwrap(),
+    ///     Some(FileTime::UNIX_EPOCH)
+    /// );
+    /// assert_eq!(
+    ///     serde_json::from_str::<Option<FileTime>>("null").unwrap(),
+    ///     None
+    /// );
+    /// ```
+    #[inline]
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        use serde::{de::Visitor, Deserializer};
+
+        struct FileTimeVisitor;
+
+        impl<'de> Visitor<'de> for FileTimeVisitor {
+            type Value = FileTime;
+
+            #[inline]
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(formatter, "a newtype struct `FileTime`")
+            }
+
+            #[inline]
+            fn visit_newtype_struct<D: Deserializer<'de>>(
+                self,
+                deserializer: D,
+            ) -> Result<Self::Value, D::Error> {
+                use serde::Deserialize;
+
+                u64::deserialize(deserializer).map(FileTime::new)
+            }
+        }
+
+        deserializer.deserialize_newtype_struct("FileTime", FileTimeVisitor)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn clone() {
-        assert_eq!(FileTime::NT_EPOCH.clone(), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::NT_TIME_EPOCH.clone(), FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
     fn copy() {
-        let a = FileTime::NT_EPOCH;
+        let a = FileTime::NT_TIME_EPOCH;
         let b = a;
         assert_eq!(a, b);
     }
 
     #[test]
     fn debug() {
-        assert_eq!(format!("{:?}", FileTime::NT_EPOCH), "FileTime(0)");
+        assert_eq!(format!("{:?}", FileTime::NT_TIME_EPOCH), "FileTime(0)");
         assert_eq!(
             format!("{:?}", FileTime::UNIX_EPOCH),
             "FileTime(116444736000000000)"
@@ -1072,13 +1281,13 @@ mod tests {
 
     #[test]
     fn equality() {
-        assert_eq!(FileTime::NT_EPOCH, FileTime::NT_EPOCH);
-        assert_ne!(FileTime::NT_EPOCH, FileTime::UNIX_EPOCH);
-        assert_ne!(FileTime::NT_EPOCH, FileTime::MAX);
-        assert_ne!(FileTime::UNIX_EPOCH, FileTime::NT_EPOCH);
+        assert_eq!(FileTime::NT_TIME_EPOCH, FileTime::NT_TIME_EPOCH);
+        assert_ne!(FileTime::NT_TIME_EPOCH, FileTime::UNIX_EPOCH);
+        assert_ne!(FileTime::NT_TIME_EPOCH, FileTime::MAX);
+        assert_ne!(FileTime::UNIX_EPOCH, FileTime::NT_TIME_EPOCH);
         assert_eq!(FileTime::UNIX_EPOCH, FileTime::UNIX_EPOCH);
         assert_ne!(FileTime::UNIX_EPOCH, FileTime::MAX);
-        assert_ne!(FileTime::MAX, FileTime::NT_EPOCH);
+        assert_ne!(FileTime::MAX, FileTime::NT_TIME_EPOCH);
         assert_ne!(FileTime::MAX, FileTime::UNIX_EPOCH);
         assert_eq!(FileTime::MAX, FileTime::MAX);
     }
@@ -1091,7 +1300,7 @@ mod tests {
             Ordering::Equal
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.cmp(&FileTime::NT_EPOCH),
+            FileTime::UNIX_EPOCH.cmp(&FileTime::NT_TIME_EPOCH),
             Ordering::Greater
         );
     }
@@ -1107,7 +1316,7 @@ mod tests {
         assert_ne!(
             {
                 let mut hasher = DefaultHasher::new();
-                FileTime::NT_EPOCH.hash(&mut hasher);
+                FileTime::NT_TIME_EPOCH.hash(&mut hasher);
                 hasher.finish()
             },
             {
@@ -1119,10 +1328,10 @@ mod tests {
     }
 
     #[test]
-    fn nt_epoch() {
+    fn nt_time_epoch() {
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
-            OFFSET_DATE_TIME_NT_EPOCH
+            OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            OFFSET_DATE_TIME_NT_TIME_EPOCH
         );
     }
 
@@ -1153,16 +1362,118 @@ mod tests {
 
     #[test]
     fn new() {
-        assert_eq!(FileTime::new(u64::MIN), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::new(u64::MIN), FileTime::NT_TIME_EPOCH);
         assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
         assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     }
 
     #[test]
     fn as_u64() {
-        assert_eq!(FileTime::NT_EPOCH.as_u64(), u64::MIN);
+        assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
         assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
+    }
+
+    #[test]
+    fn to_unix_time() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time(), -11_644_473_600);
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), i64::default());
+        assert_eq!(FileTime::MAX.to_unix_time(), 1_833_029_933_770);
+    }
+
+    #[test]
+    fn to_unix_time_nanos() {
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH.to_unix_time_nanos(),
+            -11_644_473_600_000_000_000
+        );
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), i128::default());
+        assert_eq!(
+            FileTime::MAX.to_unix_time_nanos(),
+            1_833_029_933_770_955_161_500
+        );
+    }
+
+    #[test]
+    fn from_unix_time_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time(-11_644_473_601).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn from_unix_time() {
+        use core::time::Duration;
+
+        assert_eq!(
+            FileTime::from_unix_time(-11_644_473_600).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770).unwrap(),
+            FileTime::MAX - Duration::from_nanos(955_161_500)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_771).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MAX).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
+            FileTime::MAX
+        );
+    }
+
+    #[test]
+    fn from_unix_time_nanos_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(i128::MAX).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
     }
 
     #[test]
@@ -1170,19 +1481,19 @@ mod tests {
         use core::time::Duration;
 
         assert_eq!(
-            FileTime::NT_EPOCH.checked_add(Duration::ZERO),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_add(Duration::ZERO),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_add(Duration::from_nanos(1)),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(1)),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_add(Duration::from_nanos(99)),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(99)),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_add(Duration::from_nanos(100)),
+            FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(100)),
             Some(FileTime::new(1))
         );
 
@@ -1223,19 +1534,19 @@ mod tests {
         );
 
         assert_eq!(
-            FileTime::NT_EPOCH.checked_sub(Duration::ZERO),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_sub(Duration::ZERO),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_sub(Duration::from_nanos(1)),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_sub(Duration::from_nanos(1)),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_sub(Duration::from_nanos(99)),
-            Some(FileTime::NT_EPOCH)
+            FileTime::NT_TIME_EPOCH.checked_sub(Duration::from_nanos(99)),
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
-            FileTime::NT_EPOCH.checked_sub(Duration::from_nanos(100)),
+            FileTime::NT_TIME_EPOCH.checked_sub(Duration::from_nanos(100)),
             None
         );
     }
@@ -1245,19 +1556,19 @@ mod tests {
         use core::time::Duration;
 
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_add(Duration::ZERO),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_add(Duration::ZERO),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(1)),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(1)),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(99)),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(99)),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_add(Duration::from_nanos(100)),
+            FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(100)),
             FileTime::new(1)
         );
 
@@ -1295,26 +1606,26 @@ mod tests {
         );
 
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_sub(Duration::ZERO),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_sub(Duration::ZERO),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_sub(Duration::from_nanos(1)),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_sub(Duration::from_nanos(1)),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_sub(Duration::from_nanos(99)),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_sub(Duration::from_nanos(99)),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH.saturating_sub(Duration::from_nanos(100)),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH.saturating_sub(Duration::from_nanos(100)),
+            FileTime::NT_TIME_EPOCH
         );
     }
 
     #[test]
     fn to_be_bytes() {
-        assert_eq!(FileTime::NT_EPOCH.to_be_bytes(), [u8::MIN; 8]);
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
         assert_eq!(
             FileTime::UNIX_EPOCH.to_be_bytes(),
             [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
@@ -1324,7 +1635,7 @@ mod tests {
 
     #[test]
     fn to_le_bytes() {
-        assert_eq!(FileTime::NT_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
         assert_eq!(
             FileTime::UNIX_EPOCH.to_le_bytes(),
             [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
@@ -1334,7 +1645,10 @@ mod tests {
 
     #[test]
     fn from_be_bytes() {
-        assert_eq!(FileTime::from_be_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+        assert_eq!(
+            FileTime::from_be_bytes([u8::MIN; 8]),
+            FileTime::NT_TIME_EPOCH
+        );
         assert_eq!(
             FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
             FileTime::UNIX_EPOCH
@@ -1344,7 +1658,10 @@ mod tests {
 
     #[test]
     fn from_le_bytes() {
-        assert_eq!(FileTime::from_le_bytes([u8::MIN; 8]), FileTime::NT_EPOCH);
+        assert_eq!(
+            FileTime::from_le_bytes([u8::MIN; 8]),
+            FileTime::NT_TIME_EPOCH
+        );
         assert_eq!(
             FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
             FileTime::UNIX_EPOCH
@@ -1354,12 +1671,12 @@ mod tests {
 
     #[test]
     fn default() {
-        assert_eq!(FileTime::default(), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
     fn display() {
-        assert_eq!(format!("{}", FileTime::NT_EPOCH), "0");
+        assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
         assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
         assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     }
@@ -1378,7 +1695,7 @@ mod tests {
             FileTime::new(9_223_372_036_854_775_806)
         );
         assert_eq!(SystemTime::UNIX_EPOCH, FileTime::UNIX_EPOCH);
-        assert_ne!(SystemTime::UNIX_EPOCH, FileTime::NT_EPOCH);
+        assert_ne!(SystemTime::UNIX_EPOCH, FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "std")]
@@ -1395,7 +1712,7 @@ mod tests {
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_eq!(FileTime::UNIX_EPOCH, SystemTime::UNIX_EPOCH);
-        assert_ne!(FileTime::NT_EPOCH, SystemTime::UNIX_EPOCH);
+        assert_ne!(FileTime::NT_TIME_EPOCH, SystemTime::UNIX_EPOCH);
     }
 
     #[test]
@@ -1406,13 +1723,13 @@ mod tests {
         );
         assert_ne!(
             datetime!(9999-12-31 23:59:59.999_999_900 UTC),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            OFFSET_DATE_TIME_NT_EPOCH,
+            OFFSET_DATE_TIME_NT_TIME_EPOCH,
             FileTime::new(2_650_467_743_999_999_999)
         );
-        assert_eq!(OFFSET_DATE_TIME_NT_EPOCH, FileTime::NT_EPOCH);
+        assert_eq!(OFFSET_DATE_TIME_NT_TIME_EPOCH, FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
@@ -1422,14 +1739,14 @@ mod tests {
             datetime!(9999-12-31 23:59:59.999_999_900 UTC)
         );
         assert_ne!(
-            FileTime::NT_EPOCH,
+            FileTime::NT_TIME_EPOCH,
             datetime!(9999-12-31 23:59:59.999_999_900 UTC)
         );
         assert_ne!(
             FileTime::new(2_650_467_743_999_999_999),
-            OFFSET_DATE_TIME_NT_EPOCH
+            OFFSET_DATE_TIME_NT_TIME_EPOCH
         );
-        assert_eq!(FileTime::NT_EPOCH, OFFSET_DATE_TIME_NT_EPOCH);
+        assert_eq!(FileTime::NT_TIME_EPOCH, OFFSET_DATE_TIME_NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "chrono")]
@@ -1447,10 +1764,10 @@ mod tests {
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap(),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH
         );
-        assert_ne!(*CHRONO_DATE_TIME_NT_EPOCH, FileTime::MAX);
-        assert_eq!(*CHRONO_DATE_TIME_NT_EPOCH, FileTime::NT_EPOCH);
+        assert_ne!(*CHRONO_DATE_TIME_NT_TIME_EPOCH, FileTime::MAX);
+        assert_eq!(*CHRONO_DATE_TIME_NT_TIME_EPOCH, FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "chrono")]
@@ -1465,13 +1782,13 @@ mod tests {
                 .unwrap()
         );
         assert_ne!(
-            FileTime::NT_EPOCH,
+            FileTime::NT_TIME_EPOCH,
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
         );
-        assert_ne!(FileTime::MAX, *CHRONO_DATE_TIME_NT_EPOCH);
-        assert_eq!(FileTime::NT_EPOCH, *CHRONO_DATE_TIME_NT_EPOCH);
+        assert_ne!(FileTime::MAX, *CHRONO_DATE_TIME_NT_TIME_EPOCH);
+        assert_eq!(FileTime::NT_TIME_EPOCH, *CHRONO_DATE_TIME_NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "std")]
@@ -1488,7 +1805,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_EPOCH),
+            SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1509,7 +1826,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&*SYSTEM_TIME_NT_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&*SYSTEM_TIME_NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1525,7 +1842,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_EPOCH),
+            OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1541,7 +1858,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&OFFSET_DATE_TIME_NT_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&OFFSET_DATE_TIME_NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1569,7 +1886,7 @@ mod tests {
             "1970-01-01 00:00:00 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
-                .partial_cmp(&FileTime::NT_EPOCH),
+                .partial_cmp(&FileTime::NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1593,7 +1910,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&*CHRONO_DATE_TIME_NT_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&*CHRONO_DATE_TIME_NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1602,17 +1919,20 @@ mod tests {
     fn add_std_duration() {
         use core::time::Duration;
 
-        assert_eq!(FileTime::NT_EPOCH + Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::from_nanos(1),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::from_nanos(99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + Duration::from_nanos(1),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::from_nanos(100),
+            FileTime::NT_TIME_EPOCH + Duration::from_nanos(99),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + Duration::from_nanos(100),
             FileTime::new(1)
         );
 
@@ -1633,17 +1953,20 @@ mod tests {
     fn add_positive_time_duration() {
         use time::Duration;
 
-        assert_eq!(FileTime::NT_EPOCH + Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::NANOSECOND,
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::nanoseconds(99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + Duration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::nanoseconds(100),
+            FileTime::NT_TIME_EPOCH + Duration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + Duration::nanoseconds(100),
             FileTime::new(1)
         );
 
@@ -1672,14 +1995,17 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
-        assert_eq!(FileTime::NT_EPOCH + -Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH + -Duration::NANOSECOND,
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + -Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH + Duration::nanoseconds(-99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH + -Duration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH
         );
     }
 
@@ -1688,7 +2014,7 @@ mod tests {
     fn add_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::NT_EPOCH + Duration::nanoseconds(-100);
+        let _ = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
     }
 
     #[test]
@@ -1696,22 +2022,22 @@ mod tests {
         use core::time::Duration;
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::from_nanos(1);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::from_nanos(99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::from_nanos(100);
             assert_eq!(ft, FileTime::new(1));
         }
@@ -1747,22 +2073,22 @@ mod tests {
         use time::Duration;
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::NANOSECOND;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(1));
         }
@@ -1819,19 +2145,19 @@ mod tests {
         }
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += -Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += -Duration::NANOSECOND;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft += Duration::nanoseconds(-99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
 
@@ -1840,7 +2166,7 @@ mod tests {
     fn add_assign_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let mut ft = FileTime::NT_EPOCH;
+        let mut ft = FileTime::NT_TIME_EPOCH;
         ft += Duration::nanoseconds(-100);
     }
 
@@ -1854,7 +2180,7 @@ mod tests {
             Duration::from_nanos(100)
         );
         assert_eq!(
-            FileTime::MAX - FileTime::NT_EPOCH,
+            FileTime::MAX - FileTime::NT_TIME_EPOCH,
             Duration::new(1_844_674_407_370, 955_161_500)
         );
     }
@@ -1879,14 +2205,17 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
-        assert_eq!(FileTime::NT_EPOCH - Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::from_nanos(1),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::from_nanos(99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - Duration::from_nanos(1),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - Duration::from_nanos(99),
+            FileTime::NT_TIME_EPOCH
         );
     }
 
@@ -1895,7 +2224,7 @@ mod tests {
     fn sub_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let _ = FileTime::NT_EPOCH - Duration::from_nanos(100);
+        let _ = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
     }
 
     #[test]
@@ -1910,14 +2239,17 @@ mod tests {
             FileTime::new(u64::MAX - 1)
         );
 
-        assert_eq!(FileTime::NT_EPOCH - Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::NANOSECOND,
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::nanoseconds(99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - Duration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - Duration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH
         );
     }
 
@@ -1926,24 +2258,27 @@ mod tests {
     fn sub_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::NT_EPOCH - Duration::nanoseconds(100);
+        let _ = FileTime::NT_TIME_EPOCH - Duration::nanoseconds(100);
     }
 
     #[test]
     fn sub_negative_time_duration() {
         use time::Duration;
 
-        assert_eq!(FileTime::NT_EPOCH - -Duration::ZERO, FileTime::NT_EPOCH);
         assert_eq!(
-            FileTime::NT_EPOCH - -Duration::NANOSECOND,
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - -Duration::ZERO,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::nanoseconds(-99),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH - -Duration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_EPOCH - Duration::nanoseconds(-100),
+            FileTime::NT_TIME_EPOCH - Duration::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - Duration::nanoseconds(-100),
             FileTime::new(1)
         );
 
@@ -2048,7 +2383,7 @@ mod tests {
             Duration::nanoseconds(100)
         );
         assert_eq!(
-            datetime!(9999-12-31 23:59:59.999_999_900 UTC) - FileTime::NT_EPOCH,
+            datetime!(9999-12-31 23:59:59.999_999_900 UTC) - FileTime::NT_TIME_EPOCH,
             Duration::new(265_046_774_399, 999_999_900)
         );
     }
@@ -2078,7 +2413,7 @@ mod tests {
             Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999) - OFFSET_DATE_TIME_NT_EPOCH,
+            FileTime::new(2_650_467_743_999_999_999) - OFFSET_DATE_TIME_NT_TIME_EPOCH,
             Duration::new(265_046_774_399, 999_999_900)
         );
     }
@@ -2106,7 +2441,7 @@ mod tests {
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
-                - FileTime::NT_EPOCH,
+                - FileTime::NT_TIME_EPOCH,
             chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
                 .unwrap()
         );
@@ -2149,7 +2484,7 @@ mod tests {
             chrono::Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::MAX - *CHRONO_DATE_TIME_NT_EPOCH,
+            FileTime::MAX - *CHRONO_DATE_TIME_NT_TIME_EPOCH,
             chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
                 .unwrap()
         );
@@ -2181,19 +2516,19 @@ mod tests {
         }
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::from_nanos(1);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::from_nanos(99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
 
@@ -2202,7 +2537,7 @@ mod tests {
     fn sub_assign_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let mut ft = FileTime::NT_EPOCH;
+        let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= Duration::from_nanos(100);
     }
 
@@ -2232,19 +2567,19 @@ mod tests {
         }
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::NANOSECOND;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
 
@@ -2253,7 +2588,7 @@ mod tests {
     fn sub_assign_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let mut ft = FileTime::NT_EPOCH;
+        let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= Duration::nanoseconds(100);
     }
 
@@ -2262,22 +2597,22 @@ mod tests {
         use time::Duration;
 
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= -Duration::ZERO;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= -Duration::NANOSECOND;
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::nanoseconds(-99);
-            assert_eq!(ft, FileTime::NT_EPOCH);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
-            let mut ft = FileTime::NT_EPOCH;
+            let mut ft = FileTime::NT_TIME_EPOCH;
             ft -= Duration::nanoseconds(-100);
             assert_eq!(ft, FileTime::new(1));
         }
@@ -2310,7 +2645,7 @@ mod tests {
 
     #[test]
     fn from_file_time_to_u64() {
-        assert_eq!(u64::from(FileTime::NT_EPOCH), u64::MIN);
+        assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
         assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
@@ -2320,7 +2655,10 @@ mod tests {
     fn from_file_time_to_system_time() {
         use std::time::{Duration, SystemTime};
 
-        assert_eq!(SystemTime::from(FileTime::NT_EPOCH), *SYSTEM_TIME_NT_EPOCH);
+        assert_eq!(
+            SystemTime::from(FileTime::NT_TIME_EPOCH),
+            *SYSTEM_TIME_NT_TIME_EPOCH
+        );
         assert_eq!(
             SystemTime::from(FileTime::UNIX_EPOCH),
             SystemTime::UNIX_EPOCH
@@ -2350,8 +2688,8 @@ mod tests {
     #[test]
     fn try_from_file_time_to_offset_date_time() {
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::NT_EPOCH).unwrap(),
-            OFFSET_DATE_TIME_NT_EPOCH
+            OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            OFFSET_DATE_TIME_NT_TIME_EPOCH
         );
         assert_eq!(
             OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
@@ -2366,8 +2704,10 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn try_from_file_time_to_offset_date_time_with_invalid_file_time() {
-        let dt = OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err();
-        assert_eq!(dt, OffsetDateTimeRangeError);
+        assert_eq!(
+            OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err(),
+            OffsetDateTimeRangeError
+        );
     }
 
     #[cfg(feature = "large-dates")]
@@ -2389,8 +2729,8 @@ mod tests {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::NT_EPOCH),
-            *CHRONO_DATE_TIME_NT_EPOCH
+            DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
+            *CHRONO_DATE_TIME_NT_TIME_EPOCH
         );
         assert_eq!(
             DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
@@ -2418,7 +2758,7 @@ mod tests {
 
     #[test]
     fn from_u64_to_file_time() {
-        assert_eq!(FileTime::from(u64::MIN), FileTime::NT_EPOCH);
+        assert_eq!(FileTime::from(u64::MIN), FileTime::NT_TIME_EPOCH);
         assert_eq!(
             FileTime::from(116_444_736_000_000_000),
             FileTime::UNIX_EPOCH
@@ -2428,17 +2768,16 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    fn try_from_system_time_to_file_time_before_epoch() {
+    fn try_from_system_time_to_file_time_before_nt_time_epoch() {
         use std::time::{Duration, SystemTime};
 
-        let st = if cfg!(windows) {
-            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
-        } else {
-            SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
-        };
-        let ft = FileTime::try_from(st).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(if cfg!(windows) {
+                SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
+            } else {
+                SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
+            })
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2449,8 +2788,8 @@ mod tests {
         use std::time::{Duration, SystemTime};
 
         assert_eq!(
-            FileTime::try_from(*SYSTEM_TIME_NT_EPOCH).unwrap(),
-            FileTime::NT_EPOCH
+            FileTime::try_from(*SYSTEM_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
             FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
@@ -2498,24 +2837,22 @@ mod tests {
                 .checked_add(Duration::new(910_692_730_085, 477_580_800))
                 .is_none());
         } else {
-            let st = FileTime::try_from(
-                SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600),
-            )
-            .unwrap_err();
             assert_eq!(
-                st,
+                FileTime::try_from(
+                    SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600)
+                )
+                .unwrap_err(),
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             );
         }
     }
 
     #[test]
-    fn try_from_offset_date_time_to_file_time_before_epoch() {
+    fn try_from_offset_date_time_to_file_time_before_nt_time_epoch() {
         use time::Duration;
 
-        let ft = FileTime::try_from(OFFSET_DATE_TIME_NT_EPOCH - Duration::NANOSECOND).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(OFFSET_DATE_TIME_NT_TIME_EPOCH - Duration::NANOSECOND).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2523,8 +2860,8 @@ mod tests {
     #[test]
     fn try_from_offset_date_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(OFFSET_DATE_TIME_NT_EPOCH).unwrap(),
-            FileTime::NT_EPOCH
+            FileTime::try_from(OFFSET_DATE_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
             FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
@@ -2554,25 +2891,23 @@ mod tests {
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
         use time::Duration;
 
-        let ft = FileTime::try_from(
-            datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100),
-        )
-        .unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(
+                datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
+            )
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }
 
     #[cfg(feature = "chrono")]
     #[test]
-    fn try_from_chrono_date_time_to_file_time_before_epoch() {
+    fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
         use chrono::Duration;
 
-        let ft =
-            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH - Duration::nanoseconds(1)).unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(*CHRONO_DATE_TIME_NT_TIME_EPOCH - Duration::nanoseconds(1))
+                .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2583,8 +2918,8 @@ mod tests {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
-            FileTime::try_from(*CHRONO_DATE_TIME_NT_EPOCH).unwrap(),
-            FileTime::NT_EPOCH
+            FileTime::try_from(*CHRONO_DATE_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
             FileTime::try_from("1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap())
@@ -2625,15 +2960,14 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
         use chrono::{DateTime, Duration, Utc};
 
-        let ft = FileTime::try_from(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                + Duration::nanoseconds(100),
-        )
-        .unwrap_err();
         assert_eq!(
-            ft,
+            FileTime::try_from(
+                "+60056-05-28 05:36:10.955161500 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+                    + Duration::nanoseconds(100)
+            )
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }
@@ -2644,7 +2978,7 @@ mod tests {
         use serde_test::{assert_tokens, Token};
 
         assert_tokens(
-            &FileTime::NT_EPOCH,
+            &FileTime::NT_TIME_EPOCH,
             &[
                 Token::NewtypeStruct { name: "FileTime" },
                 Token::U64(u64::MIN),
@@ -2668,11 +3002,36 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
+    fn deserialize_error() {
+        use serde_test::{assert_de_tokens_error, Token};
+
+        assert_de_tokens_error::<FileTime>(
+            &[Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+        );
+        assert_de_tokens_error::<FileTime>(
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::Bool(bool::default()),
+            ],
+            "invalid type: boolean `false`, expected u64",
+        );
+        assert_de_tokens_error::<FileTime>(
+            &[
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::I64(i64::MIN),
+            ],
+            "invalid value: integer `-9223372036854775808`, expected u64",
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
     fn serde_optional() {
         use serde_test::{assert_tokens, Token};
 
         assert_tokens(
-            &Some(FileTime::NT_EPOCH),
+            &Some(FileTime::NT_TIME_EPOCH),
             &[
                 Token::Some,
                 Token::NewtypeStruct { name: "FileTime" },
@@ -2700,8 +3059,42 @@ mod tests {
 
     #[cfg(feature = "serde")]
     #[test]
+    fn deserialize_optional_error() {
+        use serde_test::{assert_de_tokens_error, Token};
+
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected option"#,
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[Token::Some, Token::BorrowedStr("FileTime")],
+            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::Bool(bool::default()),
+            ],
+            "invalid type: boolean `false`, expected u64",
+        );
+        assert_de_tokens_error::<Option<FileTime>>(
+            &[
+                Token::Some,
+                Token::NewtypeStruct { name: "FileTime" },
+                Token::I64(i64::MIN),
+            ],
+            "invalid value: integer `-9223372036854775808`, expected u64",
+        );
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
     fn serialize_json() {
-        assert_eq!(serde_json::to_string(&FileTime::NT_EPOCH).unwrap(), "0");
+        assert_eq!(
+            serde_json::to_string(&FileTime::NT_TIME_EPOCH).unwrap(),
+            "0"
+        );
         assert_eq!(
             serde_json::to_string(&FileTime::UNIX_EPOCH).unwrap(),
             "116444736000000000"
@@ -2716,7 +3109,7 @@ mod tests {
     #[test]
     fn serialize_optional_json() {
         assert_eq!(
-            serde_json::to_string(&Some(FileTime::NT_EPOCH)).unwrap(),
+            serde_json::to_string(&Some(FileTime::NT_TIME_EPOCH)).unwrap(),
             "0"
         );
         assert_eq!(
@@ -2735,7 +3128,7 @@ mod tests {
     fn deserialize_json() {
         assert_eq!(
             serde_json::from_str::<FileTime>("0").unwrap(),
-            FileTime::NT_EPOCH
+            FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
             serde_json::from_str::<FileTime>("116444736000000000").unwrap(),
@@ -2752,7 +3145,7 @@ mod tests {
     fn deserialize_optional_json() {
         assert_eq!(
             serde_json::from_str::<Option<FileTime>>("0").unwrap(),
-            Some(FileTime::NT_EPOCH)
+            Some(FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
             serde_json::from_str::<Option<FileTime>>("116444736000000000").unwrap(),

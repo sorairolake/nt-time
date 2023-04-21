@@ -8,6 +8,10 @@
 //!
 //! [serde-official-url]: https://serde.rs/
 
+#[cfg(feature = "serde-human-readable")]
 pub mod iso_8601;
+#[cfg(feature = "serde-human-readable")]
 pub mod rfc_2822;
+#[cfg(feature = "serde-human-readable")]
 pub mod rfc_3339;
+pub mod unix_time;

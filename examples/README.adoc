@@ -1,10 +1,10 @@
 = Examples
 
 link:date.rs[]::
-  An example of printing the Windows NT system time.
+  An example of printing the file time.
 
-link:nt2unix.rs[]::
-  An example of converting the Windows NT system time to Unix time.
+link:ft2unix.rs[]::
+  An example of converting the file time to Unix time.
 
-link:unix2nt.rs[]::
-  An example of converting Unix time to the Windows NT system time.
+link:unix2ft.rs[]::
+  An example of converting Unix time to the file time.
