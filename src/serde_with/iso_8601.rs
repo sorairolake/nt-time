@@ -16,7 +16,7 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde::iso_8601, FileTime};
+//! use nt_time::{serde_with::iso_8601, FileTime};
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
@@ -65,7 +65,7 @@ mod tests {
     use super::*;
 
     #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde::iso_8601")] FileTime);
+    struct Test(#[serde(with = "crate::serde_with::iso_8601")] FileTime);
 
     #[test]
     fn serde() {

@@ -23,6 +23,7 @@ toc::[]
 === Changed
 
 * Rename `FileTime::NT_EPOCH` to `FileTime::NT_TIME_EPOCH`
+* Rename `serde` to `serde_with`
 
 == {compare-url}/v0.2.0\...v0.3.0[0.3.0] - 2023-04-17
 

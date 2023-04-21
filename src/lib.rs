@@ -53,7 +53,7 @@ extern crate std;
 pub mod error;
 mod file_time;
 #[cfg(feature = "serde")]
-pub mod serde;
+pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;

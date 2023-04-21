@@ -4,8 +4,7 @@
 // Copyright (C) 2023 Shun Sakai
 //
 
-//! Use Unix time when serializing and
-//! deserializing a [`FileTime`].
+//! Use Unix time when serializing and deserializing a [`FileTime`].
 //!
 //! Use this module in combination with Serde's
 //! [`#[with]`][serde-with-attribute] attribute.
@@ -13,7 +12,7 @@
 //! # Examples
 //!
 //! ```
-//! use nt_time::{serde::unix_time, FileTime};
+//! use nt_time::{serde_with::unix_time, FileTime};
 //! use serde::{Deserialize, Serialize};
 //!
 //! #[derive(Debug, Deserialize, PartialEq, Serialize)]
@@ -63,7 +62,7 @@ mod tests {
     use super::*;
 
     #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde::unix_time")] FileTime);
+    struct Test(#[serde(with = "crate::serde_with::unix_time")] FileTime);
 
     #[test]
     fn serde() {
