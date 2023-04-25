@@ -20,22 +20,6 @@ use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind, OffsetDateTimeRan
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
-#[cfg(feature = "std")]
-static SYSTEM_TIME_NT_TIME_EPOCH: once_cell::sync::Lazy<std::time::SystemTime> =
-    once_cell::sync::Lazy::new(|| {
-        std::time::SystemTime::UNIX_EPOCH - std::time::Duration::from_secs(134_774 * 86400)
-    });
-
-const OFFSET_DATE_TIME_NT_TIME_EPOCH: OffsetDateTime = datetime!(1601-01-01 00:00 UTC);
-
-#[cfg(feature = "chrono")]
-static CHRONO_DATE_TIME_NT_TIME_EPOCH: once_cell::sync::Lazy<chrono::DateTime<chrono::Utc>> =
-    once_cell::sync::Lazy::new(|| {
-        "1601-01-01 00:00:00 UTC"
-            .parse::<chrono::DateTime<chrono::Utc>>()
-            .expect("date and time should be valid as RFC 3339")
-    });
-
 /// `FileTime` is a type that represents a [Windows file
 /// time][file-time-docs-url].
 ///
@@ -844,7 +828,7 @@ impl From<FileTime> for std::time::SystemTime {
             u32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `u32`"),
         );
-        *SYSTEM_TIME_NT_TIME_EPOCH + duration
+        (Self::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)) + duration
     }
 }
 
@@ -928,7 +912,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
             i32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i32`"),
         );
-        OFFSET_DATE_TIME_NT_TIME_EPOCH
+        datetime!(1601-01-01 00:00 UTC)
             .checked_add(duration)
             .ok_or(OffsetDateTimeRangeError)
     }
@@ -965,7 +949,10 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
             i64::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
-        *CHRONO_DATE_TIME_NT_TIME_EPOCH + duration
+        "1601-01-01 00:00:00 UTC"
+            .parse::<Self>()
+            .expect("date and time should be valid as RFC 3339")
+            + duration
     }
 }
 
@@ -1031,8 +1018,10 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
+        use std::time::SystemTime;
+
         let elapsed = time
-            .duration_since(*SYSTEM_TIME_NT_TIME_EPOCH)
+            .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
@@ -1109,7 +1098,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         use core::time::Duration;
 
-        let elapsed = Duration::try_from(dt - OFFSET_DATE_TIME_NT_TIME_EPOCH)
+        let elapsed = Duration::try_from(dt - datetime!(1601-01-01 00:00 UTC))
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
@@ -1158,10 +1147,15 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
-        let elapsed = (dt - *CHRONO_DATE_TIME_NT_TIME_EPOCH)
-            .to_std()
-            .map(|d| d.as_nanos())
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
+        use chrono::{DateTime, Utc};
+
+        let elapsed = (dt
+            - "1601-01-01 00:00:00 UTC"
+                .parse::<DateTime<Utc>>()
+                .expect("date and time should be valid as RFC 3339"))
+        .to_std()
+        .map(|d| d.as_nanos())
+        .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
         let ft = u64::try_from(elapsed / 100)
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Overflow))?;
         Ok(Self::new(ft))
@@ -1331,7 +1325,7 @@ mod tests {
     fn nt_time_epoch() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            OFFSET_DATE_TIME_NT_TIME_EPOCH
+            datetime!(1601-01-01 00:00 UTC)
         );
     }
 
@@ -1726,10 +1720,10 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            OFFSET_DATE_TIME_NT_TIME_EPOCH,
+            datetime!(1601-01-01 00:00 UTC),
             FileTime::new(2_650_467_743_999_999_999)
         );
-        assert_eq!(OFFSET_DATE_TIME_NT_TIME_EPOCH, FileTime::NT_TIME_EPOCH);
+        assert_eq!(datetime!(1601-01-01 00:00 UTC), FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
@@ -1744,9 +1738,9 @@ mod tests {
         );
         assert_ne!(
             FileTime::new(2_650_467_743_999_999_999),
-            OFFSET_DATE_TIME_NT_TIME_EPOCH
+            datetime!(1601-01-01 00:00 UTC)
         );
-        assert_eq!(FileTime::NT_TIME_EPOCH, OFFSET_DATE_TIME_NT_TIME_EPOCH);
+        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
     }
 
     #[cfg(feature = "chrono")]
@@ -1766,8 +1760,14 @@ mod tests {
                 .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
-        assert_ne!(*CHRONO_DATE_TIME_NT_TIME_EPOCH, FileTime::MAX);
-        assert_eq!(*CHRONO_DATE_TIME_NT_TIME_EPOCH, FileTime::NT_TIME_EPOCH);
+        assert_ne!(
+            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
+            FileTime::MAX
+        );
+        assert_eq!(
+            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
     }
 
     #[cfg(feature = "chrono")]
@@ -1787,8 +1787,14 @@ mod tests {
                 .parse::<DateTime<Utc>>()
                 .unwrap()
         );
-        assert_ne!(FileTime::MAX, *CHRONO_DATE_TIME_NT_TIME_EPOCH);
-        assert_eq!(FileTime::NT_TIME_EPOCH, *CHRONO_DATE_TIME_NT_TIME_EPOCH);
+        assert_ne!(
+            FileTime::MAX,
+            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH,
+            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+        );
     }
 
     #[cfg(feature = "std")]
@@ -1826,7 +1832,9 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&*SYSTEM_TIME_NT_TIME_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(
+                &(SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH))
+            ),
             Some(Ordering::Greater)
         );
     }
@@ -1858,7 +1866,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&OFFSET_DATE_TIME_NT_TIME_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&datetime!(1601-01-01 00:00 UTC)),
             Some(Ordering::Greater)
         );
     }
@@ -1910,7 +1918,8 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&*CHRONO_DATE_TIME_NT_TIME_EPOCH),
+            FileTime::UNIX_EPOCH
+                .partial_cmp(&"1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()),
             Some(Ordering::Greater)
         );
     }
@@ -2413,7 +2422,7 @@ mod tests {
             Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999) - OFFSET_DATE_TIME_NT_TIME_EPOCH,
+            FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00 UTC),
             Duration::new(265_046_774_399, 999_999_900)
         );
     }
@@ -2484,7 +2493,7 @@ mod tests {
             chrono::Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::MAX - *CHRONO_DATE_TIME_NT_TIME_EPOCH,
+            FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
             chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
                 .unwrap()
         );
@@ -2657,7 +2666,7 @@ mod tests {
 
         assert_eq!(
             SystemTime::from(FileTime::NT_TIME_EPOCH),
-            *SYSTEM_TIME_NT_TIME_EPOCH
+            SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
         );
         assert_eq!(
             SystemTime::from(FileTime::UNIX_EPOCH),
@@ -2689,7 +2698,7 @@ mod tests {
     fn try_from_file_time_to_offset_date_time() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            OFFSET_DATE_TIME_NT_TIME_EPOCH
+            datetime!(1601-01-01 00:00 UTC)
         );
         assert_eq!(
             OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
@@ -2730,7 +2739,7 @@ mod tests {
 
         assert_eq!(
             DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
-            *CHRONO_DATE_TIME_NT_TIME_EPOCH
+            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
         );
         assert_eq!(
             DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
@@ -2788,7 +2797,10 @@ mod tests {
         use std::time::{Duration, SystemTime};
 
         assert_eq!(
-            FileTime::try_from(*SYSTEM_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::try_from(
+                SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
+            )
+            .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
@@ -2852,7 +2864,7 @@ mod tests {
         use time::Duration;
 
         assert_eq!(
-            FileTime::try_from(OFFSET_DATE_TIME_NT_TIME_EPOCH - Duration::NANOSECOND).unwrap_err(),
+            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::NANOSECOND).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2860,7 +2872,7 @@ mod tests {
     #[test]
     fn try_from_offset_date_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(OFFSET_DATE_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
@@ -2903,11 +2915,14 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
-        use chrono::Duration;
+        use chrono::{DateTime, Duration, Utc};
 
         assert_eq!(
-            FileTime::try_from(*CHRONO_DATE_TIME_NT_TIME_EPOCH - Duration::nanoseconds(1))
-                .unwrap_err(),
+            FileTime::try_from(
+                "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+                    - Duration::nanoseconds(1)
+            )
+            .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -2918,7 +2933,8 @@ mod tests {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
-            FileTime::try_from(*CHRONO_DATE_TIME_NT_TIME_EPOCH).unwrap(),
+            FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap())
+                .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
