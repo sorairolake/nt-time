@@ -12,6 +12,12 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.4.0\...v0.4.1[0.4.1] - 2023-04-25
+
+=== Removed
+
+* Remove `once_cell` from dependencies
+
 == {compare-url}/v0.3.0\...v0.4.0[0.4.0] - 2023-04-21
 
 === Added
