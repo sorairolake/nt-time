@@ -1955,7 +1955,7 @@ mod tests {
     fn add_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let _ = FileTime::MAX + Duration::from_nanos(100);
+        let _: FileTime = FileTime::MAX + Duration::from_nanos(100);
     }
 
     #[test]
@@ -1989,7 +1989,7 @@ mod tests {
     fn add_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::MAX + Duration::nanoseconds(100);
+        let _: FileTime = FileTime::MAX + Duration::nanoseconds(100);
     }
 
     #[test]
@@ -2023,7 +2023,7 @@ mod tests {
     fn add_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
+        let _: FileTime = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
     }
 
     #[test]
@@ -2199,7 +2199,7 @@ mod tests {
     fn sub_file_time_with_overflow() {
         use core::time::Duration;
 
-        let _ = (FileTime::MAX - Duration::from_nanos(100)) - FileTime::MAX;
+        let _: Duration = (FileTime::MAX - Duration::from_nanos(100)) - FileTime::MAX;
     }
 
     #[test]
@@ -2233,7 +2233,7 @@ mod tests {
     fn sub_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let _ = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
+        let _: FileTime = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
     }
 
     #[test]
@@ -2267,7 +2267,7 @@ mod tests {
     fn sub_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::NT_TIME_EPOCH - Duration::nanoseconds(100);
+        let _: FileTime = FileTime::NT_TIME_EPOCH - Duration::nanoseconds(100);
     }
 
     #[test]
@@ -2301,7 +2301,7 @@ mod tests {
     fn sub_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let _ = FileTime::MAX - Duration::nanoseconds(-100);
+        let _: FileTime = FileTime::MAX - Duration::nanoseconds(-100);
     }
 
     #[cfg(feature = "std")]
@@ -2332,7 +2332,7 @@ mod tests {
     fn sub_file_time_from_system_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
-        let _ = FileTime::new(9_223_372_036_854_775_806)
+        let _: Duration = FileTime::new(9_223_372_036_854_775_806)
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
     }
 
@@ -2373,7 +2373,7 @@ mod tests {
     fn sub_system_time_from_file_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
-        let _ = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
+        let _: Duration = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
             - FileTime::new(9_223_372_036_854_775_807);
     }
 
