@@ -22,12 +22,15 @@ nt-time = "0.4.1"
 ```rust
 use core::time::Duration;
 
-use nt_time::{time::OffsetDateTime, FileTime};
+use nt_time::{
+    time::{macros::datetime, OffsetDateTime},
+    FileTime,
+};
 
 let ft = FileTime::NT_TIME_EPOCH;
 assert_eq!(
-    OffsetDateTime::try_from(ft).unwrap().to_string(),
-    "1601-01-01 0:00:00.0 +00:00:00"
+    OffsetDateTime::try_from(ft).unwrap(),
+    datetime!(1601-01-01 00:00 UTC)
 );
 
 let ft = ft + Duration::from_secs(11_644_473_600);
