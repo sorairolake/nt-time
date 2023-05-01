@@ -1,6 +1,6 @@
 = Changelog
 :toc: macro
-:project-url: https://github.com/sorairolake/nt-time
+:project-url: https://github.com/sorairolake/nt-time-rs
 :compare-url: {project-url}/compare
 :issue-url: {project-url}/issues
 :pull-request-url: {project-url}/pull
