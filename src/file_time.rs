@@ -1934,7 +1934,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn add_std_duration_with_overflow() {
         use core::time::Duration;
 
@@ -1968,7 +1968,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn add_positive_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2002,7 +2002,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_negative_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2052,7 +2052,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn add_assign_std_duration_with_overflow() {
         use core::time::Duration;
 
@@ -2103,7 +2103,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn add_assign_positive_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2154,7 +2154,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_assign_negative_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2178,7 +2178,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "attempt to subtract with overflow")]
     fn sub_file_time_with_overflow() {
         use core::time::Duration;
 
@@ -2212,7 +2212,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn sub_std_duration_with_overflow() {
         use core::time::Duration;
 
@@ -2246,7 +2246,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn sub_positive_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2280,7 +2280,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_negative_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2311,7 +2311,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "RHS provided is later than LHS")]
     fn sub_file_time_from_system_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
@@ -2352,7 +2352,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "RHS provided is later than LHS")]
     fn sub_system_time_from_file_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
@@ -2525,7 +2525,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn sub_assign_std_duration_with_overflow() {
         use core::time::Duration;
 
@@ -2576,7 +2576,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn sub_assign_positive_time_duration_with_overflow() {
         use time::Duration;
 
@@ -2627,7 +2627,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_assign_negative_time_duration_with_overflow() {
         use time::Duration;
 
