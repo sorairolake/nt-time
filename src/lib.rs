@@ -29,7 +29,7 @@
 //!     OffsetDateTime::try_from(ft).unwrap(),
 //!     OffsetDateTime::UNIX_EPOCH
 //! );
-//! assert_eq!(ft.as_u64(), 116_444_736_000_000_000);
+//! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```

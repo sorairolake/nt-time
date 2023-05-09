@@ -133,14 +133,32 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
+    /// assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn to_raw(self) -> u64 {
+        self.0
+    }
+
+    /// Returns the contents of this `FileTime` as the underlying [`u64`] value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
     /// assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
     /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     /// ```
+    #[deprecated(since = "0.5.0", note = "use `FileTime::to_raw` instead")]
     #[must_use]
     #[inline]
     pub const fn as_u64(self) -> u64 {
-        self.0
+        self.to_raw()
     }
 
     /// Returns Unix time represents the same date and time as this `FileTime`.
@@ -156,7 +174,7 @@ impl FileTime {
     /// ```
     #[must_use]
     pub fn to_unix_time(self) -> i64 {
-        i64::try_from(self.as_u64() / FILE_TIMES_PER_SEC)
+        i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
             .expect("Unix time should be in the range of `i64`")
             - 11_644_473_600
     }
@@ -181,7 +199,7 @@ impl FileTime {
     /// ```
     #[must_use]
     pub fn to_unix_time_nanos(self) -> i128 {
-        (i128::from(self.as_u64()) * 100) - 11_644_473_600_000_000_000
+        (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
 
     /// Creates a `FileTime` with the given Unix time.
@@ -288,7 +306,7 @@ impl FileTime {
     #[inline]
     pub fn checked_add(self, rhs: core::time::Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
-        self.as_u64().checked_add(duration).map(Self::new)
+        self.to_raw().checked_add(duration).map(Self::new)
     }
 
     /// Computes `self - rhs`, returning [`None`] if the result would be
@@ -319,7 +337,7 @@ impl FileTime {
     #[inline]
     pub fn checked_sub(self, rhs: core::time::Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
-        self.as_u64().checked_sub(duration).map(Self::new)
+        self.to_raw().checked_sub(duration).map(Self::new)
     }
 
     /// Computes `self + rhs`, returning [`FileTime::MAX`] if overflow occurred.
@@ -399,7 +417,7 @@ impl FileTime {
     #[must_use]
     #[inline]
     pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
-        self.as_u64().to_be_bytes()
+        self.to_raw().to_be_bytes()
     }
 
     /// Returns the memory representation of this `FileTime` as a byte array in
@@ -420,7 +438,7 @@ impl FileTime {
     #[must_use]
     #[inline]
     pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
-        self.as_u64().to_le_bytes()
+        self.to_raw().to_le_bytes()
     }
 
     /// Creates a native endian `FileTime` value from its representation as a
@@ -655,7 +673,7 @@ impl Sub for FileTime {
     type Output = core::time::Duration;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        let duration = self.as_u64() - rhs.as_u64();
+        let duration = self.to_raw() - rhs.to_raw();
         Self::Output::new(
             duration / FILE_TIMES_PER_SEC,
             u32::try_from((duration % FILE_TIMES_PER_SEC) * 100)
@@ -769,7 +787,7 @@ impl SubAssign<time::Duration> for FileTime {
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the file time.
     ///
-    /// Equivalent to [`FileTime::as_u64`] except that it is not callable in
+    /// Equivalent to [`FileTime::to_raw`] except that it is not callable in
     /// const contexts.
     ///
     /// # Examples
@@ -783,7 +801,7 @@ impl From<FileTime> for u64 {
     /// ```
     #[inline]
     fn from(time: FileTime) -> Self {
-        time.as_u64()
+        time.to_raw()
     }
 }
 
@@ -816,8 +834,8 @@ impl From<FileTime> for std::time::SystemTime {
         use std::time::Duration;
 
         let duration = Duration::new(
-            time.as_u64() / FILE_TIMES_PER_SEC,
-            u32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
+            time.to_raw() / FILE_TIMES_PER_SEC,
+            u32::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `u32`"),
         );
         (Self::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)) + duration
@@ -884,9 +902,9 @@ impl TryFrom<FileTime> for OffsetDateTime {
         use time::Duration;
 
         let duration = Duration::new(
-            i64::try_from(time.as_u64() / FILE_TIMES_PER_SEC)
+            i64::try_from(time.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
-            i32::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
+            i32::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i32`"),
         );
         datetime!(1601-01-01 00:00 UTC)
@@ -920,10 +938,10 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
         use chrono::Duration;
 
         let duration = Duration::seconds(
-            i64::try_from(time.as_u64() / FILE_TIMES_PER_SEC)
+            i64::try_from(time.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
         ) + Duration::nanoseconds(
-            i64::try_from((time.as_u64() % FILE_TIMES_PER_SEC) * 100)
+            i64::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
         "1601-01-01 00:00:00 UTC"
@@ -1143,7 +1161,7 @@ impl serde::Serialize for FileTime {
     /// ```
     #[inline]
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_newtype_struct("FileTime", &self.as_u64())
+        serializer.serialize_newtype_struct("FileTime", &self.to_raw())
     }
 }
 
@@ -1318,6 +1336,14 @@ mod tests {
         assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     }
 
+    #[test]
+    fn to_raw() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
+        assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
+        assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
+    }
+
+    #[allow(deprecated)]
     #[test]
     fn as_u64() {
         assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
