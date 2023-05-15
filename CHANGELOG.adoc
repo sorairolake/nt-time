@@ -22,6 +22,9 @@ toc::[]
 
 * Change to use `datetime` macro in doctests
 * Bump MSRV to 1.65.0
+
+=== Deprecated
+
 * Change `FileTime::as_u64` to deprecated
 
 == {compare-url}/v0.4.0\...v0.4.1[0.4.1] - 2023-04-25
