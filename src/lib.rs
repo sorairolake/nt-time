@@ -13,12 +13,15 @@
 //! ```
 //! use core::time::Duration;
 //!
-//! use nt_time::{time::OffsetDateTime, FileTime};
+//! use nt_time::{
+//!     time::{macros::datetime, OffsetDateTime},
+//!     FileTime,
+//! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
-//!     OffsetDateTime::try_from(ft).unwrap().to_string(),
-//!     "1601-01-01 0:00:00.0 +00:00:00"
+//!     OffsetDateTime::try_from(ft).unwrap(),
+//!     datetime!(1601-01-01 00:00 UTC)
 //! );
 //!
 //! let ft = ft + Duration::from_secs(11_644_473_600);
@@ -26,7 +29,7 @@
 //!     OffsetDateTime::try_from(ft).unwrap(),
 //!     OffsetDateTime::UNIX_EPOCH
 //! );
-//! assert_eq!(ft.as_u64(), 116_444_736_000_000_000);
+//! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
@@ -34,7 +37,7 @@
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [7z-format-url]: https://www.7-zip.org/7z.html
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.4.1/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.5.0/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.

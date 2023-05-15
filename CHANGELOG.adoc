@@ -12,6 +12,21 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.4.1\...v0.5.0[0.5.0] - 2023-05-15
+
+=== Added
+
+* Add `FileTime::to_raw` as an alternative to `FileTime::as_u64`
+
+=== Changed
+
+* Change to use `datetime` macro in doctests
+* Bump MSRV to 1.65.0
+
+=== Deprecated
+
+* Change `FileTime::as_u64` to deprecated
+
 == {compare-url}/v0.4.0\...v0.4.1[0.4.1] - 2023-04-25
 
 === Removed

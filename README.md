@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.4.1"
+nt-time = "0.5.0"
 ```
 
 ### Example
@@ -22,12 +22,15 @@ nt-time = "0.4.1"
 ```rust
 use core::time::Duration;
 
-use nt_time::{time::OffsetDateTime, FileTime};
+use nt_time::{
+    time::{macros::datetime, OffsetDateTime},
+    FileTime,
+};
 
 let ft = FileTime::NT_TIME_EPOCH;
 assert_eq!(
-    OffsetDateTime::try_from(ft).unwrap().to_string(),
-    "1601-01-01 0:00:00.0 +00:00:00"
+    OffsetDateTime::try_from(ft).unwrap(),
+    datetime!(1601-01-01 00:00 UTC)
 );
 
 let ft = ft + Duration::from_secs(11_644_473_600);
@@ -35,7 +38,7 @@ assert_eq!(
     OffsetDateTime::try_from(ft).unwrap(),
     OffsetDateTime::UNIX_EPOCH
 );
-assert_eq!(ft.as_u64(), 116_444_736_000_000_000);
+assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 
 assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 ```
@@ -75,7 +78,7 @@ See the [documentation][docs-url] for more details.
 
 ## Minimum supported Rust version
 
-The minimum supported Rust version (MSRV) of this library is v1.63.0.
+The minimum supported Rust version (MSRV) of this library is v1.65.0.
 
 ## Changelog
 
@@ -95,13 +98,13 @@ or the _MIT License_.
 See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
 [LICENSE-MIT](LICENSE-MIT) for more details.
 
-[ci-badge]: https://github.com/sorairolake/nt-time/workflows/CI/badge.svg
-[ci-url]: https://github.com/sorairolake/nt-time/actions?query=workflow%3ACI
-[version-badge]: https://img.shields.io/crates/v/nt-time
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/sorairolake/nt-time/CI.yaml?branch=develop&label=CI&logo=github&style=for-the-badge
+[ci-url]: https://github.com/sorairolake/nt-time/actions?query=branch%3Adevelop+workflow%3ACI++
+[version-badge]: https://img.shields.io/crates/v/nt-time?style=for-the-badge
 [version-url]: https://crates.io/crates/nt-time
-[docs-badge]: https://img.shields.io/docsrs/nt-time
+[docs-badge]: https://img.shields.io/docsrs/nt-time?label=Docs.rs&logo=docsdotrs&style=for-the-badge
 [docs-url]: https://docs.rs/nt-time
-[license-badge]: https://img.shields.io/crates/l/nt-time
+[license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
 [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [rust-official-url]: https://www.rust-lang.org/
 [time-crate-url]: https://crates.io/crates/time
