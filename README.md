@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.4.1"
+nt-time = "0.5.0"
 ```
 
 ### Example
