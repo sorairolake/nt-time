@@ -1,8 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-//
-// Copyright (C) 2023 Shun Sakai
-//
 
 //! A [Windows file time][file-time-docs-url].
 //!

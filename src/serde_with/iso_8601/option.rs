@@ -1,8 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-//
-// Copyright (C) 2023 Shun Sakai
-//
 
 //! Use the well-known [ISO 8601 format][iso-8601-description-url] when
 //! serializing and deserializing an [`Option<FileTime>`].

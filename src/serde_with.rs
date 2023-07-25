@@ -1,8 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-//
-// Copyright (C) 2023 Shun Sakai
-//
 
 //! Differential formats for [Serde][serde-official-url].
 //!
