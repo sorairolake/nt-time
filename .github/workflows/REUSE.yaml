@@ -1,3 +1,4 @@
+
 # SPDX-FileCopyrightText: 2023 Shun Sakai
 #
 # SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -7,12 +8,9 @@ name: REUSE Compliance Check
 on:
   push:
     branches:
-      - '**'
-    tags-ignore:
-      - '**'
+      - 'develop'
+      - 'master'
   pull_request:
-  schedule:
-      - cron: '0 0 * * 0'
 
 jobs:
   reuse:
