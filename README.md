@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Shun Sakai
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+-->
+
 # nt-time
 
 [![CI][ci-badge]][ci-url]
@@ -14,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.5.0"
+nt-time = "0.5.1"
 ```
 
 ### Example
@@ -95,8 +101,7 @@ Copyright &copy; 2023 Shun Sakai (see [AUTHORS.adoc](AUTHORS.adoc))
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.
 
-See [COPYRIGHT](COPYRIGHT), [LICENSE-APACHE](LICENSE-APACHE) and
-[LICENSE-MIT](LICENSE-MIT) for more details.
+See [COPYING](COPYING) for more details.
 
 [ci-badge]: https://img.shields.io/github/actions/workflow/status/sorairolake/nt-time/CI.yaml?branch=develop&label=CI&logo=github&style=for-the-badge
 [ci-url]: https://github.com/sorairolake/nt-time/actions?query=branch%3Adevelop+workflow%3ACI++

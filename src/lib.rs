@@ -1,8 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-//
-// Copyright (C) 2023 Shun Sakai
-//
 
 //! The `nt-time` crate is a [Windows file time][file-time-docs-url] library.
 //!
@@ -37,7 +35,7 @@
 //! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [7z-format-url]: https://www.7-zip.org/7z.html
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.5.0/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.5.1/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.

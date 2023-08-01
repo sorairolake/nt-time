@@ -1,6 +1,10 @@
+# SPDX-FileCopyrightText: 2023 Shun Sakai
+#
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
 [package]
 name = "nt-time"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.65.0"
@@ -13,6 +17,7 @@ keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
 exclude = [
   "/.bumpversion.cfg",
+  "/.bumpversion.cfg.license",
   "/.github",
   "/clippy.toml",
   "/examples",
@@ -25,7 +30,7 @@ exclude = [
 [dependencies]
 chrono = { version = "0.4.24", default-features = false, optional = true }
 serde = { version = "1.0.160", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.21", default-features = false, features = ["macros"] }
+time = { version = "=0.3.23", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.70"
