@@ -29,7 +29,7 @@ toc::[]
 * Change the comment header to the format recommended by the REUSE
   Specification ({pull-request-url}/22[#22])
 * Make this project REUSE compliant ({pull-request-url}/23[#23])
-* Pin the version of `time` crate to 0.3.23 ({pull-request-url}/172[#172])
+* Pin the version of `time` crate to 0.3.23 ({pull-request-url}/24[#24])
 
 == {compare-url}/v0.4.1\...v0.5.0[0.5.0] - 2023-05-15
 
