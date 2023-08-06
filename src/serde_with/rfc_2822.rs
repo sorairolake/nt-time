@@ -43,8 +43,8 @@ use crate::FileTime;
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
 /// This serializes using the well-known RFC 2822 format.
-pub fn serialize<S: Serializer>(time: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    rfc2822::serialize(&(*time).try_into().map_err(S::Error::custom)?, serializer)
+pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
+    rfc2822::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]

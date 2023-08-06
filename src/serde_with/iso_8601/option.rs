@@ -52,9 +52,9 @@ use crate::FileTime;
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
 /// This serializes using the well-known ISO 8601 format.
-pub fn serialize<S: Serializer>(time: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
+pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::option::serialize(
-        &(*time)
+        &(*ft)
             .map(OffsetDateTime::try_from)
             .transpose()
             .map_err(S::Error::custom)?,

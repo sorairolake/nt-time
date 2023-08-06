@@ -120,8 +120,8 @@ impl FileTime {
     /// ```
     #[must_use]
     #[inline]
-    pub const fn new(time: u64) -> Self {
-        Self(time)
+    pub const fn new(ft: u64) -> Self {
+        Self(ft)
     }
 
     /// Returns the contents of this `FileTime` as the underlying [`u64`] value.
@@ -229,12 +229,12 @@ impl FileTime {
     /// assert!(FileTime::from_unix_time(-11_644_473_601).is_err());
     /// assert!(FileTime::from_unix_time(1_833_029_933_771).is_err());
     /// ```
-    pub fn from_unix_time(time: i64) -> Result<Self, FileTimeRangeError> {
-        (time <= 1_833_029_933_770)
-            .then_some(time)
+    pub fn from_unix_time(timestamp: i64) -> Result<Self, FileTimeRangeError> {
+        (timestamp <= 1_833_029_933_770)
+            .then_some(timestamp)
             .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
-            .and_then(|ut| {
-                u64::try_from(ut + 11_644_473_600)
+            .and_then(|ts| {
+                u64::try_from(ts + 11_644_473_600)
                     .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
             })
             .map(|t| t * FILE_TIMES_PER_SEC)
@@ -268,12 +268,12 @@ impl FileTime {
     /// assert!(FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).is_err());
     /// assert!(FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).is_err());
     /// ```
-    pub fn from_unix_time_nanos(time: i128) -> Result<Self, FileTimeRangeError> {
-        (time <= 1_833_029_933_770_955_161_500)
-            .then_some(time)
+    pub fn from_unix_time_nanos(timestamp: i128) -> Result<Self, FileTimeRangeError> {
+        (timestamp <= 1_833_029_933_770_955_161_500)
+            .then_some(timestamp)
             .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
-            .and_then(|ut| {
-                ((ut + 11_644_473_600_000_000_000) / 100)
+            .and_then(|ts| {
+                ((ts + 11_644_473_600_000_000_000) / 100)
                     .try_into()
                     .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
             })
@@ -798,8 +798,8 @@ impl From<FileTime> for u64 {
     /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     /// ```
     #[inline]
-    fn from(time: FileTime) -> Self {
-        time.to_raw()
+    fn from(ft: FileTime) -> Self {
+        ft.to_raw()
     }
 }
 
@@ -828,12 +828,12 @@ impl From<FileTime> for std::time::SystemTime {
     ///     SystemTime::UNIX_EPOCH
     /// );
     /// ```
-    fn from(time: FileTime) -> Self {
+    fn from(ft: FileTime) -> Self {
         use std::time::Duration;
 
         let duration = Duration::new(
-            time.to_raw() / FILE_TIMES_PER_SEC,
-            u32::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
+            ft.to_raw() / FILE_TIMES_PER_SEC,
+            u32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `u32`"),
         );
         (Self::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)) + duration
@@ -896,13 +896,13 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
     /// ```
-    fn try_from(time: FileTime) -> Result<Self, Self::Error> {
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         use time::Duration;
 
         let duration = Duration::new(
-            i64::try_from(time.to_raw() / FILE_TIMES_PER_SEC)
+            i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
-            i32::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
+            i32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i32`"),
         );
         datetime!(1601-01-01 00:00 UTC)
@@ -932,14 +932,14 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     ///     Utc.timestamp_opt(0, 0).unwrap()
     /// );
     /// ```
-    fn from(time: FileTime) -> Self {
+    fn from(ft: FileTime) -> Self {
         use chrono::Duration;
 
         let duration = Duration::seconds(
-            i64::try_from(time.to_raw() / FILE_TIMES_PER_SEC)
+            i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
         ) + Duration::nanoseconds(
-            i64::try_from((time.to_raw() % FILE_TIMES_PER_SEC) * 100)
+            i64::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
         "1601-01-01 00:00:00 UTC"
@@ -968,8 +968,8 @@ impl From<u64> for FileTime {
     /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     /// ```
     #[inline]
-    fn from(time: u64) -> Self {
-        Self::new(time)
+    fn from(ft: u64) -> Self {
+        Self::new(ft)
     }
 }
 
@@ -1010,10 +1010,10 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// )
     /// .is_err());
     /// ```
-    fn try_from(time: std::time::SystemTime) -> Result<Self, Self::Error> {
+    fn try_from(st: std::time::SystemTime) -> Result<Self, Self::Error> {
         use std::time::SystemTime;
 
-        let elapsed = time
+        let elapsed = st
             .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
             .map(|d| d.as_nanos())
             .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
