@@ -46,8 +46,8 @@ use crate::FileTime;
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
 /// This serializes using Unix time.
-pub fn serialize<S: Serializer>(time: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    time.map(FileTime::to_unix_time).serialize(serializer)
+pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
+    ft.map(FileTime::to_unix_time).serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
