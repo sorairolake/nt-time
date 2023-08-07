@@ -16,6 +16,12 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 toc::[]
 
+== {compare-url}/v0.5.2\...HEAD[Unreleased]
+
+=== Added
+
+* Add unit tests when `FileTime` is `i64::MAX` ({pull-request-url}/30[#30])
+
 == {compare-url}/v0.5.1\...v0.5.2[0.5.2] - 2023-08-06
 
 === Changed
