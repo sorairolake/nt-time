@@ -30,7 +30,7 @@ exclude = [
 [dependencies]
 chrono = { version = "0.4.26", default-features = false, optional = true }
 serde = { version = "1.0.182", default-features = false, features = ["derive"], optional = true }
-time = { version = "=0.3.23", default-features = false, features = ["macros"] }
+time = { version = "=0.3.25", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.72"
