@@ -2661,13 +2661,12 @@ mod tests {
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
             SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
         );
-        if cfg!(windows) {
-            // Maximum `SystemTime` on Windows.
-            assert_eq!(
-                SystemTime::from(FileTime::new(9_223_372_036_854_775_807)),
-                SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
-            );
-        } else {
+        // Maximum `SystemTime` on Windows.
+        assert_eq!(
+            SystemTime::from(FileTime::new(9_223_372_036_854_775_807)),
+            SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
+        );
+        if !cfg!(windows) {
             assert_eq!(
                 SystemTime::from(FileTime::MAX),
                 SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
@@ -2708,6 +2707,10 @@ mod tests {
             datetime!(+10000-01-01 00:00 UTC)
         );
         assert_eq!(
+            OffsetDateTime::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
+            datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
+        );
+        assert_eq!(
             OffsetDateTime::try_from(FileTime::MAX).unwrap(),
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
         );
@@ -2735,6 +2738,12 @@ mod tests {
         assert_eq!(
             DateTime::<Utc>::from(FileTime::new(2_650_467_744_000_000_000)),
             "+10000-01-01 00:00:00 UTC"
+                .parse::<DateTime<Utc>>()
+                .unwrap()
+        );
+        assert_eq!(
+            DateTime::<Utc>::from(FileTime::new(i64::MAX.try_into().unwrap())),
+            "+30828-09-14 02:48:05.477580700 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
         );
@@ -2800,16 +2809,15 @@ mod tests {
                 .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
-        if cfg!(windows) {
-            // Maximum `SystemTime` on Windows.
-            assert_eq!(
-                FileTime::try_from(
-                    SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
-                )
-                .unwrap(),
-                FileTime::new(9_223_372_036_854_775_807)
-            );
-        } else {
+        // Maximum `SystemTime` on Windows.
+        assert_eq!(
+            FileTime::try_from(
+                SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
+            )
+            .unwrap(),
+            FileTime::new(9_223_372_036_854_775_807)
+        );
+        if !cfg!(windows) {
             assert_eq!(
                 FileTime::try_from(
                     SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_500)
@@ -2872,6 +2880,10 @@ mod tests {
         assert_eq!(
             FileTime::try_from(datetime!(+10000-01-01 00:00 UTC)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
+        );
+        assert_eq!(
+            FileTime::try_from(datetime!(+30828-09-14 02:48:05.477_580_700 UTC)).unwrap(),
+            FileTime::new(i64::MAX.try_into().unwrap())
         );
         assert_eq!(
             FileTime::try_from(datetime!(+60056-05-28 05:36:10.955_161_500 UTC)).unwrap(),
@@ -2940,6 +2952,15 @@ mod tests {
             )
             .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
+        );
+        assert_eq!(
+            FileTime::try_from(
+                "+30828-09-14 02:48:05.477580700 UTC"
+                    .parse::<DateTime<Utc>>()
+                    .unwrap()
+            )
+            .unwrap(),
+            FileTime::new(i64::MAX.try_into().unwrap())
         );
         assert_eq!(
             FileTime::try_from(
