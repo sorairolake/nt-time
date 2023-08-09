@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.5.2"
+version = "0.5.3"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.65.0"
@@ -29,7 +29,7 @@ exclude = [
 
 [dependencies]
 chrono = { version = "0.4.26", default-features = false, optional = true }
-serde = { version = "1.0.182", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.183", default-features = false, features = ["derive"], optional = true }
 time = { version = "=0.3.23", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
