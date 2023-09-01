@@ -37,7 +37,7 @@ impl FileTimeRangeError {
     /// Returns the corresponding [`FileTimeRangeErrorKind`] for this error.
     #[must_use]
     #[inline]
-    pub const fn kind(self) -> FileTimeRangeErrorKind {
+    pub const fn kind(&self) -> FileTimeRangeErrorKind {
         self.0
     }
 }
