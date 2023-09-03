@@ -18,10 +18,10 @@ use clap::Parser;
 
 #[cfg(feature = "std")]
 #[derive(Debug, Parser)]
-#[clap(version, about, group(clap::ArgGroup::new("time").required(true)))]
+#[command(version, about, group(clap::ArgGroup::new("time").required(true)))]
 struct Opt {
     /// Unix time in seconds to convert.
-    #[clap(
+    #[arg(
         short,
         long,
         value_name("TIME"),
@@ -31,7 +31,7 @@ struct Opt {
     secs: Option<i64>,
 
     /// Unix time in nanoseconds to convert.
-    #[clap(
+    #[arg(
         short,
         long,
         value_name("TIME"),

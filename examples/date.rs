@@ -18,7 +18,7 @@ use clap::Parser;
 
 #[cfg(feature = "std")]
 #[derive(Debug, Parser)]
-#[clap(version, about)]
+#[command(version, about)]
 struct Opt {
     /// File time to print.
     time: u64,

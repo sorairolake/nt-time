@@ -16,10 +16,10 @@ use clap::Parser;
 
 #[cfg(feature = "std")]
 #[derive(Debug, Parser)]
-#[clap(version, about)]
+#[command(version, about)]
 struct Opt {
     /// Unit of Unix time to print.
-    #[clap(short, long, value_enum, default_value_t, ignore_case(true))]
+    #[arg(short, long, value_enum, default_value_t, ignore_case(true))]
     unit: Unit,
 
     /// File time to convert.
