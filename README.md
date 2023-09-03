@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.5.3"
+nt-time = "0.6.0"
 ```
 
 ### Example
@@ -53,8 +53,8 @@ assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 
 #### `std`
 
-Enables features that depend on the standard library.
-This is enabled by default.
+Enables features that depend on the standard library. This is enabled by
+default.
 
 #### `large-dates`
 
@@ -70,13 +70,12 @@ Enables the [`serde`][serde-official-url] crate.
 
 #### `serde-human-readable`
 
-Allows Serde representations to use a human-readable format.
-This implicitly enables the `serde` feature.
+Allows Serde representations to use a human-readable format. This implicitly
+enables the `serde` feature.
 
 ### `no_std` support
 
-This supports `no_std` mode.
-Disables the `default` feature to enable this.
+This supports `no_std` mode. Disables the `default` feature to enable this.
 
 ### Documentation
 

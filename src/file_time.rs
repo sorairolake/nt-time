@@ -159,6 +159,7 @@ impl FileTime {
         self.to_raw()
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// Returns Unix time represents the same date and time as this `FileTime`.
     ///
     /// # Examples

@@ -10,6 +10,7 @@ updates:
       interval: "weekly"
     ignore:
       - dependency-name: "clap"
+    open-pull-requests-limit: 10
 
   - package-ecosystem: "github-actions"
     directory: "/"

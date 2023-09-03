@@ -5,10 +5,13 @@
 = Examples
 
 link:date.rs[]::
+
   An example of printing the file time.
 
 link:ft2unix.rs[]::
+
   An example of converting the file time to Unix time.
 
 link:unix2ft.rs[]::
+
   An example of converting Unix time to the file time.

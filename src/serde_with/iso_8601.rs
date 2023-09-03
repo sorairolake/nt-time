@@ -117,7 +117,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Test" },
                 Token::BorrowedStr("+010000-01-01T00:00:00.000000000Z"),
             ],
-            "year must be in the range -9999..=9999",
+            "unexpected trailing characters; the end of input was expected",
         );
     }
 
