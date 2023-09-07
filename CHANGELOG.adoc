@@ -14,12 +14,6 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
-== {compare-url}/v0.6.0\...HEAD[Unreleased]
-
-=== Added
-
-* Add the `homepage` field to `Cargo.toml` ({pull-request-url}/45[#45])
-
 == {compare-url}/v0.5.3\...v0.6.0[0.6.0] - 2023-09-03
 
 === Changed
