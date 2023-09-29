@@ -930,7 +930,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// );
     /// assert_eq!(
     ///     DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-    ///     Utc.timestamp_opt(0, 0).unwrap()
+    ///     DateTime::<Utc>::UNIX_EPOCH
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
@@ -1104,7 +1104,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(Utc.timestamp_opt(0, 0).unwrap()).unwrap(),
+    ///     FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH).unwrap(),
     ///     FileTime::UNIX_EPOCH
     /// );
     ///
@@ -1859,24 +1859,15 @@ mod tests {
         use chrono::{DateTime, Utc};
 
         assert_eq!(
-            "1970-01-01 00:00:00 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                .partial_cmp(&FileTime::MAX),
+            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::MAX),
             Some(Ordering::Less)
         );
         assert_eq!(
-            "1970-01-01 00:00:00 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                .partial_cmp(&FileTime::UNIX_EPOCH),
+            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
         assert_eq!(
-            "1970-01-01 00:00:00 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                .partial_cmp(&FileTime::NT_TIME_EPOCH),
+            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
             Some(Ordering::Greater)
         );
     }
@@ -1895,8 +1886,7 @@ mod tests {
             Some(Ordering::Less)
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH
-                .partial_cmp(&"1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()),
+            FileTime::UNIX_EPOCH.partial_cmp(&DateTime::<Utc>::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
         assert_eq!(
@@ -2728,7 +2718,7 @@ mod tests {
         );
         assert_eq!(
             DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-            "1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+            DateTime::<Utc>::UNIX_EPOCH
         );
         assert_eq!(
             DateTime::<Utc>::from(FileTime::new(2_650_467_743_999_999_999)),
@@ -2932,8 +2922,7 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::try_from("1970-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap())
-                .unwrap(),
+            FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH).unwrap(),
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
