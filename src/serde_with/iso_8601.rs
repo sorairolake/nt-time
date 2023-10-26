@@ -2,11 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Use the well-known [ISO 8601 format][iso-8601-description-url] when
-//! serializing and deserializing a [`FileTime`].
+//! Use the well-known [ISO 8601 format] when serializing and deserializing a
+//! [`FileTime`].
 //!
-//! Use this module in combination with Serde's
-//! [`#[with]`][serde-with-attribute] attribute.
+//! Use this module in combination with Serde's [`with`] attribute.
 //!
 //! If the `large-dates` feature is not enabled, the maximum date and time is
 //! "9999-12-31 23:59:59.999999999 UTC".
@@ -32,8 +31,8 @@
 //! );
 //! ```
 //!
-//! [iso-8601-description-url]: https://www.iso.org/iso-8601-date-and-time-format.html
-//! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
+//! [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
+//! [`with`]: https://serde.rs/field-attrs.html#with
 
 pub mod option;
 

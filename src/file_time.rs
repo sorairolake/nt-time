@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! A [Windows file time][file-time-docs-url].
+//! A [Windows file time].
 //!
-//! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
 use core::{
     cmp::Ordering,
@@ -18,13 +18,22 @@ use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind, OffsetDateTimeRan
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
-/// `FileTime` is a type that represents a [Windows file
-/// time][file-time-docs-url].
+/// `FileTime` is a type that represents a [Windows file time].
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
-/// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC".
+/// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
+/// and is used as timestamps such as NTFS and [7z].
 ///
-/// [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// This represents the same value as the [`FILETIME`] structure of the Win32
+/// API, which represents a 64-bit unsigned integer value. Note that the maximum
+/// value of the `FILETIME` structure that can be input to the
+/// [`FileTimeToSystemTime`] function of the Win32 API is limited to
+/// "+30828-09-14 02:48:05.477580700 UTC", which is equivalent to [`i64::MAX`].
+///
+/// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// [7z]: https://www.7-zip.org/7z.html
+/// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+/// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FileTime(u64);
 

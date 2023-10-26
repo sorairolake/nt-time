@@ -2,11 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Use the well-known [RFC 2822 format][rfc-2822] when serializing and
-//! deserializing a [`FileTime`].
+//! Use the well-known [RFC 2822 format] when serializing and deserializing a
+//! [`FileTime`].
 //!
-//! Use this module in combination with Serde's
-//! [`#[with]`][serde-with-attribute] attribute.
+//! Use this module in combination with Serde's [`with`] attribute.
 //!
 //! # Examples
 //!
@@ -29,8 +28,8 @@
 //! );
 //! ```
 //!
-//! [rfc-2822]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
-//! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
+//! [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
+//! [`with`]: https://serde.rs/field-attrs.html#with
 
 pub mod option;
 

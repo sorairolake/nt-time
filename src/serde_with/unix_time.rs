@@ -4,8 +4,7 @@
 
 //! Use Unix time when serializing and deserializing a [`FileTime`].
 //!
-//! Use this module in combination with Serde's
-//! [`#[with]`][serde-with-attribute] attribute.
+//! Use this module in combination with Serde's [`with`] attribute.
 //!
 //! # Examples
 //!
@@ -28,7 +27,7 @@
 //! );
 //! ```
 //!
-//! [serde-with-attribute]: https://serde.rs/field-attrs.html#with
+//! [`with`]: https://serde.rs/field-attrs.html#with
 
 pub mod option;
 
