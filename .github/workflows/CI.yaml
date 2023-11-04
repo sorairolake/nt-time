@@ -48,10 +48,14 @@ jobs:
         run: cargo test --target ${{ matrix.target }} --all-features
       - name: Run tests (no default features)
         run: cargo test --target ${{ matrix.target }} --no-default-features
-      - run: cargo test --target ${{ matrix.target }} -F serde-human-readable
-      - run: cargo test --target ${{ matrix.target }} -F large-dates,serde-human-readable
-      - run: cargo test --target ${{ matrix.target }} --no-default-features -F serde-human-readable
-      - run: cargo test --target ${{ matrix.target }} --no-default-features -F large-dates,serde-human-readable
+      - name: Run tests (`serde-human-readable` feature)
+        run: cargo test --target ${{ matrix.target }} -F serde-human-readable
+      - name: Run tests (`large-dates` and `serde-human-readable` features)
+        run: cargo test --target ${{ matrix.target }} -F large-dates,serde-human-readable
+      - name: Run tests (`serde-human-readable` feature with no default features)
+        run: cargo test --target ${{ matrix.target }} --no-default-features -F serde-human-readable
+      - name: Run tests (`large-dates` and `serde-human-readable` features with no default features)
+        run: cargo test --target ${{ matrix.target }} --no-default-features -F large-dates,serde-human-readable
 
   rustfmt:
     name: Rustfmt
