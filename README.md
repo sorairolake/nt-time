@@ -11,8 +11,7 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
 
-**nt-time** is a [Windows file time][file-time-docs-url] library for
-[Rust][rust-official-url].
+**nt-time** is a [Windows file time] library for [Rust].
 
 ## Usage
 
@@ -20,7 +19,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.6.0"
+nt-time = "0.6.1"
 ```
 
 ### Example
@@ -58,15 +57,15 @@ default.
 
 #### `large-dates`
 
-Enables the `large-dates` feature of the [`time`][time-crate-url] crate.
+Enables the `large-dates` feature of the [`time`] crate.
 
 #### `chrono`
 
-Enables the [`chrono`][chrono-crate-url] crate.
+Enables the [`chrono`] crate.
 
 #### `serde`
 
-Enables the [`serde`][serde-official-url] crate.
+Enables the [`serde`] crate.
 
 #### `serde-human-readable`
 
@@ -87,20 +86,22 @@ The minimum supported Rust version (MSRV) of this library is v1.65.0.
 
 ## Changelog
 
-Please see [CHANGELOG.adoc](CHANGELOG.adoc).
+Please see [CHANGELOG.adoc].
 
 ## Contributing
 
-Please see [CONTRIBUTING.adoc](CONTRIBUTING.adoc).
+Please see [CONTRIBUTING.adoc].
 
 ## License
 
-Copyright &copy; 2023 Shun Sakai (see [AUTHORS.adoc](AUTHORS.adoc))
+Copyright &copy; 2023 Shun Sakai (see [AUTHORS.adoc])
 
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.
 
-See [COPYING](COPYING) for more details.
+This project is compliant with version 3.0 of the [_REUSE Specification_]. See
+[COPYING] and copyright notices of individual files for more details on
+copyright and licensing information.
 
 [ci-badge]: https://img.shields.io/github/actions/workflow/status/sorairolake/nt-time/CI.yaml?branch=develop&label=CI&logo=github&style=for-the-badge
 [ci-url]: https://github.com/sorairolake/nt-time/actions?query=branch%3Adevelop+workflow%3ACI++
@@ -109,8 +110,13 @@ See [COPYING](COPYING) for more details.
 [docs-badge]: https://img.shields.io/docsrs/nt-time?label=Docs.rs&logo=docsdotrs&style=for-the-badge
 [docs-url]: https://docs.rs/nt-time
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
-[file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
-[rust-official-url]: https://www.rust-lang.org/
-[time-crate-url]: https://crates.io/crates/time
-[chrono-crate-url]: https://crates.io/crates/chrono
-[serde-official-url]: https://serde.rs/
+[Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+[Rust]: https://www.rust-lang.org/
+[`time`]: https://crates.io/crates/time
+[`chrono`]: https://crates.io/crates/chrono
+[`serde`]: https://serde.rs/
+[CHANGELOG.adoc]: CHANGELOG.adoc
+[CONTRIBUTING.adoc]: CONTRIBUTING.adoc
+[AUTHORS.adoc]: AUTHORS.adoc
+[_REUSE Specification_]: https://reuse.software/spec/
+[COPYING]: COPYING

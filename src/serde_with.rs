@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Differential formats for [Serde][serde-official-url].
+//! Differential formats for [Serde].
 //!
-//! [serde-official-url]: https://serde.rs/
+//! [Serde]: https://serde.rs/
 
 #[cfg(feature = "serde-human-readable")]
 pub mod iso_8601;

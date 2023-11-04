@@ -2,9 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! The `nt-time` crate is a [Windows file time][file-time-docs-url] library.
-//!
-//! This is used as timestamps such as Windows and [7z][7z-format-url].
+//! The `nt-time` crate is a [Windows file time] library.
 //!
 //! # Examples
 //!
@@ -32,10 +30,9 @@
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!
-//! [file-time-docs-url]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
-//! [7z-format-url]: https://www.7-zip.org/7z.html
+//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.6.0/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.6.1/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
