@@ -7,7 +7,7 @@ name = "nt-time"
 version = "0.6.1"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.70.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -34,7 +34,7 @@ time = { version = "0.3.30", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
-clap = { version = "4.3.24", features = ["derive"] }
+clap = { version = "4.4.8", features = ["derive"] }
 serde_json = "1.0.108"
 serde_test = "1.0.176"
 
