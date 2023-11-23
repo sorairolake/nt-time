@@ -16,6 +16,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.6.1\...HEAD[Unreleased]
 
+=== Added
+
+* Add conversion methods from/to DOS date and time ({pull-request-url}/70[#70])
+
 === Changed
 
 * Bump MSRV to 1.70.0 ({pull-request-url}/68[#68])

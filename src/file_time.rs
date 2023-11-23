@@ -12,9 +12,15 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
-use time::{macros::datetime, OffsetDateTime};
+use time::{
+    error::ComponentRange, macros::datetime, Date, OffsetDateTime, PrimitiveDateTime, Time,
+    UtcOffset,
+};
 
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind, OffsetDateTimeRangeError};
+use crate::error::{
+    DosDateTimeRangeError, DosDateTimeRangeErrorKind, FileTimeRangeError, FileTimeRangeErrorKind,
+    OffsetDateTimeRangeError,
+};
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
@@ -292,6 +298,212 @@ impl FileTime {
                     .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
             })
             .map(Self::new)
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    /// Returns [DOS date and time] represents the same date and time as this
+    /// `FileTime`.
+    ///
+    /// This date and time is used as the timestamp for [FAT], [exFAT], [ZIP]
+    /// file format, etc.
+    ///
+    /// This method returns a `(date, time, resolution, offset)` tuple. `date`
+    /// and `time` represents local date and time. `resolution` represents
+    /// additional time [resolution] in 10-millisecond multiples. When the
+    /// `offset` parameter is [`Some`], converts local date and time from UTC to
+    /// the provided UTC offset and returns the [UTC offset] of local date and
+    /// time. Note that the `offset` parameter should be a multiple of 15 minute
+    /// intervals.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if the resulting date and time is out of range for DOS
+    /// date and time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{time::macros::offset, FileTime};
+    /// #
+    /// // `1980-01-01 00:00:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::new(119_600_064_000_000_000)
+    ///         .to_dos_date_time(None)
+    ///         .unwrap(),
+    ///     (0x0021, u16::MIN, u8::MIN, None)
+    /// );
+    /// // `2107-12-31 23:59:59 UTC`.
+    /// assert_eq!(
+    ///     FileTime::new(159_992_927_990_000_000)
+    ///         .to_dos_date_time(None)
+    ///         .unwrap(),
+    ///     (0xff9f, 0xbf7d, 100, None)
+    /// );
+    ///
+    /// // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+    /// // `2002-11-27 03:25:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::new(126_828_411_000_000_000)
+    ///         .to_dos_date_time(Some(offset!(-08:00)))
+    ///         .unwrap(),
+    ///     (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
+    /// );
+    ///
+    /// // Before `1980-01-01 00:00:00 UTC`.
+    /// assert!(FileTime::new(119_600_063_990_000_000)
+    ///     .to_dos_date_time(None)
+    ///     .is_err());
+    /// // After `2107-12-31 23:59:59.990000000 UTC`.
+    /// assert!(FileTime::new(159_992_928_000_000_000)
+    ///     .to_dos_date_time(None)
+    ///     .is_err());
+    /// ```
+    ///
+    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
+    /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
+    /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
+    /// [resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
+    /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
+    pub fn to_dos_date_time(
+        self,
+        offset: Option<UtcOffset>,
+    ) -> Result<(u16, u16, u8, Option<UtcOffset>), DosDateTimeRangeError> {
+        let mut dt = OffsetDateTime::try_from(self)
+            .map_err(|_| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
+        if let Some(o) = offset {
+            dt = dt.to_offset(o);
+        }
+        match dt.year() {
+            ..=1979 => Err(DosDateTimeRangeError::new(
+                DosDateTimeRangeErrorKind::Negative,
+            )),
+            2108.. => Err(DosDateTimeRangeError::new(
+                DosDateTimeRangeErrorKind::Overflow,
+            )),
+            _ => {
+                let (date, time) = (dt.date(), dt.time());
+
+                let (second, minute, hour) = (time.second() / 2, time.minute(), time.hour());
+                let resolution = ((time
+                    - Time::from_hms(hour, minute, second * 2)
+                        .expect("DOS time should be in the range of `Time`"))
+                .whole_milliseconds()
+                    / 10)
+                    .try_into()
+                    .expect("resolution should be in the range of `u8`");
+                let (second, minute, hour) =
+                    (u16::from(second), u16::from(minute), u16::from(hour));
+                let dos_time = second + (minute << 5) + (hour << 11);
+
+                let (day, month, year) = (
+                    i32::from(date.day()),
+                    i32::from(u8::from(date.month())),
+                    date.year() - 1980,
+                );
+                let dos_date = (day + (month << 5) + (year << 9))
+                    .try_into()
+                    .expect("DOS date should be in the range of `u16`");
+
+                Ok((dos_date, dos_time, resolution, offset))
+            }
+        }
+    }
+
+    /// Creates a `FileTime` with the given [DOS date and time].
+    ///
+    /// This date and time is used as the timestamp for [FAT], [exFAT], [ZIP]
+    /// file format, etc.
+    ///
+    /// When `resolution` is [`Some`], additional time [resolution] in
+    /// 10-millisecond multiples is added to `time`. When `offset` is [`None`],
+    /// the [UTC offset] of local date and time is considered UTC. Note that
+    /// `offset` should be a multiple of 15 minute intervals.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `date` or `time` is an invalid date and time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `resolution` is greater than 199.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{time::macros::offset, FileTime};
+    /// #
+    /// // `1980-01-01 00:00:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0x0021, u16::MIN, None, None).unwrap(),
+    ///     FileTime::new(119_600_064_000_000_000)
+    /// );
+    /// // `2107-12-31 23:59:59 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0xff9f, 0xbf7d, Some(100), None).unwrap(),
+    ///     FileTime::new(159_992_927_990_000_000)
+    /// );
+    ///
+    /// // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+    /// // `2002-11-26 19:25:00 -08:00`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
+    ///     FileTime::new(126_828_411_000_000_000)
+    /// );
+    ///
+    /// // The Day field is invalid.
+    /// assert!(FileTime::from_dos_date_time(0x0020, u16::MIN, None, None).is_err());
+    /// // The DoubleSeconds field is invalid.
+    /// assert!(FileTime::from_dos_date_time(0x0021, 0x001e, None, None).is_err());
+    /// ```
+    ///
+    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
+    /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
+    /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
+    /// [resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
+    /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
+    pub fn from_dos_date_time(
+        date: u16,
+        time: u16,
+        resolution: Option<u8>,
+        offset: Option<UtcOffset>,
+    ) -> Result<Self, ComponentRange> {
+        use core::time::Duration;
+
+        let (second, minute, hour) = (
+            ((time & 0x1f) * 2)
+                .try_into()
+                .expect("second should be in the range of `u8`"),
+            ((time >> 5) & 0x3f)
+                .try_into()
+                .expect("minute should be in the range of `u8`"),
+            (time >> 11)
+                .try_into()
+                .expect("hour should be in the range of `u8`"),
+        );
+        let mut time = Time::from_hms(hour, minute, second)?;
+        if let Some(res) = resolution {
+            assert!(res <= 199);
+            time += Duration::from_millis(u64::from(res) * 10);
+        }
+
+        let (day, month, year) = (
+            (date & 0x1f)
+                .try_into()
+                .expect("day should be in the range of `u8`"),
+            u8::try_from((date >> 5) & 0x0f)
+                .expect("month should be in the range of `u8`")
+                .try_into()?,
+            ((date >> 9) + 1980).into(),
+        );
+        let date = Date::from_calendar_date(year, month, day)?;
+
+        let ft = PrimitiveDateTime::new(date, time)
+            .assume_offset(offset.unwrap_or(UtcOffset::UTC))
+            .try_into()
+            .expect("DOS date and time should be in the range of `FileTime`");
+        Ok(ft)
     }
 
     /// Computes `self + rhs`, returning [`None`] if overflow occurred. The part
@@ -1472,6 +1684,200 @@ mod tests {
             FileTime::from_unix_time_nanos(i128::MAX).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
+    }
+
+    #[test]
+    fn to_dos_date_time_before_dos_date_time_epoch() {
+        use time::macros::offset;
+
+        // `1979-12-31 23:59:58 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_063_980_000_000)
+                .to_dos_date_time(None)
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+        // `1979-12-31 23:59:59 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_063_990_000_000)
+                .to_dos_date_time(None)
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+        // `1980-01-01 00:59:58 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_099_980_000_000)
+                .to_dos_date_time(Some(offset!(-01:00)))
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+        // `1980-01-01 00:59:59 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_099_990_000_000)
+                .to_dos_date_time(Some(offset!(-01:00)))
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn to_dos_date_time() {
+        use time::macros::offset;
+
+        // `1980-01-01 00:00:00 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_000_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, u16::MIN, u8::MIN, None)
+        );
+        // `1980-01-01 00:00:01 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_010_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, u16::MIN, 100, None)
+        );
+        // `2018-11-17 10:38:30 UTC`.
+        assert_eq!(
+            FileTime::new(131_869_247_100_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x4d71, 0x54cf, u8::MIN, None)
+        );
+        // `2107-12-31 23:59:58 UTC`.
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0xff9f, 0xbf7d, u8::MIN, None)
+        );
+        // `2107-12-31 23:59:59 UTC`.
+        assert_eq!(
+            FileTime::new(159_992_927_990_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0xff9f, 0xbf7d, 100, None)
+        );
+
+        // `1980-01-01 00:00:00.010000000 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_000_100_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, u16::MIN, 1, None)
+        );
+        // `1980-01-01 00:00:00.100000000 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_001_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, u16::MIN, 10, None)
+        );
+
+        // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+        // `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:00)))
+                .unwrap(),
+            (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
+        );
+    }
+
+    #[test]
+    fn to_dos_date_time_with_too_big_date_time() {
+        use time::macros::offset;
+
+        // `2108-01-01 00:00:00 UTC`.
+        assert_eq!(
+            FileTime::new(159_992_928_000_000_000)
+                .to_dos_date_time(None)
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+        );
+        // `2107-12-31 23:00:00 UTC`.
+        assert_eq!(
+            FileTime::new(159_992_892_000_000_000)
+                .to_dos_date_time(Some(offset!(+01:00)))
+                .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn from_dos_date_time() {
+        use time::macros::offset;
+
+        // `1980-01-01 00:00:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, None, None).unwrap(),
+            FileTime::new(119_600_064_000_000_000)
+        );
+        // `1980-01-01 00:00:01 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(100), None).unwrap(),
+            FileTime::new(119_600_064_010_000_000)
+        );
+        // `2018-11-17 10:38:30 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x4d71, 0x54cf, None, None).unwrap(),
+            FileTime::new(131_869_247_100_000_000)
+        );
+        // `2107-12-31 23:59:58 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, None).unwrap(),
+            FileTime::new(159_992_927_980_000_000)
+        );
+        // `2107-12-31 23:59:59 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0xff9f, 0xbf7d, Some(100), None).unwrap(),
+            FileTime::new(159_992_927_990_000_000)
+        );
+
+        // `1980-01-01 00:00:00.010000000 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(1), None).unwrap(),
+            FileTime::new(119_600_064_000_100_000)
+        );
+        // `1980-01-01 00:00:00.100000000 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(10), None).unwrap(),
+            FileTime::new(119_600_064_001_000_000)
+        );
+
+        // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+        // `2002-11-26 19:25:00 -08:00`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
+            FileTime::new(126_828_411_000_000_000)
+        );
+    }
+
+    #[test]
+    fn from_dos_date_time_with_invalid_date_time() {
+        // The Day field is 0.
+        assert!(FileTime::from_dos_date_time(0x0020, u16::MIN, None, None).is_err());
+        // The Day field is 30, which is after the last day of February.
+        assert!(FileTime::from_dos_date_time(0x005e, u16::MIN, None, None).is_err());
+        // The Month field is 0.
+        assert!(FileTime::from_dos_date_time(0x0001, u16::MIN, None, None).is_err());
+        // The Month field is 13.
+        assert!(FileTime::from_dos_date_time(0x01a1, u16::MIN, None, None).is_err());
+
+        // The DoubleSeconds field is 30.
+        assert!(FileTime::from_dos_date_time(0x0021, 0x001e, None, None).is_err());
+        // The Minute field is 60.
+        assert!(FileTime::from_dos_date_time(0x0021, 0x0780, None, None).is_err());
+        // The Hour field is 24.
+        assert!(FileTime::from_dos_date_time(0x0021, 0xc000, None, None).is_err());
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: res <= 199")]
+    fn from_dos_date_time_with_invalid_resolution() {
+        let _: Result<FileTime, ComponentRange> =
+            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None);
     }
 
     #[test]
