@@ -236,7 +236,9 @@ impl FileTime {
     ///     FileTime::MAX - Duration::from_nanos(955_161_500)
     /// );
     ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::from_unix_time(-11_644_473_601).is_err());
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::from_unix_time(1_833_029_933_771).is_err());
     /// ```
     pub fn from_unix_time(timestamp: i64) -> Result<Self, FileTimeRangeError> {
@@ -275,7 +277,9 @@ impl FileTime {
     ///     FileTime::MAX
     /// );
     ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).is_err());
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).is_err());
     /// ```
     pub fn from_unix_time_nanos(timestamp: i128) -> Result<Self, FileTimeRangeError> {
@@ -290,7 +294,8 @@ impl FileTime {
             .map(Self::new)
     }
 
-    /// Computes `self + rhs`, returning [`None`] if overflow occurred.
+    /// Computes `self + rhs`, returning [`None`] if overflow occurred. The part
+    /// of `rhs` less than 100-nanosecond is truncated.
     ///
     /// # Examples
     ///
@@ -318,7 +323,8 @@ impl FileTime {
     }
 
     /// Computes `self - rhs`, returning [`None`] if the result would be
-    /// negative or if overflow occurred.
+    /// negative or if overflow occurred. The part of `rhs` less than
+    /// 100-nanosecond is truncated.
     ///
     /// # Examples
     ///
@@ -349,6 +355,7 @@ impl FileTime {
     }
 
     /// Computes `self + rhs`, returning [`FileTime::MAX`] if overflow occurred.
+    /// The part of `rhs` less than 100-nanosecond is truncated.
     ///
     /// # Examples
     ///
@@ -378,7 +385,8 @@ impl FileTime {
     }
 
     /// Computes `self - rhs`, returning [`FileTime::NT_TIME_EPOCH`] if the
-    /// result would be negative or if overflow occurred.
+    /// result would be negative or if overflow occurred. The part of `rhs` less
+    /// than 100-nanosecond is truncated.
     ///
     /// # Examples
     ///
@@ -819,8 +827,8 @@ impl From<FileTime> for std::time::SystemTime {
     ///
     /// # Panics
     ///
-    /// Panics if the resulting point in time cannot be represented by the
-    /// underlying OS-specific time format.
+    /// Panics if the resulting time cannot be represented by a
+    /// [`SystemTime`](std::time::SystemTime).
     ///
     /// # Examples
     ///
@@ -1009,12 +1017,14 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(
     ///     SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
     /// )
     /// .is_err());
     ///
-    /// # #[cfg(not(windows))]
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
+    /// #[cfg(not(windows))]
     /// assert!(FileTime::try_from(
     ///     SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600)
     /// )
@@ -1059,6 +1069,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::NANOSECOND).is_err());
     /// ```
     ///
@@ -1117,11 +1128,13 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(
     ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - Duration::nanoseconds(1)
     /// )
     /// .is_err());
     ///
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::try_from(
     ///     Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10).unwrap()
     ///         + Duration::nanoseconds(955_161_500)
