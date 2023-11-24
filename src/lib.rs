@@ -32,7 +32,7 @@
 //!
 //! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.6.1/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.6.2/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
