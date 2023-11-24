@@ -14,6 +14,16 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.6.1\...v0.6.2[0.6.2] - 2023-11-24
+
+=== Added
+
+* Add conversion methods from/to DOS date and time ({pull-request-url}/70[#70])
+
+=== Changed
+
+* Bump MSRV to 1.70.0 ({pull-request-url}/68[#68])
+
 == {compare-url}/v0.6.0\...v0.6.1[0.6.1] - 2023-11-04
 
 === Added

@@ -4,10 +4,10 @@
 
 [package]
 name = "nt-time"
-version = "0.6.1"
+version = "0.6.2"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.70.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -29,14 +29,16 @@ exclude = [
 
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, optional = true }
-serde = { version = "1.0.190", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.30", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
-clap = { version = "4.3.24", features = ["derive"] }
+clap = { version = "4.4.8", features = ["derive"] }
+dialoguer = { version = "0.11.0", default-features = false, features = ["password"] }
 serde_json = "1.0.108"
 serde_test = "1.0.176"
+zip = { version = "0.6.6", default-features = false, features = ["aes-crypto", "deflate"] }
 
 [features]
 default = ["std"]
