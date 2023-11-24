@@ -15,3 +15,8 @@ link:ft2unix.rs[]::
 link:unix2ft.rs[]::
 
   An example of converting Unix time to the file time.
+
+link:zip_timestamp.rs[]::
+
+  An example of listing information about the last modification date and time
+  of files in a ZIP archive.
