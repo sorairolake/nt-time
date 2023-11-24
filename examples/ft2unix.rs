@@ -39,9 +39,11 @@ enum Unit {
 
 #[cfg(feature = "std")]
 fn main() {
+    use nt_time::FileTime;
+
     let opt = Opt::parse();
 
-    let ft = nt_time::FileTime::new(opt.time);
+    let ft = FileTime::new(opt.time);
     let ut = match opt.unit {
         Unit::Seconds => ft.to_unix_time().into(),
         Unit::Nanoseconds => ft.to_unix_time_nanos(),

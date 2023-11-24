@@ -26,10 +26,12 @@ struct Opt {
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
+    use nt_time::{time::OffsetDateTime, FileTime};
+
     let opt = Opt::parse();
 
-    let ft = nt_time::FileTime::new(opt.time);
-    let dt = time::OffsetDateTime::try_from(ft).context("could not convert time")?;
+    let ft = FileTime::new(opt.time);
+    let dt = OffsetDateTime::try_from(ft).context("could not convert time")?;
     println!("{dt}");
     Ok(())
 }

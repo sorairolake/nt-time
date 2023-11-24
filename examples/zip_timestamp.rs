@@ -29,48 +29,44 @@ struct Opt {
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
+    use std::{fs::File, io::BufReader};
+
+    use dialoguer::{theme::ColorfulTheme, Password};
+    use nt_time::{time::OffsetDateTime, FileTime};
+    use zip::{result::ZipError, ZipArchive};
+
     let opt = Opt::parse();
 
-    let file = std::fs::File::open(&opt.archive)
+    let file = File::open(&opt.archive)
         .with_context(|| format!("could not open {}", opt.archive.display()))?;
-    let reader = std::io::BufReader::new(file);
-    let mut archive = zip::ZipArchive::new(reader).context("could not read a ZIP archive")?;
+    let reader = BufReader::new(file);
+    let mut archive = ZipArchive::new(reader).context("could not read a ZIP archive")?;
 
     let passphrase = if matches!(
         archive.by_index(0),
-        Err(zip::result::ZipError::UnsupportedArchive(
-            zip::result::ZipError::PASSWORD_REQUIRED,
-        ))
+        Err(ZipError::UnsupportedArchive(ZipError::PASSWORD_REQUIRED))
     ) {
-        dialoguer::Password::with_theme(&dialoguer::theme::ColorfulTheme::default())
+        Password::with_theme(&ColorfulTheme::default())
             .with_prompt("Enter passphrase")
             .interact()
             .context("could not read passphrase")?
     } else {
-        String::new()
+        String::default()
     };
 
     for i in 0..archive.len() {
-        let file = if passphrase.is_empty() {
-            archive
-                .by_index(i)
-                .context("could not get a contained file")?
-        } else {
-            archive
-                .by_index_decrypt(i, passphrase.as_bytes())
-                .context("could not get a contained file")?
-                .context("passphrase is incorrect")?
-        };
-
+        let file = archive
+            .by_index_decrypt(i, passphrase.as_bytes())
+            .context("could not get a contained file")?
+            .context("passphrase is incorrect")?;
         let Some(path) = file.enclosed_name() else {
             eprintln!("{} may be an unsafe path", file.name());
             continue;
         };
         let mtime = file.last_modified();
-        let ft =
-            nt_time::FileTime::from_dos_date_time(mtime.datepart(), mtime.timepart(), None, None)
-                .context("could not convert the stored timestamp to the file time")?;
-        let dt = time::OffsetDateTime::try_from(ft)
+        let ft = FileTime::from_dos_date_time(mtime.datepart(), mtime.timepart(), None, None)
+            .context("could not convert the stored timestamp to the file time")?;
+        let dt = OffsetDateTime::try_from(ft)
             .context("could not convert the file time to a `OffsetDateTime`")?;
 
         println!("{ft:20}\t{dt}\t{}", path.display());
