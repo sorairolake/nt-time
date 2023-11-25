@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! An example of listing information about the last modification date and time
-//! of files in a ZIP archive.
+//! An example of listing information about files in a ZIP archive.
 //!
 //! The UTC offset of the stored timestamp is considered UTC.
 
@@ -23,7 +22,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
-    /// ZIP archive to print the timestamp.
+    /// ZIP archive to list information about files.
     archive: std::path::PathBuf,
 }
 
@@ -31,6 +30,7 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     use std::{fs::File, io::BufReader};
 
+    use comfy_table::Table;
     use dialoguer::{theme::ColorfulTheme, Password};
     use nt_time::{time::OffsetDateTime, FileTime};
     use zip::{result::ZipError, ZipArchive};
@@ -54,6 +54,18 @@ fn main() -> anyhow::Result<()> {
         String::default()
     };
 
+    let mut table = Table::new();
+    table
+        .load_preset(comfy_table::presets::ASCII_HORIZONTAL_ONLY)
+        .set_header([
+            "File time",
+            "Date",
+            "Time",
+            "Attr",
+            "Size",
+            "Compressed",
+            "Name",
+        ]);
     for i in 0..archive.len() {
         let file = archive
             .by_index_decrypt(i, passphrase.as_bytes())
@@ -63,14 +75,28 @@ fn main() -> anyhow::Result<()> {
             eprintln!("{} may be an unsafe path", file.name());
             continue;
         };
+        let attribute = if file.is_dir() {
+            String::from("D----")
+        } else {
+            String::from("-----")
+        };
         let mtime = file.last_modified();
         let ft = FileTime::from_dos_date_time(mtime.datepart(), mtime.timepart(), None, None)
             .context("could not convert the stored timestamp to the file time")?;
         let dt = OffsetDateTime::try_from(ft)
             .context("could not convert the file time to a `OffsetDateTime`")?;
 
-        println!("{ft:20}\t{dt}\t{}", path.display());
+        table.add_row([
+            ft.to_string(),
+            dt.date().to_string(),
+            dt.time().to_string(),
+            attribute,
+            file.size().to_string(),
+            file.compressed_size().to_string(),
+            path.display().to_string(),
+        ]);
     }
+    println!("{table}");
     Ok(())
 }
 
