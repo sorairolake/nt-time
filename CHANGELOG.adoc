@@ -21,6 +21,7 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Implement `fmt::Octal`, `fmt::LowerHex`, `fmt::UpperHex`, `fmt::Binary`,
   `fmt::LowerExp` and `fmt::UpperExp` for `FileTime`
   ({pull-request-url}/75[#75])
+* Add conversion methods from/to `i64` ({pull-request-url}/76[#76])
 
 == {compare-url}/v0.6.1\...v0.6.2[0.6.2] - 2023-11-24
 

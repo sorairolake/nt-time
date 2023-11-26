@@ -9,6 +9,7 @@
 use core::{
     cmp::Ordering,
     fmt, mem,
+    num::TryFromIntError,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
@@ -1232,6 +1233,46 @@ impl From<FileTime> for u64 {
     }
 }
 
+impl TryFrom<FileTime> for i64 {
+    type Error = TryFromIntError;
+
+    /// Converts a `FileTime` to the file time.
+    ///
+    /// The file time may be represented as an [`i64`] value in Windows
+    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is after "+30828-09-14 02:48:05.477580700 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+    ///     i64::default()
+    /// );
+    /// assert_eq!(
+    ///     i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
+    ///     116_444_736_000_000_000
+    /// );
+    ///
+    /// assert!(i64::try_from(FileTime::MAX).is_err());
+    /// ```
+    ///
+    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
+    ///
+    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
+    ///
+    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    #[inline]
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
+        ft.to_raw().try_into()
+    }
+}
+
 #[cfg(feature = "std")]
 impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
@@ -1399,6 +1440,48 @@ impl From<u64> for FileTime {
     #[inline]
     fn from(ft: u64) -> Self {
         Self::new(ft)
+    }
+}
+
+impl TryFrom<i64> for FileTime {
+    type Error = FileTimeRangeError;
+
+    /// Converts the file time to a `FileTime`.
+    ///
+    /// The file time may be represented as an [`i64`] value in Windows
+    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::try_from(i64::default()).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    ///
+    /// assert!(FileTime::try_from(i64::MIN).is_err());
+    /// ```
+    ///
+    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
+    ///
+    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
+    ///
+    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    #[inline]
+    fn try_from(ft: i64) -> Result<Self, Self::Error> {
+        ft.try_into()
+            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))
+            .map(Self::new)
     }
 }
 
@@ -3498,6 +3581,28 @@ mod tests {
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
+    #[test]
+    fn try_from_file_time_to_i64() {
+        assert_eq!(
+            i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            i64::default()
+        );
+        assert_eq!(
+            i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
+            116_444_736_000_000_000
+        );
+        assert_eq!(
+            i64::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
+            i64::MAX
+        );
+    }
+
+    #[test]
+    fn try_from_file_time_to_i64_with_too_big_file_time() {
+        assert!(i64::try_from(FileTime::new(u64::try_from(i64::MAX).unwrap() + 1)).is_err());
+        assert!(i64::try_from(FileTime::MAX).is_err());
+    }
+
     #[cfg(feature = "std")]
     #[test]
     fn from_file_time_to_system_time() {
@@ -3621,6 +3726,34 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
+    }
+
+    #[test]
+    fn try_from_i64_to_file_time_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::try_from(i64::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::try_from(i64::default() - 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn try_from_i64_to_file_time() {
+        assert_eq!(
+            FileTime::try_from(i64::default()).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(i64::MAX).unwrap(),
+            FileTime::new(i64::MAX.try_into().unwrap())
+        );
     }
 
     #[cfg(feature = "std")]
