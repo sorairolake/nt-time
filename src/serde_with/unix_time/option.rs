@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Use Unix time when serializing and deserializing an [`Option<FileTime>`].
+//! Use [Unix time] when serializing and deserializing an [`Option<FileTime>`].
 //!
 //! Use this module in combination with Serde's [`with`] attribute.
 //!
@@ -35,6 +35,7 @@
 //! );
 //! ```
 //!
+//! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
@@ -44,7 +45,9 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
-/// This serializes using Unix time.
+/// This serializes using [Unix time].
+///
+/// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     ft.map(FileTime::to_unix_time).serialize(serializer)
 }
@@ -52,7 +55,9 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
-/// This deserializes from its Unix time.
+/// This deserializes from its [Unix time].
+///
+/// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

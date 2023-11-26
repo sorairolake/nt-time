@@ -9,6 +9,7 @@
 use core::{
     cmp::Ordering,
     fmt, mem,
+    num::TryFromIntError,
     ops::{Add, AddAssign, Sub, SubAssign},
 };
 
@@ -175,7 +176,8 @@ impl FileTime {
     }
 
     #[allow(clippy::missing_panics_doc)]
-    /// Returns Unix time represents the same date and time as this `FileTime`.
+    /// Returns [Unix time] which represents the same date and time as this
+    /// `FileTime`.
     ///
     /// # Examples
     ///
@@ -186,6 +188,8 @@ impl FileTime {
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), i64::default());
     /// assert_eq!(FileTime::MAX.to_unix_time(), 1_833_029_933_770);
     /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
     pub fn to_unix_time(self) -> i64 {
         i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
@@ -193,8 +197,8 @@ impl FileTime {
             - 11_644_473_600
     }
 
-    /// Returns Unix time in nanoseconds represents the same date and time as
-    /// this `FileTime`.
+    /// Returns [Unix time] in nanoseconds which represents the same date and
+    /// time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -211,12 +215,14 @@ impl FileTime {
     ///     1_833_029_933_770_955_161_500
     /// );
     /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
     pub fn to_unix_time_nanos(self) -> i128 {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
 
-    /// Creates a `FileTime` with the given Unix time.
+    /// Creates a `FileTime` with the given [Unix time].
     ///
     /// # Errors
     ///
@@ -247,6 +253,8 @@ impl FileTime {
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::from_unix_time(1_833_029_933_771).is_err());
     /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time(timestamp: i64) -> Result<Self, FileTimeRangeError> {
         (timestamp <= 1_833_029_933_770)
             .then_some(timestamp)
@@ -259,7 +267,7 @@ impl FileTime {
             .map(Self::new)
     }
 
-    /// Creates a `FileTime` with the given Unix time in nanoseconds.
+    /// Creates a `FileTime` with the given [Unix time] in nanoseconds.
     ///
     /// # Errors
     ///
@@ -288,6 +296,8 @@ impl FileTime {
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).is_err());
     /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time_nanos(timestamp: i128) -> Result<Self, FileTimeRangeError> {
         (timestamp <= 1_833_029_933_770_955_161_500)
             .then_some(timestamp)
@@ -301,19 +311,22 @@ impl FileTime {
     }
 
     #[allow(clippy::missing_panics_doc)]
-    /// Returns [DOS date and time] represents the same date and time as this
-    /// `FileTime`.
+    /// Returns [DOS date and time] which represents the same date and time as
+    /// this `FileTime`. This date and time is used as the timestamp such as
+    /// [FAT], [exFAT] or [ZIP] file format.
     ///
-    /// This date and time is used as the timestamp for [FAT], [exFAT], [ZIP]
-    /// file format, etc.
+    /// This method returns a `(date, time, resolution, offset)` tuple.
     ///
-    /// This method returns a `(date, time, resolution, offset)` tuple. `date`
-    /// and `time` represents local date and time. `resolution` represents
-    /// additional time [resolution] in 10-millisecond multiples. When the
-    /// `offset` parameter is [`Some`], converts local date and time from UTC to
-    /// the provided UTC offset and returns the [UTC offset] of local date and
-    /// time. Note that the `offset` parameter should be a multiple of 15 minute
-    /// intervals.
+    /// `date` and `time` represents the local date and time. This date and time
+    /// has no notion of time zone. The resolution of DOS date and time is 2
+    /// seconds, but additional [finer resolution] (10 ms units) can be
+    /// provided. `resolution` represents this additional finer resolution.
+    ///
+    /// When the `offset` parameter is [`Some`], converts `date` and `time` from
+    /// UTC to the local date and time with the provided [UTC offset] and
+    /// returns it with the UTC offset. When the `offset` parameter is [`None`]
+    /// or is not a multiple of 15 minute intervals, consider UTC to be the
+    /// local date and time and returns [`None`] as the UTC offset.
     ///
     /// # Errors
     ///
@@ -340,15 +353,6 @@ impl FileTime {
     ///     (0xff9f, 0xbf7d, 100, None)
     /// );
     ///
-    /// // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
-    /// // `2002-11-27 03:25:00 UTC`.
-    /// assert_eq!(
-    ///     FileTime::new(126_828_411_000_000_000)
-    ///         .to_dos_date_time(Some(offset!(-08:00)))
-    ///         .unwrap(),
-    ///     (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
-    /// );
-    ///
     /// // Before `1980-01-01 00:00:00 UTC`.
     /// assert!(FileTime::new(119_600_063_990_000_000)
     ///     .to_dos_date_time(None)
@@ -357,23 +361,61 @@ impl FileTime {
     /// assert!(FileTime::new(159_992_928_000_000_000)
     ///     .to_dos_date_time(None)
     ///     .is_err());
+    ///
+    /// // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
+    /// assert_eq!(
+    ///     FileTime::new(126_828_411_000_000_000)
+    ///         .to_dos_date_time(Some(offset!(-08:00)))
+    ///         .unwrap(),
+    ///     (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
+    /// );
+    /// ```
+    ///
+    /// When the UTC offset is not a multiple of 15 minute intervals, consider
+    /// UTC to be the local date and time:
+    ///
+    /// ```
+    /// # use nt_time::{time::macros::offset, FileTime};
+    /// #
+    /// // `2002-11-27 03:25:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::new(126_828_411_000_000_000)
+    ///         .to_dos_date_time(Some(offset!(-08:01)))
+    ///         .unwrap(),
+    ///     (0x2d7b, 0x1b20, u8::MIN, None)
+    /// );
+    /// // `2002-11-27 03:25:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::new(126_828_411_000_000_000)
+    ///         .to_dos_date_time(Some(offset!(-08:14)))
+    ///         .unwrap(),
+    ///     (0x2d7b, 0x1b20, u8::MIN, None)
+    /// );
+    ///
+    /// // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:10:00 -08:15`.
+    /// assert_eq!(
+    ///     FileTime::new(126_828_411_000_000_000)
+    ///         .to_dos_date_time(Some(offset!(-08:15)))
+    ///         .unwrap(),
+    ///     (0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15)))
+    /// );
     /// ```
     ///
     /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
-    /// [resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
+    /// [finer resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
     /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
     pub fn to_dos_date_time(
         self,
         offset: Option<UtcOffset>,
     ) -> Result<(u16, u16, u8, Option<UtcOffset>), DosDateTimeRangeError> {
-        let mut dt = OffsetDateTime::try_from(self)
-            .map_err(|_| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
-        if let Some(o) = offset {
-            dt = dt.to_offset(o);
-        }
+        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
+        let dt = OffsetDateTime::try_from(self)
+            .ok()
+            .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
+            .ok_or_else(|| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
         match dt.year() {
             ..=1979 => Err(DosDateTimeRangeError::new(
                 DosDateTimeRangeErrorKind::Negative,
@@ -392,6 +434,7 @@ impl FileTime {
                     / 10)
                     .try_into()
                     .expect("resolution should be in the range of `u8`");
+                debug_assert!(resolution <= 199);
                 let (second, minute, hour) =
                     (u16::from(second), u16::from(minute), u16::from(hour));
                 let dos_time = second + (minute << 5) + (hour << 11);
@@ -410,15 +453,17 @@ impl FileTime {
         }
     }
 
-    /// Creates a `FileTime` with the given [DOS date and time].
+    /// Creates a `FileTime` with the given [DOS date and time]. This date and
+    /// time is used as the timestamp such as [FAT], [exFAT] or [ZIP] file
+    /// format.
     ///
-    /// This date and time is used as the timestamp for [FAT], [exFAT], [ZIP]
-    /// file format, etc.
+    /// When `resolution` is [`Some`], additional [finer resolution] (10 ms
+    /// units) is added to `time`.
     ///
-    /// When `resolution` is [`Some`], additional time [resolution] in
-    /// 10-millisecond multiples is added to `time`. When `offset` is [`None`],
-    /// the [UTC offset] of local date and time is considered UTC. Note that
-    /// `offset` should be a multiple of 15 minute intervals.
+    /// When `offset` is [`Some`], converts `date` and `time` from the local
+    /// date and time with the provided [UTC offset] to UTC. When `offset` is
+    /// [`None`] or is not a multiple of 15 minute intervals, consider UTC to be
+    /// the local date and time.
     ///
     /// # Errors
     ///
@@ -444,24 +489,55 @@ impl FileTime {
     ///     FileTime::new(159_992_927_990_000_000)
     /// );
     ///
-    /// // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
-    /// // `2002-11-26 19:25:00 -08:00`.
+    /// // From `2002-11-26 19:25:00 -08:00` to `2002-11-27 03:25:00 UTC`.
     /// assert_eq!(
     ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
     ///     FileTime::new(126_828_411_000_000_000)
     /// );
     ///
-    /// // The Day field is invalid.
+    /// // The Day field is 0.
     /// assert!(FileTime::from_dos_date_time(0x0020, u16::MIN, None, None).is_err());
-    /// // The DoubleSeconds field is invalid.
+    /// // The DoubleSeconds field is 30.
     /// assert!(FileTime::from_dos_date_time(0x0021, 0x001e, None, None).is_err());
+    /// ```
+    ///
+    /// When the UTC offset is not a multiple of 15 minute intervals, consider
+    /// UTC to be the local date and time:
+    ///
+    /// ```
+    /// # use nt_time::{time::macros::offset, FileTime};
+    /// #
+    /// // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:01))).unwrap(),
+    ///     FileTime::new(126_828_123_000_000_000)
+    /// );
+    /// // From `2002-11-26 19:25:00 -08:14` to `2002-11-26 19:25:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
+    ///     FileTime::new(126_828_123_000_000_000)
+    /// );
+    ///
+    /// // From `2002-11-26 19:25:00 -08:15` to `2002-11-27 03:40:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))).unwrap(),
+    ///     FileTime::new(126_828_420_000_000_000)
+    /// );
+    /// ```
+    ///
+    /// Additional finer resolution must be in the range 0 to 199:
+    ///
+    /// ```should_panic
+    /// # use nt_time::FileTime;
+    /// #
+    /// let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     /// ```
     ///
     /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
-    /// [resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
+    /// [finer resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
     /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
     pub fn from_dos_date_time(
         date: u16,
@@ -499,6 +575,7 @@ impl FileTime {
         );
         let date = Date::from_calendar_date(year, month, day)?;
 
+        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
         let ft = PrimitiveDateTime::new(date, time)
             .assume_offset(offset.unwrap_or(UtcOffset::UTC))
             .try_into()
@@ -748,6 +825,129 @@ impl fmt::Display for FileTime {
     /// assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
     /// assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
     /// assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::Octal for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(format!("{:#o}", FileTime::NT_TIME_EPOCH), "0o0");
+    /// assert_eq!(
+    ///     format!("{:022o}", FileTime::UNIX_EPOCH),
+    ///     "0006355435732517500000"
+    /// );
+    /// assert_eq!(format!("{:o}", FileTime::MAX), "1777777777777777777777");
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::LowerHex for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(format!("{:#x}", FileTime::NT_TIME_EPOCH), "0x0");
+    /// assert_eq!(format!("{:016x}", FileTime::UNIX_EPOCH), "019db1ded53e8000");
+    /// assert_eq!(format!("{:x}", FileTime::MAX), "ffffffffffffffff");
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::UpperHex for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(format!("{:#X}", FileTime::NT_TIME_EPOCH), "0x0");
+    /// assert_eq!(format!("{:016X}", FileTime::UNIX_EPOCH), "019DB1DED53E8000");
+    /// assert_eq!(format!("{:X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::Binary for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(format!("{:#b}", FileTime::NT_TIME_EPOCH), "0b0");
+    /// assert_eq!(
+    ///     format!("{:064b}", FileTime::UNIX_EPOCH),
+    ///     "0000000110011101101100011101111011010101001111101000000000000000"
+    /// );
+    /// assert_eq!(
+    ///     format!("{:b}", FileTime::MAX),
+    ///     "1111111111111111111111111111111111111111111111111111111111111111"
+    /// );
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::LowerExp for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     format!("{:024e}", FileTime::NT_TIME_EPOCH),
+    ///     "0000000000000000000000e0"
+    /// );
+    /// assert_eq!(format!("{:e}", FileTime::UNIX_EPOCH), "1.16444736e17");
+    /// assert_eq!(format!("{:e}", FileTime::MAX), "1.8446744073709551615e19");
+    /// ```
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        u64::from(*self).fmt(f)
+    }
+}
+
+impl fmt::UpperExp for FileTime {
+    /// Shows the underlying [`u64`] value of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     format!("{:024E}", FileTime::NT_TIME_EPOCH),
+    ///     "0000000000000000000000E0"
+    /// );
+    /// assert_eq!(format!("{:E}", FileTime::UNIX_EPOCH), "1.16444736E17");
+    /// assert_eq!(format!("{:E}", FileTime::MAX), "1.8446744073709551615E19");
     /// ```
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1033,6 +1233,46 @@ impl From<FileTime> for u64 {
     }
 }
 
+impl TryFrom<FileTime> for i64 {
+    type Error = TryFromIntError;
+
+    /// Converts a `FileTime` to the file time.
+    ///
+    /// The file time may be represented as an [`i64`] value in Windows
+    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is after "+30828-09-14 02:48:05.477580700 UTC".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+    ///     i64::default()
+    /// );
+    /// assert_eq!(
+    ///     i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
+    ///     116_444_736_000_000_000
+    /// );
+    ///
+    /// assert!(i64::try_from(FileTime::MAX).is_err());
+    /// ```
+    ///
+    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
+    ///
+    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
+    ///
+    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    #[inline]
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
+        ft.to_raw().try_into()
+    }
+}
+
 #[cfg(feature = "std")]
 impl From<FileTime> for std::time::SystemTime {
     /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
@@ -1200,6 +1440,48 @@ impl From<u64> for FileTime {
     #[inline]
     fn from(ft: u64) -> Self {
         Self::new(ft)
+    }
+}
+
+impl TryFrom<i64> for FileTime {
+    type Error = FileTimeRangeError;
+
+    /// Converts the file time to a `FileTime`.
+    ///
+    /// The file time may be represented as an [`i64`] value in Windows
+    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::try_from(i64::default()).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    ///
+    /// assert!(FileTime::try_from(i64::MIN).is_err());
+    /// ```
+    ///
+    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
+    ///
+    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
+    ///
+    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    #[inline]
+    fn try_from(ft: i64) -> Result<Self, Self::Error> {
+        ft.try_into()
+            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))
+            .map(Self::new)
     }
 }
 
@@ -1738,6 +2020,8 @@ mod tests {
                 .unwrap(),
             (0x0021, u16::MIN, 100, None)
         );
+        // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
+        //
         // `2018-11-17 10:38:30 UTC`.
         assert_eq!(
             FileTime::new(131_869_247_100_000_000)
@@ -1774,14 +2058,56 @@ mod tests {
                 .unwrap(),
             (0x0021, u16::MIN, 10, None)
         );
+        // `1980-01-01 00:00:01.990000000 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_019_900_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, u16::MIN, 199, None)
+        );
+        // `1980-01-01 00:00:02 UTC`.
+        assert_eq!(
+            FileTime::new(119_600_064_020_000_000)
+                .to_dos_date_time(None)
+                .unwrap(),
+            (0x0021, 0x0001, u8::MIN, None)
+        );
 
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
-        // `2002-11-27 03:25:00 UTC`.
+        //
+        // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:00)))
                 .unwrap(),
             (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:01)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:14)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
+        // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:10:00 -08:15`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:15)))
+                .unwrap(),
+            (0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15)))
         );
     }
 
@@ -1819,6 +2145,8 @@ mod tests {
             FileTime::from_dos_date_time(0x0021, u16::MIN, Some(100), None).unwrap(),
             FileTime::new(119_600_064_010_000_000)
         );
+        // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
+        //
         // `2018-11-17 10:38:30 UTC`.
         assert_eq!(
             FileTime::from_dos_date_time(0x4d71, 0x54cf, None, None).unwrap(),
@@ -1845,12 +2173,39 @@ mod tests {
             FileTime::from_dos_date_time(0x0021, u16::MIN, Some(10), None).unwrap(),
             FileTime::new(119_600_064_001_000_000)
         );
+        // `1980-01-01 00:00:01.990000000 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(199), None).unwrap(),
+            FileTime::new(119_600_064_019_900_000)
+        );
 
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
-        // `2002-11-26 19:25:00 -08:00`.
+        //
+        // From `2002-11-26 19:25:00 -08:00` to `2002-11-27 03:25:00 UTC`.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
             FileTime::new(126_828_411_000_000_000)
+        );
+        // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:01))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
+        // From `2002-11-26 19:25:00 -08:14` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
+        // From `2002-11-26 19:25:00 -08:15` to `2002-11-27 03:40:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))).unwrap(),
+            FileTime::new(126_828_420_000_000_000)
         );
     }
 
@@ -1876,8 +2231,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "assertion failed: res <= 199")]
     fn from_dos_date_time_with_invalid_resolution() {
-        let _: Result<FileTime, ComponentRange> =
-            FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None);
+        let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     }
 
     #[test]
@@ -2083,6 +2437,174 @@ mod tests {
         assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
         assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
         assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
+    }
+
+    #[test]
+    fn octal() {
+        assert_eq!(format!("{:o}", FileTime::NT_TIME_EPOCH), "0");
+        assert_eq!(format!("{:#o}", FileTime::NT_TIME_EPOCH), "0o0");
+        assert_eq!(
+            format!("{:022o}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000000000"
+        );
+        assert_eq!(
+            format!("{:#024o}", FileTime::NT_TIME_EPOCH),
+            "0o0000000000000000000000"
+        );
+        assert_eq!(format!("{:o}", FileTime::UNIX_EPOCH), "6355435732517500000");
+        assert_eq!(
+            format!("{:#o}", FileTime::UNIX_EPOCH),
+            "0o6355435732517500000"
+        );
+        assert_eq!(
+            format!("{:022o}", FileTime::UNIX_EPOCH),
+            "0006355435732517500000"
+        );
+        assert_eq!(
+            format!("{:#024o}", FileTime::UNIX_EPOCH),
+            "0o0006355435732517500000"
+        );
+        assert_eq!(format!("{:o}", FileTime::MAX), "1777777777777777777777");
+        assert_eq!(format!("{:#o}", FileTime::MAX), "0o1777777777777777777777");
+        assert_eq!(format!("{:022o}", FileTime::MAX), "1777777777777777777777");
+        assert_eq!(
+            format!("{:#024o}", FileTime::MAX),
+            "0o1777777777777777777777"
+        );
+    }
+
+    #[test]
+    fn lower_hex() {
+        assert_eq!(format!("{:x}", FileTime::NT_TIME_EPOCH), "0");
+        assert_eq!(format!("{:#x}", FileTime::NT_TIME_EPOCH), "0x0");
+        assert_eq!(
+            format!("{:016x}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000"
+        );
+        assert_eq!(
+            format!("{:#018x}", FileTime::NT_TIME_EPOCH),
+            "0x0000000000000000"
+        );
+        assert_eq!(format!("{:x}", FileTime::UNIX_EPOCH), "19db1ded53e8000");
+        assert_eq!(format!("{:#x}", FileTime::UNIX_EPOCH), "0x19db1ded53e8000");
+        assert_eq!(format!("{:016x}", FileTime::UNIX_EPOCH), "019db1ded53e8000");
+        assert_eq!(
+            format!("{:#018x}", FileTime::UNIX_EPOCH),
+            "0x019db1ded53e8000"
+        );
+        assert_eq!(format!("{:x}", FileTime::MAX), "ffffffffffffffff");
+        assert_eq!(format!("{:#x}", FileTime::MAX), "0xffffffffffffffff");
+        assert_eq!(format!("{:016x}", FileTime::MAX), "ffffffffffffffff");
+        assert_eq!(format!("{:#018x}", FileTime::MAX), "0xffffffffffffffff");
+    }
+
+    #[test]
+    fn upper_hex() {
+        assert_eq!(format!("{:X}", FileTime::NT_TIME_EPOCH), "0");
+        assert_eq!(format!("{:#X}", FileTime::NT_TIME_EPOCH), "0x0");
+        assert_eq!(
+            format!("{:016X}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000"
+        );
+        assert_eq!(
+            format!("{:#018X}", FileTime::NT_TIME_EPOCH),
+            "0x0000000000000000"
+        );
+        assert_eq!(format!("{:X}", FileTime::UNIX_EPOCH), "19DB1DED53E8000");
+        assert_eq!(format!("{:#X}", FileTime::UNIX_EPOCH), "0x19DB1DED53E8000");
+        assert_eq!(format!("{:016X}", FileTime::UNIX_EPOCH), "019DB1DED53E8000");
+        assert_eq!(
+            format!("{:#018X}", FileTime::UNIX_EPOCH),
+            "0x019DB1DED53E8000"
+        );
+        assert_eq!(format!("{:X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
+        assert_eq!(format!("{:#X}", FileTime::MAX), "0xFFFFFFFFFFFFFFFF");
+        assert_eq!(format!("{:016X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
+        assert_eq!(format!("{:#018X}", FileTime::MAX), "0xFFFFFFFFFFFFFFFF");
+    }
+
+    #[test]
+    fn binary() {
+        assert_eq!(format!("{:b}", FileTime::NT_TIME_EPOCH), "0");
+        assert_eq!(format!("{:#b}", FileTime::NT_TIME_EPOCH), "0b0");
+        assert_eq!(
+            format!("{:064b}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000000000000000000000000000000000000000000000000000"
+        );
+        assert_eq!(
+            format!("{:#066b}", FileTime::NT_TIME_EPOCH),
+            "0b0000000000000000000000000000000000000000000000000000000000000000"
+        );
+        assert_eq!(
+            format!("{:b}", FileTime::UNIX_EPOCH),
+            "110011101101100011101111011010101001111101000000000000000"
+        );
+        assert_eq!(
+            format!("{:#b}", FileTime::UNIX_EPOCH),
+            "0b110011101101100011101111011010101001111101000000000000000"
+        );
+        assert_eq!(
+            format!("{:064b}", FileTime::UNIX_EPOCH),
+            "0000000110011101101100011101111011010101001111101000000000000000"
+        );
+        assert_eq!(
+            format!("{:#066b}", FileTime::UNIX_EPOCH),
+            "0b0000000110011101101100011101111011010101001111101000000000000000"
+        );
+        assert_eq!(
+            format!("{:b}", FileTime::MAX),
+            "1111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:#b}", FileTime::MAX),
+            "0b1111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:064b}", FileTime::MAX),
+            "1111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:#066b}", FileTime::MAX),
+            "0b1111111111111111111111111111111111111111111111111111111111111111"
+        );
+    }
+
+    #[test]
+    fn lower_exp() {
+        assert_eq!(format!("{:e}", FileTime::NT_TIME_EPOCH), "0e0");
+        assert_eq!(
+            format!("{:024e}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000000000e0"
+        );
+        assert_eq!(format!("{:e}", FileTime::UNIX_EPOCH), "1.16444736e17");
+        assert_eq!(
+            format!("{:024e}", FileTime::UNIX_EPOCH),
+            "000000000001.16444736e17"
+        );
+        assert_eq!(format!("{:e}", FileTime::MAX), "1.8446744073709551615e19");
+        assert_eq!(
+            format!("{:024e}", FileTime::MAX),
+            "1.8446744073709551615e19"
+        );
+    }
+
+    #[test]
+    fn upper_exp() {
+        assert_eq!(format!("{:E}", FileTime::NT_TIME_EPOCH), "0E0");
+        assert_eq!(
+            format!("{:024E}", FileTime::NT_TIME_EPOCH),
+            "0000000000000000000000E0"
+        );
+        assert_eq!(format!("{:E}", FileTime::UNIX_EPOCH), "1.16444736E17");
+        assert_eq!(
+            format!("{:024E}", FileTime::UNIX_EPOCH),
+            "000000000001.16444736E17"
+        );
+        assert_eq!(format!("{:E}", FileTime::MAX), "1.8446744073709551615E19");
+        assert_eq!(
+            format!("{:024E}", FileTime::MAX),
+            "1.8446744073709551615E19"
+        );
     }
 
     #[cfg(feature = "std")]
@@ -3059,6 +3581,28 @@ mod tests {
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
+    #[test]
+    fn try_from_file_time_to_i64() {
+        assert_eq!(
+            i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            i64::default()
+        );
+        assert_eq!(
+            i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
+            116_444_736_000_000_000
+        );
+        assert_eq!(
+            i64::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
+            i64::MAX
+        );
+    }
+
+    #[test]
+    fn try_from_file_time_to_i64_with_too_big_file_time() {
+        assert!(i64::try_from(FileTime::new(u64::try_from(i64::MAX).unwrap() + 1)).is_err());
+        assert!(i64::try_from(FileTime::MAX).is_err());
+    }
+
     #[cfg(feature = "std")]
     #[test]
     fn from_file_time_to_system_time() {
@@ -3182,6 +3726,34 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
+    }
+
+    #[test]
+    fn try_from_i64_to_file_time_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::try_from(i64::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTime::try_from(i64::default() - 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[test]
+    fn try_from_i64_to_file_time() {
+        assert_eq!(
+            FileTime::try_from(i64::default()).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(i64::MAX).unwrap(),
+            FileTime::new(i64::MAX.try_into().unwrap())
+        );
     }
 
     #[cfg(feature = "std")]

@@ -43,11 +43,13 @@ struct Opt {
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
+    use nt_time::FileTime;
+
     let opt = Opt::parse();
 
     let ft = match (opt.secs, opt.nanos) {
-        (Some(time), None) => nt_time::FileTime::from_unix_time(time),
-        (None, Some(time)) => nt_time::FileTime::from_unix_time_nanos(time),
+        (Some(time), None) => FileTime::from_unix_time(time),
+        (None, Some(time)) => FileTime::from_unix_time_nanos(time),
         _ => unreachable!(),
     }
     .context("could not convert time")?;
