@@ -23,7 +23,7 @@ struct Opt {
     unit: Unit,
 
     /// File time to convert.
-    time: u64,
+    time: nt_time::FileTime,
 }
 
 #[cfg(feature = "std")]
@@ -39,14 +39,11 @@ enum Unit {
 
 #[cfg(feature = "std")]
 fn main() {
-    use nt_time::FileTime;
-
     let opt = Opt::parse();
 
-    let ft = FileTime::new(opt.time);
     let ut = match opt.unit {
-        Unit::Seconds => ft.to_unix_time().into(),
-        Unit::Nanoseconds => ft.to_unix_time_nanos(),
+        Unit::Seconds => opt.time.to_unix_time().into(),
+        Unit::Nanoseconds => opt.time.to_unix_time_nanos(),
     };
     println!("{ut}");
 }

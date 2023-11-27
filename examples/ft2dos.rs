@@ -25,12 +25,12 @@ struct Opt {
     offset: Option<i8>,
 
     /// File time to convert.
-    time: u64,
+    time: nt_time::FileTime,
 }
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
-    use nt_time::{time::UtcOffset, FileTime};
+    use nt_time::time::UtcOffset;
 
     let opt = Opt::parse();
 
@@ -39,7 +39,8 @@ fn main() -> anyhow::Result<()> {
         .map(|o| UtcOffset::from_whole_seconds(i32::from(o) * 900))
         .transpose()
         .context("could not create the UTC offset")?;
-    let dt = FileTime::new(opt.time)
+    let dt = opt
+        .time
         .to_dos_date_time(offset)
         .context("could not convert time")?;
     println!("{dt:?}");

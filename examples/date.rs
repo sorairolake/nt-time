@@ -21,17 +21,16 @@ use clap::Parser;
 #[command(version, about)]
 struct Opt {
     /// File time to print.
-    time: u64,
+    time: nt_time::FileTime,
 }
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
-    use nt_time::{time::OffsetDateTime, FileTime};
+    use nt_time::time::OffsetDateTime;
 
     let opt = Opt::parse();
 
-    let ft = FileTime::new(opt.time);
-    let dt = OffsetDateTime::try_from(ft).context("could not convert time")?;
+    let dt = OffsetDateTime::try_from(opt.time).context("could not convert time")?;
     println!("{dt}");
     Ok(())
 }

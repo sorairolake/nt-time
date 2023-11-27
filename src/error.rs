@@ -4,7 +4,10 @@
 
 //! Error types for this crate.
 
-use core::fmt;
+use core::{
+    fmt,
+    num::{IntErrorKind, ParseIntError},
+};
 
 /// The error type indicating that [DOS date and time] was out of range.
 ///
@@ -149,8 +152,45 @@ impl fmt::Display for FileTimeRangeErrorKind {
     }
 }
 
+/// An error which can be returned when parsing a [`FileTime`](crate::FileTime).
+#[allow(clippy::module_name_repetitions)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParseFileTimeError(ParseIntError);
+
+impl ParseFileTimeError {
+    #[inline]
+    pub(crate) const fn new(inner: ParseIntError) -> Self {
+        Self(inner)
+    }
+}
+
+impl fmt::Display for ParseFileTimeError {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let inner = &self.0;
+        if inner.kind() == &IntErrorKind::PosOverflow {
+            write!(
+                f,
+                "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            )
+        } else {
+            inner.fmt(f)
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for ParseFileTimeError {
+    #[inline]
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use core::str::FromStr;
+
     use super::*;
 
     #[test]
@@ -553,6 +593,130 @@ mod tests {
         assert_eq!(
             format!("{}", FileTimeRangeErrorKind::Overflow),
             "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+        );
+    }
+
+    #[test]
+    fn debug_parse_file_time_error() {
+        assert_eq!(
+            format!(
+                "{:?}",
+                ParseFileTimeError::new(u64::from_str("").unwrap_err())
+            ),
+            "ParseFileTimeError(ParseIntError { kind: Empty })"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+            ),
+            "ParseFileTimeError(ParseIntError { kind: InvalidDigit })"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+            ),
+            "ParseFileTimeError(ParseIntError { kind: PosOverflow })"
+        );
+    }
+
+    #[test]
+    fn parse_file_time_error_equality() {
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("").unwrap_err())
+        );
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("").unwrap_err())
+        );
+        assert_ne!(
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+        );
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err()),
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+        );
+    }
+
+    #[test]
+    fn display_parse_file_time_error() {
+        assert_eq!(
+            format!(
+                "{}",
+                ParseFileTimeError::new(u64::from_str("").unwrap_err())
+            ),
+            "cannot parse integer from empty string"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+            ),
+            "invalid digit found in string"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+            ),
+            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn source_parse_file_time_error() {
+        use std::error::Error;
+
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("").unwrap_err())
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::Empty
+        );
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("a").unwrap_err())
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::PosOverflow
         );
     }
 }
