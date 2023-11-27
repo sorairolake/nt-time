@@ -29,23 +29,25 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as NTFS and [7z].
+/// and is used as timestamps such as [NTFS] and [7z].
 ///
-/// This represents the same value as the [`FILETIME`] structure of the Win32
-/// API, which represents a 64-bit unsigned integer value. Note that the maximum
-/// value of the `FILETIME` structure that can be input to the
+/// This represents the same value as the [`FILETIME`] structure of the [Win32
+/// API], which represents a 64-bit unsigned integer value. Note that the
+/// maximum value of the `FILETIME` structure that can be input to the
 /// [`FileTimeToSystemTime`] function of the Win32 API is limited to
 /// "+30828-09-14 02:48:05.477580700 UTC", which is equivalent to [`i64::MAX`].
 ///
 /// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// [NTFS]: https://en.wikipedia.org/wiki/NTFS
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+/// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
 /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FileTime(u64);
 
 impl FileTime {
-    /// The NT time epoch.
+    /// The [NT time epoch].
     ///
     /// This is defined as "1601-01-01 00:00:00 UTC".
     ///
@@ -62,9 +64,11 @@ impl FileTime {
     ///     datetime!(1601-01-01 00:00 UTC)
     /// );
     /// ```
+    ///
+    /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
     pub const NT_TIME_EPOCH: Self = Self::new(u64::MIN);
 
-    /// The Unix epoch.
+    /// The [Unix epoch].
     ///
     /// This is defined as "1970-01-01 00:00:00 UTC".
     ///
@@ -78,6 +82,8 @@ impl FileTime {
     ///     OffsetDateTime::UNIX_EPOCH
     /// );
     /// ```
+    ///
+    /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
     pub const UNIX_EPOCH: Self = Self::new(134_774 * 86400 * FILE_TIMES_PER_SEC);
 
     /// The largest value that can be represented by the file time.
@@ -1238,8 +1244,8 @@ impl TryFrom<FileTime> for i64 {
 
     /// Converts a `FileTime` to the file time.
     ///
-    /// The file time may be represented as an [`i64`] value in Windows
-    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
+    /// [.NET],[^fromfiletime][^tofiletime] etc.
     ///
     /// # Errors
     ///
@@ -1267,6 +1273,9 @@ impl TryFrom<FileTime> for i64 {
     /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
     ///
     /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    ///
+    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         ft.to_raw().try_into()
@@ -1448,8 +1457,8 @@ impl TryFrom<i64> for FileTime {
 
     /// Converts the file time to a `FileTime`.
     ///
-    /// The file time may be represented as an [`i64`] value in Windows
-    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
+    /// [.NET],[^fromfiletime][^tofiletime] etc.
     ///
     /// # Errors
     ///
@@ -1477,6 +1486,9 @@ impl TryFrom<i64> for FileTime {
     /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
     ///
     /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    ///
+    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: i64) -> Result<Self, Self::Error> {
         ft.try_into()
