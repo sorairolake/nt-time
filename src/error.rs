@@ -9,9 +9,9 @@ use core::{
     num::{IntErrorKind, ParseIntError},
 };
 
-/// The error type indicating that [DOS date and time] was out of range.
+/// The error type indicating that [MS-DOS date and time] was out of range.
 ///
-/// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+/// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DosDateTimeRangeError(DosDateTimeRangeErrorKind);
@@ -48,12 +48,12 @@ pub enum DosDateTimeRangeErrorKind {
     /// This means the date and time was before "1980-01-01 00:00:00 UTC".
     Negative,
 
-    /// Value was too big to be represented as [DOS date and time].
+    /// Value was too big to be represented as [MS-DOS date and time].
     ///
     /// This means the date and time was after "2107-12-31 23:59:59.990000000
     /// UTC".
     ///
-    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     Overflow,
 }
 

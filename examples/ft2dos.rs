@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! An example of converting the file time to DOS date and time.
+//! An example of converting the file time to MS-DOS date and time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
@@ -20,7 +20,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
-    /// UTC offset of DOS date and time.
+    /// UTC offset of MS-DOS date and time.
     #[arg(short, long, allow_hyphen_values(true))]
     offset: Option<i8>,
 

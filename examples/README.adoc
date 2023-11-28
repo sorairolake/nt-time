@@ -18,8 +18,8 @@ link:unix2ft.rs[]::
 
 link:ft2dos.rs[]::
 
-  An example of converting the file time to DOS date and time.
+  An example of converting the file time to MS-DOS date and time.
 
 link:dos2ft.rs[]::
 
-  An example of converting DOS date and time to the file time.
+  An example of converting MS-DOS date and time to the file time.

@@ -318,14 +318,14 @@ impl FileTime {
     }
 
     #[allow(clippy::missing_panics_doc)]
-    /// Returns [DOS date and time] which represents the same date and time as
-    /// this `FileTime`. This date and time is used as the timestamp such as
+    /// Returns [MS-DOS date and time] which represents the same date and time
+    /// as this `FileTime`. This date and time is used as the timestamp such as
     /// [FAT], [exFAT] or [ZIP] file format.
     ///
     /// This method returns a `(date, time, resolution, offset)` tuple.
     ///
     /// `date` and `time` represents the local date and time. This date and time
-    /// has no notion of time zone. The resolution of DOS date and time is 2
+    /// has no notion of time zone. The resolution of MS-DOS date and time is 2
     /// seconds, but additional [finer resolution] (10 ms units) can be
     /// provided. `resolution` represents this additional finer resolution.
     ///
@@ -337,8 +337,8 @@ impl FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if the resulting date and time is out of range for DOS
-    /// date and time.
+    /// Returns [`Err`] if the resulting date and time is out of range for
+    /// MS-DOS date and time.
     ///
     /// # Examples
     ///
@@ -408,7 +408,7 @@ impl FileTime {
     /// );
     /// ```
     ///
-    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
@@ -436,7 +436,7 @@ impl FileTime {
                 let (second, minute, hour) = (time.second() / 2, time.minute(), time.hour());
                 let resolution = ((time
                     - Time::from_hms(hour, minute, second * 2)
-                        .expect("DOS time should be in the range of `Time`"))
+                        .expect("the MS-DOS time should be in the range of `Time`"))
                 .whole_milliseconds()
                     / 10)
                     .try_into()
@@ -453,15 +453,15 @@ impl FileTime {
                 );
                 let dos_date = (day + (month << 5) + (year << 9))
                     .try_into()
-                    .expect("DOS date should be in the range of `u16`");
+                    .expect("the MS-DOS date should be in the range of `u16`");
 
                 Ok((dos_date, dos_time, resolution, offset))
             }
         }
     }
 
-    /// Creates a `FileTime` with the given [DOS date and time]. This date and
-    /// time is used as the timestamp such as [FAT], [exFAT] or [ZIP] file
+    /// Creates a `FileTime` with the given [MS-DOS date and time]. This date
+    /// and time is used as the timestamp such as [FAT], [exFAT] or [ZIP] file
     /// format.
     ///
     /// When `resolution` is [`Some`], additional [finer resolution] (10 ms
@@ -540,7 +540,7 @@ impl FileTime {
     /// let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     /// ```
     ///
-    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
@@ -586,7 +586,7 @@ impl FileTime {
         let ft = PrimitiveDateTime::new(date, time)
             .assume_offset(offset.unwrap_or(UtcOffset::UTC))
             .try_into()
-            .expect("DOS date and time should be in the range of `FileTime`");
+            .expect("MS-DOS date and time should be in the range of `FileTime`");
         Ok(ft)
     }
 

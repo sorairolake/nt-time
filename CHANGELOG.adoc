@@ -33,7 +33,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 === Added
 
-* Add conversion methods from/to DOS date and time ({pull-request-url}/70[#70])
+* Add conversion methods from/to MS-DOS date and time
+  ({pull-request-url}/70[#70])
 
 === Changed
 
