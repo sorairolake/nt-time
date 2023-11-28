@@ -21,6 +21,8 @@ use clap::Parser;
 #[command(version, about)]
 struct Opt {
     /// UTC offset of MS-DOS date and time.
+    ///
+    /// <OFFSET> takes the UTC offset in 15 minute intervals.
     #[arg(short, long, allow_hyphen_values(true))]
     offset: Option<i8>,
 
