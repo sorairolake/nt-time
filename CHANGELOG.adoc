@@ -20,6 +20,12 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Implement `FromStr` for `FileTime` ({pull-request-url}/80[#80])
 
+=== Changed
+
+* Limit the valid UTC offset for `FileTime::to_dos_date_time` and
+  `FileTime::from_dos_date_time` to the range "UTC-16:00" to "UTC+15:45"
+  ({pull-request-url}/83[#83])
+
 === Fixed
 
 * Fix `FileTime::to_dos_date_time` and `FileTime::from_dos_date_time` to return
