@@ -418,7 +418,7 @@ impl FileTime {
         self,
         offset: Option<UtcOffset>,
     ) -> Result<(u16, u16, u8, Option<UtcOffset>), DosDateTimeRangeError> {
-        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
+        let offset = offset.filter(|o| o.whole_seconds() % 900 == 0);
         let dt = OffsetDateTime::try_from(self)
             .ok()
             .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
@@ -582,7 +582,7 @@ impl FileTime {
         );
         let date = Date::from_calendar_date(year, month, day)?;
 
-        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
+        let offset = offset.filter(|o| o.whole_seconds() % 900 == 0);
         let ft = PrimitiveDateTime::new(date, time)
             .assume_offset(offset.unwrap_or(UtcOffset::UTC))
             .try_into()
@@ -2060,6 +2060,7 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn to_dos_date_time() {
         use time::macros::offset;
@@ -2140,6 +2141,23 @@ mod tests {
                 .unwrap(),
             (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
         );
+        // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08)))
+                .unwrap(),
+            (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08)))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:00:01)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
         // `2002-11-27 03:25:00 UTC`.
         //
         // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
@@ -2160,12 +2178,36 @@ mod tests {
                 .unwrap(),
             (0x2d7b, 0x1b20, u8::MIN, None)
         );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:14:59)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
         // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:10:00 -08:15`.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:15)))
                 .unwrap(),
             (0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15)))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(UtcOffset::UTC))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, Some(UtcOffset::UTC))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(+00:00)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, Some(UtcOffset::UTC))
         );
     }
 
@@ -2244,6 +2286,19 @@ mod tests {
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
             FileTime::new(126_828_411_000_000_000)
         );
+        // From `2002-11-26 19:25:00 -08:00` to `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08))).unwrap(),
+            FileTime::new(126_828_411_000_000_000)
+        );
+        // From `2002-11-26 19:25:00 -08:00:01` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00:01))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
         // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
         //
         // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
@@ -2260,10 +2315,28 @@ mod tests {
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
+        // From `2002-11-26 19:25:00 -08:14:59` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14:59))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
         // From `2002-11-26 19:25:00 -08:15` to `2002-11-27 03:40:00 UTC`.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))).unwrap(),
             FileTime::new(126_828_420_000_000_000)
+        );
+        // `2002-11-26 19:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(UtcOffset::UTC)).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
+        // `2002-11-26 19:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(+00:00))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
         );
     }
 

@@ -20,6 +20,12 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Implement `FromStr` for `FileTime` ({pull-request-url}/80[#80])
 
+=== Fixed
+
+* Fix `FileTime::to_dos_date_time` and `FileTime::from_dos_date_time` to return
+  `None` as the UTC offset if the number of seconds of the UTC offset is not
+  zero ({pull-request-url}/81[#81])
+
 == {compare-url}/v0.6.2\...v0.6.3[0.6.3] - 2023-11-26
 
 === Added
