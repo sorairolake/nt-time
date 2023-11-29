@@ -12,12 +12,7 @@
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
 #[cfg(feature = "std")]
-use anyhow::Context;
-#[cfg(feature = "std")]
-use clap::Parser;
-
-#[cfg(feature = "std")]
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Parser)]
 #[command(version, about)]
 struct Opt {
     /// File time to print.
@@ -26,6 +21,8 @@ struct Opt {
 
 #[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
+    use anyhow::Context;
+    use clap::Parser;
     use nt_time::time::OffsetDateTime;
 
     let opt = Opt::parse();

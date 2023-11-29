@@ -12,10 +12,7 @@
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
 #[cfg(feature = "std")]
-use clap::Parser;
-
-#[cfg(feature = "std")]
-#[derive(Debug, Parser)]
+#[derive(Debug, clap::Parser)]
 #[command(version, about)]
 struct Opt {
     /// Unit of Unix time to print.
@@ -39,6 +36,8 @@ enum Unit {
 
 #[cfg(feature = "std")]
 fn main() {
+    use clap::Parser;
+
     let opt = Opt::parse();
 
     let ut = match opt.unit {
