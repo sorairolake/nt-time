@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! An example of printing the file time.
+//! An example of converting the file time to MS-DOS date and time.
 
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
@@ -15,7 +15,13 @@
 #[derive(Debug, clap::Parser)]
 #[command(version, about)]
 struct Opt {
-    /// File time to print.
+    /// UTC offset of MS-DOS date and time.
+    ///
+    /// <OFFSET> takes the UTC offset in 15 minute intervals.
+    #[arg(short, long, allow_hyphen_values(true))]
+    offset: Option<i8>,
+
+    /// File time to convert.
     time: nt_time::FileTime,
 }
 
@@ -23,12 +29,20 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     use anyhow::Context;
     use clap::Parser;
-    use nt_time::time::OffsetDateTime;
+    use nt_time::time::UtcOffset;
 
     let opt = Opt::parse();
 
-    let dt = OffsetDateTime::try_from(opt.time).context("could not convert time")?;
-    println!("{dt}");
+    let offset = opt
+        .offset
+        .map(|o| UtcOffset::from_whole_seconds(i32::from(o) * 900))
+        .transpose()
+        .context("could not create the UTC offset")?;
+    let dt = opt
+        .time
+        .to_dos_date_time(offset)
+        .context("could not convert time")?;
+    println!("{dt:?}");
     Ok(())
 }
 

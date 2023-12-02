@@ -16,6 +16,10 @@ link:unix2ft.rs[]::
 
   An example of converting Unix time to the file time.
 
-link:lszip.rs[]::
+link:ft2dos.rs[]::
 
-  An example of listing information about files in a ZIP archive.
+  An example of converting the file time to MS-DOS date and time.
+
+link:dos2ft.rs[]::
+
+  An example of converting MS-DOS date and time to the file time.

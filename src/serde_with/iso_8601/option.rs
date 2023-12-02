@@ -50,7 +50,9 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
-/// This serializes using the well-known ISO 8601 format.
+/// This serializes using the well-known [ISO 8601 format].
+///
+/// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::option::serialize(
         &(*ft)
@@ -64,7 +66,9 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
-/// This deserializes from its ISO 8601 representation.
+/// This deserializes from its [ISO 8601 representation].
+///
+/// [ISO 8601 representation]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

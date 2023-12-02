@@ -47,7 +47,9 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
-/// This serializes using the well-known RFC 3339 format.
+/// This serializes using the well-known [RFC 3339 format].
+///
+/// [RFC 3339 format]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     rfc3339::option::serialize(
         &(*ft)
@@ -61,7 +63,9 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
-/// This deserializes from its RFC 3339 representation.
+/// This deserializes from its [RFC 3339 representation].
+///
+/// [RFC 3339 representation]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

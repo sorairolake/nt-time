@@ -41,7 +41,9 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
-/// This serializes using the well-known RFC 2822 format.
+/// This serializes using the well-known [RFC 2822 format].
+///
+/// [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
     rfc2822::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
 }
@@ -49,7 +51,9 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes a [`FileTime`] from the given Serde deserializer.
 ///
-/// This deserializes from its RFC 2822 representation.
+/// This deserializes from its [RFC 2822 representation].
+///
+/// [RFC 2822 representation]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
     FileTime::try_from(rfc2822::deserialize(deserializer)?).map_err(D::Error::custom)
 }

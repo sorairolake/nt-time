@@ -11,16 +11,18 @@ use core::{
     fmt, mem,
     num::TryFromIntError,
     ops::{Add, AddAssign, Sub, SubAssign},
+    str::FromStr,
 };
 
 use time::{
-    error::ComponentRange, macros::datetime, Date, OffsetDateTime, PrimitiveDateTime, Time,
-    UtcOffset,
+    error::ComponentRange,
+    macros::{datetime, offset},
+    Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
 };
 
 use crate::error::{
     DosDateTimeRangeError, DosDateTimeRangeErrorKind, FileTimeRangeError, FileTimeRangeErrorKind,
-    OffsetDateTimeRangeError,
+    OffsetDateTimeRangeError, ParseFileTimeError,
 };
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
@@ -29,23 +31,25 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as NTFS and [7z].
+/// and is used as timestamps such as [NTFS] and [7z].
 ///
-/// This represents the same value as the [`FILETIME`] structure of the Win32
-/// API, which represents a 64-bit unsigned integer value. Note that the maximum
-/// value of the `FILETIME` structure that can be input to the
+/// This represents the same value as the [`FILETIME`] structure of the [Win32
+/// API], which represents a 64-bit unsigned integer value. Note that the
+/// maximum value of the `FILETIME` structure that can be input to the
 /// [`FileTimeToSystemTime`] function of the Win32 API is limited to
 /// "+30828-09-14 02:48:05.477580700 UTC", which is equivalent to [`i64::MAX`].
 ///
 /// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// [NTFS]: https://en.wikipedia.org/wiki/NTFS
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+/// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
 /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct FileTime(u64);
 
 impl FileTime {
-    /// The NT time epoch.
+    /// The [NT time epoch].
     ///
     /// This is defined as "1601-01-01 00:00:00 UTC".
     ///
@@ -62,9 +66,11 @@ impl FileTime {
     ///     datetime!(1601-01-01 00:00 UTC)
     /// );
     /// ```
+    ///
+    /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
     pub const NT_TIME_EPOCH: Self = Self::new(u64::MIN);
 
-    /// The Unix epoch.
+    /// The [Unix epoch].
     ///
     /// This is defined as "1970-01-01 00:00:00 UTC".
     ///
@@ -78,6 +84,8 @@ impl FileTime {
     ///     OffsetDateTime::UNIX_EPOCH
     /// );
     /// ```
+    ///
+    /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
     pub const UNIX_EPOCH: Self = Self::new(134_774 * 86400 * FILE_TIMES_PER_SEC);
 
     /// The largest value that can be represented by the file time.
@@ -310,15 +318,14 @@ impl FileTime {
             .map(Self::new)
     }
 
-    #[allow(clippy::missing_panics_doc)]
-    /// Returns [DOS date and time] which represents the same date and time as
-    /// this `FileTime`. This date and time is used as the timestamp such as
+    /// Returns [MS-DOS date and time] which represents the same date and time
+    /// as this `FileTime`. This date and time is used as the timestamp such as
     /// [FAT], [exFAT] or [ZIP] file format.
     ///
     /// This method returns a `(date, time, resolution, offset)` tuple.
     ///
     /// `date` and `time` represents the local date and time. This date and time
-    /// has no notion of time zone. The resolution of DOS date and time is 2
+    /// has no notion of time zone. The resolution of MS-DOS date and time is 2
     /// seconds, but additional [finer resolution] (10 ms units) can be
     /// provided. `resolution` represents this additional finer resolution.
     ///
@@ -330,8 +337,13 @@ impl FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if the resulting date and time is out of range for DOS
-    /// date and time.
+    /// Returns [`Err`] if the resulting date and time is out of range for
+    /// MS-DOS date and time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `offset` is not in the range "UTC-16:00" to
+    /// "UTC+15:45".[^offsetfromutc-field]
     ///
     /// # Examples
     ///
@@ -401,7 +413,9 @@ impl FileTime {
     /// );
     /// ```
     ///
-    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [^offsetfromutc-field]: <https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field>
+    ///
+    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
@@ -411,7 +425,11 @@ impl FileTime {
         self,
         offset: Option<UtcOffset>,
     ) -> Result<(u16, u16, u8, Option<UtcOffset>), DosDateTimeRangeError> {
-        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
+        let offset = offset.filter(|o| o.whole_seconds() % 900 == 0);
+        if let Some(o) = offset {
+            // The UTC offset must be in the range of a 7-bit signed integer.
+            assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
+        }
         let dt = OffsetDateTime::try_from(self)
             .ok()
             .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
@@ -429,7 +447,7 @@ impl FileTime {
                 let (second, minute, hour) = (time.second() / 2, time.minute(), time.hour());
                 let resolution = ((time
                     - Time::from_hms(hour, minute, second * 2)
-                        .expect("DOS time should be in the range of `Time`"))
+                        .expect("the MS-DOS time should be in the range of `Time`"))
                 .whole_milliseconds()
                     / 10)
                     .try_into()
@@ -446,15 +464,15 @@ impl FileTime {
                 );
                 let dos_date = (day + (month << 5) + (year << 9))
                     .try_into()
-                    .expect("DOS date should be in the range of `u16`");
+                    .expect("the MS-DOS date should be in the range of `u16`");
 
                 Ok((dos_date, dos_time, resolution, offset))
             }
         }
     }
 
-    /// Creates a `FileTime` with the given [DOS date and time]. This date and
-    /// time is used as the timestamp such as [FAT], [exFAT] or [ZIP] file
+    /// Creates a `FileTime` with the given [MS-DOS date and time]. This date
+    /// and time is used as the timestamp such as [FAT], [exFAT] or [ZIP] file
     /// format.
     ///
     /// When `resolution` is [`Some`], additional [finer resolution] (10 ms
@@ -471,7 +489,11 @@ impl FileTime {
     ///
     /// # Panics
     ///
-    /// Panics if `resolution` is greater than 199.
+    /// Panics if any of the following are true:
+    ///
+    /// - `resolution` is greater than 199.
+    /// - `offset` is not in the range "UTC-16:00" to
+    ///   "UTC+15:45".[^offsetfromutc-field]
     ///
     /// # Examples
     ///
@@ -533,7 +555,9 @@ impl FileTime {
     /// let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     /// ```
     ///
-    /// [DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
+    /// [^offsetfromutc-field]: <https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field>
+    ///
+    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
@@ -575,11 +599,15 @@ impl FileTime {
         );
         let date = Date::from_calendar_date(year, month, day)?;
 
-        let offset = offset.filter(|o| o.whole_minutes() % 15 == 0);
+        let offset = offset.filter(|o| o.whole_seconds() % 900 == 0);
+        if let Some(o) = offset {
+            // The UTC offset must be in the range of a 7-bit signed integer.
+            assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
+        }
         let ft = PrimitiveDateTime::new(date, time)
             .assume_offset(offset.unwrap_or(UtcOffset::UTC))
             .try_into()
-            .expect("DOS date and time should be in the range of `FileTime`");
+            .expect("MS-DOS date and time should be in the range of `FileTime`");
         Ok(ft)
     }
 
@@ -1238,8 +1266,8 @@ impl TryFrom<FileTime> for i64 {
 
     /// Converts a `FileTime` to the file time.
     ///
-    /// The file time may be represented as an [`i64`] value in Windows
-    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
+    /// [.NET],[^fromfiletime][^tofiletime] etc.
     ///
     /// # Errors
     ///
@@ -1267,6 +1295,9 @@ impl TryFrom<FileTime> for i64 {
     /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
     ///
     /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    ///
+    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         ft.to_raw().try_into()
@@ -1448,8 +1479,8 @@ impl TryFrom<i64> for FileTime {
 
     /// Converts the file time to a `FileTime`.
     ///
-    /// The file time may be represented as an [`i64`] value in Windows
-    /// Runtime,[^clock] .NET,[^fromfiletime][^tofiletime] etc.
+    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
+    /// [.NET],[^fromfiletime][^tofiletime] etc.
     ///
     /// # Errors
     ///
@@ -1477,6 +1508,9 @@ impl TryFrom<i64> for FileTime {
     /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
     ///
     /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
+    ///
+    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: i64) -> Result<Self, Self::Error> {
         ft.try_into()
@@ -1652,9 +1686,54 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+impl FromStr for FileTime {
+    type Err = ParseFileTimeError;
+
+    /// Parses a string `s` to return a value of `FileTime`.
+    ///
+    /// The string is expected to be a decimal non-negative integer. If the
+    /// string is not a decimal integer, use [`u64::from_str_radix`] and
+    /// [`FileTime::new`] instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if [`u64::from_str`] returns an error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::str::FromStr;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::from_str("0").unwrap(), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(
+    ///     FileTime::from_str("116444736000000000").unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_str("+18446744073709551615").unwrap(),
+    ///     FileTime::MAX
+    /// );
+    ///
+    /// assert!(FileTime::from_str("").is_err());
+    ///
+    /// assert!(FileTime::from_str("a").is_err());
+    /// assert!(FileTime::from_str("-1").is_err());
+    /// assert!(FileTime::from_str("+").is_err());
+    /// assert!(FileTime::from_str("0 ").is_err());
+    ///
+    /// assert!(FileTime::from_str("18446744073709551616").is_err());
+    /// ```
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse().map_err(ParseFileTimeError::new).map(Self::new)
+    }
+}
+
 #[cfg(feature = "serde")]
 impl serde::Serialize for FileTime {
-    /// Serializes a [`FileTime`] into the given Serde serializer.
+    /// Serializes a `FileTime` into the given Serde serializer.
     ///
     /// This serializes using the underlying [`u64`] format.
     ///
@@ -1682,7 +1761,7 @@ impl serde::Serialize for FileTime {
 
 #[cfg(feature = "serde")]
 impl<'de> serde::Deserialize<'de> for FileTime {
-    /// Deserializes a [`FileTime`] from the given Serde deserializer.
+    /// Deserializes a `FileTime` from the given Serde deserializer.
     ///
     /// This deserializes from its underlying [`u64`] representation.
     ///
@@ -1970,8 +2049,6 @@ mod tests {
 
     #[test]
     fn to_dos_date_time_before_dos_date_time_epoch() {
-        use time::macros::offset;
-
         // `1979-12-31 23:59:58 UTC`.
         assert_eq!(
             FileTime::new(119_600_063_980_000_000)
@@ -2002,10 +2079,9 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn to_dos_date_time() {
-        use time::macros::offset;
-
         // `1980-01-01 00:00:00 UTC`.
         assert_eq!(
             FileTime::new(119_600_064_000_000_000)
@@ -2082,6 +2158,23 @@ mod tests {
                 .unwrap(),
             (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
         );
+        // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08)))
+                .unwrap(),
+            (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08)))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:00:01)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
         // `2002-11-27 03:25:00 UTC`.
         //
         // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
@@ -2102,6 +2195,16 @@ mod tests {
                 .unwrap(),
             (0x2d7b, 0x1b20, u8::MIN, None)
         );
+        // `2002-11-27 03:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(-08:14:59)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, None)
+        );
         // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:10:00 -08:15`.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
@@ -2109,12 +2212,39 @@ mod tests {
                 .unwrap(),
             (0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15)))
         );
+        // `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(UtcOffset::UTC))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, Some(UtcOffset::UTC))
+        );
+        // `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::new(126_828_411_000_000_000)
+                .to_dos_date_time(Some(offset!(+00:00)))
+                .unwrap(),
+            (0x2d7b, 0x1b20, u8::MIN, Some(UtcOffset::UTC))
+        );
+
+        // From `1980-01-01 00:00:00 UTC` to `1980-01-01 15:45:00 +15:45`.
+        assert_eq!(
+            FileTime::new(119_600_064_000_000_000)
+                .to_dos_date_time(Some(offset!(+15:45)))
+                .unwrap(),
+            (0x0021, 0x7da0, u8::MIN, Some(offset!(+15:45)))
+        );
+        // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:59:58 -16:00`.
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                .to_dos_date_time(Some(offset!(-16:00)))
+                .unwrap(),
+            (0xff9f, 0x3f7d, u8::MIN, Some(offset!(-16:00)))
+        );
     }
 
     #[test]
     fn to_dos_date_time_with_too_big_date_time() {
-        use time::macros::offset;
-
         // `2108-01-01 00:00:00 UTC`.
         assert_eq!(
             FileTime::new(159_992_928_000_000_000)
@@ -2132,9 +2262,29 @@ mod tests {
     }
 
     #[test]
-    fn from_dos_date_time() {
-        use time::macros::offset;
+    #[should_panic(
+        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
+    )]
+    fn to_dos_date_time_with_invalid_positive_offset() {
+        // From `1980-01-01 00:00:00 UTC` to `1980-01-01 16:00:00 +16:00`.
+        let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(119_600_064_000_000_000)
+            .to_dos_date_time(Some(offset!(+16:00)))
+            .unwrap();
+    }
 
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
+    )]
+    fn to_dos_date_time_with_invalid_negative_offset() {
+        // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:44:58 -16:15`.
+        let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(159_992_927_980_000_000)
+            .to_dos_date_time(Some(offset!(-16:15)))
+            .unwrap();
+    }
+
+    #[test]
+    fn from_dos_date_time() {
         // `1980-01-01 00:00:00 UTC`.
         assert_eq!(
             FileTime::from_dos_date_time(0x0021, u16::MIN, None, None).unwrap(),
@@ -2186,6 +2336,19 @@ mod tests {
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
             FileTime::new(126_828_411_000_000_000)
         );
+        // From `2002-11-26 19:25:00 -08:00` to `2002-11-27 03:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08))).unwrap(),
+            FileTime::new(126_828_411_000_000_000)
+        );
+        // From `2002-11-26 19:25:00 -08:00:01` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00:01))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
         // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
         //
         // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
@@ -2202,10 +2365,39 @@ mod tests {
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
+        // From `2002-11-26 19:25:00 -08:14:59` to `2002-11-26 19:25:00 UTC`.
+        //
+        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
+        // be the local date and time.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14:59))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
         // From `2002-11-26 19:25:00 -08:15` to `2002-11-27 03:40:00 UTC`.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))).unwrap(),
             FileTime::new(126_828_420_000_000_000)
+        );
+        // `2002-11-26 19:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(UtcOffset::UTC)).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
+        // `2002-11-26 19:25:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(+00:00))).unwrap(),
+            FileTime::new(126_828_123_000_000_000)
+        );
+
+        // From `2107-12-31 23:59:58 +15:45` to `2107-12-31 08:14:58 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+15:45))).unwrap(),
+            FileTime::new(159_992_360_980_000_000)
+        );
+        // From `1980-01-01 00:00:00 -16:00` to `1980-01-01 16:00:00 UTC`.
+        assert_eq!(
+            FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:00))).unwrap(),
+            FileTime::new(119_600_640_000_000_000)
         );
     }
 
@@ -2232,6 +2424,26 @@ mod tests {
     #[should_panic(expected = "assertion failed: res <= 199")]
     fn from_dos_date_time_with_invalid_resolution() {
         let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
+    )]
+    fn from_dos_date_time_with_invalid_positive_offset() {
+        // From `2107-12-31 23:59:58 +16:00` to `2107-12-31 07:59:58 UTC`.
+        let _: FileTime =
+            FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
+    )]
+    fn from_dos_date_time_with_invalid_negative_offset() {
+        // From `1980-01-01 00:00:00 -16:15` to `1980-01-01 16:15:00 UTC`.
+        let _: FileTime =
+            FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:15))).unwrap();
     }
 
     #[test]
@@ -3977,6 +4189,138 @@ mod tests {
             )
             .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
+    fn from_str() {
+        assert_eq!(FileTime::from_str("0").unwrap(), FileTime::NT_TIME_EPOCH);
+        assert_eq!(FileTime::from_str("+0").unwrap(), FileTime::NT_TIME_EPOCH);
+        assert_eq!(
+            FileTime::from_str("116444736000000000").unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_str("+116444736000000000").unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_str("18446744073709551615").unwrap(),
+            FileTime::MAX
+        );
+        assert_eq!(
+            FileTime::from_str("+18446744073709551615").unwrap(),
+            FileTime::MAX
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn from_str_when_empty() {
+        use std::{
+            error::Error,
+            num::{IntErrorKind, ParseIntError},
+        };
+
+        assert_eq!(
+            FileTime::from_str("")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::Empty
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn from_str_with_invalid_digit() {
+        use std::{
+            error::Error,
+            num::{IntErrorKind, ParseIntError},
+        };
+
+        assert_eq!(
+            FileTime::from_str("a")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            FileTime::from_str("-1")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            FileTime::from_str("+")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            FileTime::from_str("-")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            FileTime::from_str(" 0")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+        assert_eq!(
+            FileTime::from_str("0 ")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::InvalidDigit
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn from_str_when_positive_overflow() {
+        use std::{
+            error::Error,
+            num::{IntErrorKind, ParseIntError},
+        };
+
+        assert_eq!(
+            FileTime::from_str("18446744073709551616")
+                .unwrap_err()
+                .source()
+                .unwrap()
+                .downcast_ref::<ParseIntError>()
+                .unwrap()
+                .kind(),
+            &IntErrorKind::PosOverflow
         );
     }
 

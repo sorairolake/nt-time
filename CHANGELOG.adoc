@@ -14,6 +14,24 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.6.3\...v0.6.4[0.6.4] - 2023-12-02
+
+=== Added
+
+* Implement `FromStr` for `FileTime` ({pull-request-url}/80[#80])
+
+=== Changed
+
+* Limit the valid UTC offset for `FileTime::to_dos_date_time` and
+  `FileTime::from_dos_date_time` to the range "UTC-16:00" to "UTC+15:45"
+  ({pull-request-url}/83[#83])
+
+=== Fixed
+
+* Fix `FileTime::to_dos_date_time` and `FileTime::from_dos_date_time` to return
+  `None` as the UTC offset if the number of seconds of the UTC offset is not
+  zero ({pull-request-url}/81[#81])
+
 == {compare-url}/v0.6.2\...v0.6.3[0.6.3] - 2023-11-26
 
 === Added
@@ -27,7 +45,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 === Added
 
-* Add conversion methods from/to DOS date and time ({pull-request-url}/70[#70])
+* Add conversion methods from/to MS-DOS date and time
+  ({pull-request-url}/70[#70])
 
 === Changed
 

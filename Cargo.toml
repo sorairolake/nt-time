@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.70.0"
@@ -34,12 +34,9 @@ time = { version = "0.3.30", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.75"
-clap = { version = "4.4.8", features = ["derive"] }
-comfy-table = "7.1.0"
-dialoguer = { version = "0.11.0", default-features = false, features = ["password"] }
+clap = { version = "4.4.10", features = ["derive"] }
 serde_json = "1.0.108"
 serde_test = "1.0.176"
-zip = { version = "0.6.6", default-features = false, features = ["aes-crypto", "deflate"] }
 
 [features]
 default = ["std"]
