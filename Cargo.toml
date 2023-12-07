@@ -15,15 +15,7 @@ repository = "https://github.com/sorairolake/nt-time"
 license = "Apache-2.0 OR MIT"
 keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
-exclude = [
-  "/.bumpversion.cfg",
-  "/.bumpversion.cfg.license",
-  "/.github",
-  "/clippy.toml",
-  "/examples",
-  "/justfile",
-  "/rustfmt.toml",
-]
+include = ["/LICENSES", "/README.md", "/src"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
