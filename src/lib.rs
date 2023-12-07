@@ -49,6 +49,7 @@
 //!     FileTime,
 //! };
 //!
+//! // `1970-01-01 00:00:00 UTC`.
 //! let ut = i64::default();
 //! assert_eq!(
 //!     OffsetDateTime::from_unix_timestamp(ut).unwrap(),
@@ -58,6 +59,7 @@
 //! let ft = FileTime::from_unix_time(ut).unwrap();
 //! assert_eq!(ft, FileTime::UNIX_EPOCH);
 //!
+//! // `1980-01-01 00:00:00 UTC`.
 //! let ft = ft + Duration::from_secs(315_532_800);
 //! let dos_dt = ft.to_dos_date_time(Some(UtcOffset::UTC)).unwrap();
 //! assert_eq!(dos_dt, (0x0021, u16::MIN, u8::MIN, Some(UtcOffset::UTC)));
@@ -85,7 +87,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.6.4/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.6.5/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
