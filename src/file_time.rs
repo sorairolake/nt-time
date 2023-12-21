@@ -604,7 +604,7 @@ impl FileTime {
             // The UTC offset must be in the range of a 7-bit signed integer.
             assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
         }
-        let ft = OffsetDateTime::new_in_offset(date, time,offset.unwrap_or(UtcOffset::UTC))
+        let ft = OffsetDateTime::new_in_offset(date, time, offset.unwrap_or(UtcOffset::UTC))
             .try_into()
             .expect("MS-DOS date and time should be in the range of `FileTime`");
         Ok(ft)
