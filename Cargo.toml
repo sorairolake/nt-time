@@ -22,7 +22,7 @@ include = ["/LICENSES", "/README.md", "/src"]
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, optional = true }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.30", default-features = false, features = ["macros"] }
+time = { version = "0.3.31", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.76"
