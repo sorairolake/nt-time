@@ -21,7 +21,7 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, optional = true }
-serde = { version = "1.0.194", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.195", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.31", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
