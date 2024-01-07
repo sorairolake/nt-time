@@ -19,7 +19,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.6.5"
+nt-time = "0.6.6"
 ```
 
 ### Example
@@ -94,7 +94,7 @@ Please see [CONTRIBUTING.adoc].
 
 ## License
 
-Copyright &copy; 2023 Shun Sakai (see [AUTHORS.adoc])
+Copyright &copy; 2023&ndash;2024 Shun Sakai (see [AUTHORS.adoc])
 
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.

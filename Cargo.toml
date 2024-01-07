@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.6.5"
+version = "0.6.6"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.70.0"
@@ -21,13 +21,13 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 [dependencies]
 chrono = { version = "0.4.31", default-features = false, optional = true }
-serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.30", default-features = false, features = ["macros"] }
+serde = { version = "1.0.195", default-features = false, features = ["derive"], optional = true }
+time = { version = "0.3.31", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.75"
-clap = { version = "4.4.11", features = ["derive"] }
-serde_json = "1.0.108"
+anyhow = "1.0.79"
+clap = { version = "4.4.13", features = ["derive"] }
+serde_json = "1.0.111"
 serde_test = "1.0.176"
 
 [features]
