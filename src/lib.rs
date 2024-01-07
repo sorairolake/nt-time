@@ -87,7 +87,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.6.5/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.6.6/")]
 #![no_std]
 #![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
