@@ -19,7 +19,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.6.6"
+nt-time = "0.6.7"
 ```
 
 ### Example
