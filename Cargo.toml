@@ -20,7 +20,7 @@ include = ["/LICENSES", "/README.md", "/src"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = { version = "0.4.32", default-features = false, optional = true }
+chrono = { version = "0.4.33", default-features = false, optional = true }
 serde = { version = "1.0.195", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.31", default-features = false, features = ["macros"] }
 
