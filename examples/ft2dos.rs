@@ -11,8 +11,11 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
-#[cfg(feature = "std")]
-#[derive(Debug, clap::Parser)]
+use anyhow::Context;
+use clap::Parser;
+use nt_time::{time::UtcOffset, FileTime};
+
+#[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
     /// UTC offset of MS-DOS date and time.
@@ -22,15 +25,10 @@ struct Opt {
     offset: Option<i8>,
 
     /// File time to convert.
-    time: nt_time::FileTime,
+    time: FileTime,
 }
 
-#[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
-    use anyhow::Context;
-    use clap::Parser;
-    use nt_time::time::UtcOffset;
-
     let opt = Opt::parse();
 
     let offset = opt
@@ -44,9 +42,4 @@ fn main() -> anyhow::Result<()> {
         .context("could not convert time")?;
     println!("{dt:?}");
     Ok(())
-}
-
-#[cfg(not(feature = "std"))]
-fn main() -> anyhow::Result<()> {
-    anyhow::bail!("`std` feature is required");
 }

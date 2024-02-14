@@ -11,9 +11,12 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
-#[cfg(feature = "std")]
-#[derive(Debug, clap::Parser)]
-#[command(version, about, group(clap::ArgGroup::new("time").required(true)))]
+use anyhow::Context;
+use clap::{ArgGroup, Parser};
+use nt_time::FileTime;
+
+#[derive(Debug, Parser)]
+#[command(version, about, group(ArgGroup::new("time").required(true)))]
 struct Opt {
     /// Unix time in seconds to convert.
     #[arg(
@@ -36,12 +39,7 @@ struct Opt {
     nanos: Option<i128>,
 }
 
-#[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
-    use anyhow::Context;
-    use clap::Parser;
-    use nt_time::FileTime;
-
     let opt = Opt::parse();
 
     let ft = match (opt.secs, opt.nanos) {
@@ -52,9 +50,4 @@ fn main() -> anyhow::Result<()> {
     .context("could not convert time")?;
     println!("{ft}");
     Ok(())
-}
-
-#[cfg(not(feature = "std"))]
-fn main() -> anyhow::Result<()> {
-    anyhow::bail!("`std` feature is required");
 }

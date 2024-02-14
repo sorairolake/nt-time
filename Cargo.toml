@@ -19,6 +19,26 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[example]]
+name = "date"
+required-features = ["default"]
+
+[[example]]
+name = "dos2ft"
+required-features = ["default"]
+
+[[example]]
+name = "ft2dos"
+required-features = ["default"]
+
+[[example]]
+name = "ft2unix"
+required-features = ["default"]
+
+[[example]]
+name = "unix2ft"
+required-features = ["default"]
+
 [dependencies]
 chrono = { version = "0.4.33", default-features = false, optional = true }
 serde = { version = "1.0.196", default-features = false, features = ["derive"], optional = true }
