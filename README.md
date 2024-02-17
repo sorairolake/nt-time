@@ -24,7 +24,7 @@ nt-time = "0.6.7"
 
 ### Example
 
-```rs
+```rust
 use core::time::Duration;
 
 use nt_time::{
