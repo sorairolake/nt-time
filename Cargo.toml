@@ -21,22 +21,27 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 [[example]]
 name = "date"
+path = "examples/date.rs"
 required-features = ["default"]
 
 [[example]]
 name = "dos2ft"
+path = "examples/dos2ft.rs"
 required-features = ["default"]
 
 [[example]]
 name = "ft2dos"
+path = "examples/ft2dos.rs"
 required-features = ["default"]
 
 [[example]]
 name = "ft2unix"
+path = "examples/ft2unix.rs"
 required-features = ["default"]
 
 [[example]]
 name = "unix2ft"
+path = "examples/unix2ft.rs"
 required-features = ["default"]
 
 [dependencies]
