@@ -11,8 +11,10 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
-#[cfg(feature = "std")]
-#[derive(Debug, clap::Parser)]
+use clap::{Parser, ValueEnum};
+use nt_time::FileTime;
+
+#[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
     /// Unit of Unix time to print.
@@ -20,11 +22,10 @@ struct Opt {
     unit: Unit,
 
     /// File time to convert.
-    time: nt_time::FileTime,
+    time: FileTime,
 }
 
-#[cfg(feature = "std")]
-#[derive(Clone, Debug, Default, clap::ValueEnum)]
+#[derive(Clone, Debug, Default, ValueEnum)]
 enum Unit {
     /// Seconds.
     #[default]
@@ -34,10 +35,7 @@ enum Unit {
     Nanoseconds,
 }
 
-#[cfg(feature = "std")]
 fn main() {
-    use clap::Parser;
-
     let opt = Opt::parse();
 
     let ut = match opt.unit {
@@ -45,9 +43,4 @@ fn main() {
         Unit::Nanoseconds => opt.time.to_unix_time_nanos(),
     };
     println!("{ut}");
-}
-
-#[cfg(not(feature = "std"))]
-fn main() -> anyhow::Result<()> {
-    anyhow::bail!("`std` feature is required");
 }

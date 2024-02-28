@@ -11,28 +11,21 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
-#[cfg(feature = "std")]
-#[derive(Debug, clap::Parser)]
+use anyhow::Context;
+use clap::Parser;
+use nt_time::{time::OffsetDateTime, FileTime};
+
+#[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
     /// File time to print.
-    time: nt_time::FileTime,
+    time: FileTime,
 }
 
-#[cfg(feature = "std")]
 fn main() -> anyhow::Result<()> {
-    use anyhow::Context;
-    use clap::Parser;
-    use nt_time::time::OffsetDateTime;
-
     let opt = Opt::parse();
 
     let dt = OffsetDateTime::try_from(opt.time).context("could not convert time")?;
     println!("{dt}");
     Ok(())
-}
-
-#[cfg(not(feature = "std"))]
-fn main() -> anyhow::Result<()> {
-    anyhow::bail!("`std` feature is required");
 }

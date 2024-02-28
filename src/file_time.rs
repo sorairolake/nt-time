@@ -1205,7 +1205,7 @@ impl Sub<OffsetDateTime> for FileTime {
 
 #[cfg(feature = "chrono")]
 impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
-    type Output = chrono::Duration;
+    type Output = chrono::TimeDelta;
 
     #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
@@ -1215,7 +1215,7 @@ impl Sub<FileTime> for chrono::DateTime<chrono::Utc> {
 
 #[cfg(feature = "chrono")]
 impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
-    type Output = chrono::Duration;
+    type Output = chrono::TimeDelta;
 
     #[inline]
     fn sub(self, rhs: chrono::DateTime<chrono::Utc>) -> Self::Output {
@@ -1433,12 +1433,12 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
-        use chrono::Duration;
+        use chrono::TimeDelta;
 
-        let duration = Duration::seconds(
+        let duration = TimeDelta::seconds(
             i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
-        ) + Duration::nanoseconds(
+        ) + TimeDelta::nanoseconds(
             i64::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
                 .expect("the number of nanoseconds should be in the range of `i64`"),
         );
@@ -1642,7 +1642,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     chrono::{DateTime, Duration, TimeZone, Utc},
+    /// #     chrono::{DateTime, TimeDelta, TimeZone, Utc},
     /// #     FileTime,
     /// # };
     /// #
@@ -1657,15 +1657,15 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(
-    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - Duration::nanoseconds(1)
+    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - TimeDelta::nanoseconds(1)
     /// )
     /// .is_err());
     ///
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::try_from(
     ///     Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10).unwrap()
-    ///         + Duration::nanoseconds(955_161_500)
-    ///         + Duration::nanoseconds(100)
+    ///         + TimeDelta::nanoseconds(955_161_500)
+    ///         + TimeDelta::nanoseconds(100)
     /// )
     /// .is_err());
     /// ```
@@ -2260,10 +2260,9 @@ mod tests {
         );
     }
 
+    #[allow(clippy::should_panic_without_expect)]
     #[test]
-    #[should_panic(
-        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
-    )]
+    #[should_panic]
     fn to_dos_date_time_with_invalid_positive_offset() {
         // From `1980-01-01 00:00:00 UTC` to `1980-01-01 16:00:00 +16:00`.
         let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(119_600_064_000_000_000)
@@ -2271,10 +2270,9 @@ mod tests {
             .unwrap();
     }
 
+    #[allow(clippy::should_panic_without_expect)]
     #[test]
-    #[should_panic(
-        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
-    )]
+    #[should_panic]
     fn to_dos_date_time_with_invalid_negative_offset() {
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:44:58 -16:15`.
         let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(159_992_927_980_000_000)
@@ -2419,26 +2417,25 @@ mod tests {
         assert!(FileTime::from_dos_date_time(0x0021, 0xc000, None, None).is_err());
     }
 
+    #[allow(clippy::should_panic_without_expect)]
     #[test]
-    #[should_panic(expected = "assertion failed: res <= 199")]
+    #[should_panic]
     fn from_dos_date_time_with_invalid_resolution() {
         let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     }
 
+    #[allow(clippy::should_panic_without_expect)]
     #[test]
-    #[should_panic(
-        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
-    )]
+    #[should_panic]
     fn from_dos_date_time_with_invalid_positive_offset() {
         // From `2107-12-31 23:59:58 +16:00` to `2107-12-31 07:59:58 UTC`.
         let _: FileTime =
             FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
     }
 
+    #[allow(clippy::should_panic_without_expect)]
     #[test]
-    #[should_panic(
-        expected = "assertion failed: (offset!(- 16 : 00)..=offset!(+ 15 : 45)).contains(&o)"
-    )]
+    #[should_panic]
     fn from_dos_date_time_with_invalid_negative_offset() {
         // From `1980-01-01 00:00:00 -16:15` to `1980-01-01 16:15:00 UTC`.
         let _: FileTime =
@@ -3563,72 +3560,72 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn sub_file_time_from_chrono_date_time() {
-        use chrono::{DateTime, Utc};
+        use core::time::Duration;
+
+        use chrono::{DateTime, TimeDelta, Utc};
 
         assert_eq!(
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
                 - FileTime::MAX,
-            chrono::Duration::zero()
+            TimeDelta::zero()
         );
         assert_eq!(
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
-                - (FileTime::MAX - core::time::Duration::from_nanos(100)),
-            chrono::Duration::nanoseconds(100)
+                - (FileTime::MAX - Duration::from_nanos(100)),
+            TimeDelta::nanoseconds(100)
         );
         assert_eq!(
             "+60056-05-28 05:36:10.955161500 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
                 - FileTime::NT_TIME_EPOCH,
-            chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
-                .unwrap()
+            TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
     }
 
     #[cfg(feature = "chrono")]
     #[test]
     fn sub_chrono_date_time_from_file_time() {
-        use chrono::{DateTime, Utc};
+        use chrono::{DateTime, TimeDelta, Utc};
 
         assert_eq!(
             FileTime::MAX
                 - "+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap(),
-            chrono::Duration::zero()
+            TimeDelta::zero()
         );
         assert_eq!(
             FileTime::MAX
                 - ("+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap()
-                    - chrono::Duration::nanoseconds(1)),
-            chrono::Duration::nanoseconds(1)
+                    - TimeDelta::nanoseconds(1)),
+            TimeDelta::nanoseconds(1)
         );
         assert_eq!(
             FileTime::MAX
                 - ("+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap()
-                    - chrono::Duration::nanoseconds(99)),
-            chrono::Duration::nanoseconds(99)
+                    - TimeDelta::nanoseconds(99)),
+            TimeDelta::nanoseconds(99)
         );
         assert_eq!(
             FileTime::MAX
                 - ("+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap()
-                    - chrono::Duration::nanoseconds(100)),
-            chrono::Duration::nanoseconds(100)
+                    - TimeDelta::nanoseconds(100)),
+            TimeDelta::nanoseconds(100)
         );
         assert_eq!(
             FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
-            chrono::Duration::from_std(core::time::Duration::new(1_844_674_407_370, 955_161_500))
-                .unwrap()
+            TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
     }
 
@@ -4110,12 +4107,12 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
-        use chrono::{DateTime, Duration, Utc};
+        use chrono::{DateTime, TimeDelta, Utc};
 
         assert_eq!(
             FileTime::try_from(
                 "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-                    - Duration::nanoseconds(1)
+                    - TimeDelta::nanoseconds(1)
             )
             .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
@@ -4177,14 +4174,14 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
-        use chrono::{DateTime, Duration, Utc};
+        use chrono::{DateTime, TimeDelta, Utc};
 
         assert_eq!(
             FileTime::try_from(
                 "+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap()
-                    + Duration::nanoseconds(100)
+                    + TimeDelta::nanoseconds(100)
             )
             .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)

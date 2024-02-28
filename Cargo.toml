@@ -4,10 +4,10 @@
 
 [package]
 name = "nt-time"
-version = "0.6.7"
+version = "0.6.8"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
-rust-version = "1.70.0"
+rust-version = "1.74.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -19,15 +19,40 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[example]]
+name = "date"
+path = "examples/date.rs"
+required-features = ["default"]
+
+[[example]]
+name = "dos2ft"
+path = "examples/dos2ft.rs"
+required-features = ["default"]
+
+[[example]]
+name = "ft2dos"
+path = "examples/ft2dos.rs"
+required-features = ["default"]
+
+[[example]]
+name = "ft2unix"
+path = "examples/ft2unix.rs"
+required-features = ["default"]
+
+[[example]]
+name = "unix2ft"
+path = "examples/unix2ft.rs"
+required-features = ["default"]
+
 [dependencies]
-chrono = { version = "0.4.31", default-features = false, optional = true }
-serde = { version = "1.0.195", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.31", default-features = false, features = ["macros"] }
+chrono = { version = "0.4.34", default-features = false, optional = true }
+serde = { version = "1.0.197", default-features = false, features = ["derive"], optional = true }
+time = { version = "0.3.34", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.79"
-clap = { version = "4.4.18", features = ["derive"] }
-serde_json = "1.0.111"
+anyhow = "1.0.80"
+clap = { version = "4.5.1", features = ["derive"] }
+serde_json = "1.0.114"
 serde_test = "1.0.176"
 
 [features]

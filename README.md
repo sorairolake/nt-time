@@ -8,6 +8,7 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 
 [![CI][ci-badge]][ci-url]
 [![Version][version-badge]][version-url]
+![MSRV][msrv-badge]
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
 
@@ -19,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.6.7"
+nt-time = "0.6.8"
 ```
 
 ### Example
@@ -103,11 +104,12 @@ This project is compliant with version 3.0 of the [_REUSE Specification_]. See
 copyright notices of individual files for more details on copyright and
 licensing information.
 
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/sorairolake/nt-time/CI.yaml?branch=develop&label=CI&logo=github&style=for-the-badge
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/sorairolake/nt-time/CI.yaml?branch=develop&style=for-the-badge&logo=github&label=CI
 [ci-url]: https://github.com/sorairolake/nt-time/actions?query=branch%3Adevelop+workflow%3ACI++
-[version-badge]: https://img.shields.io/crates/v/nt-time?style=for-the-badge
+[version-badge]: https://img.shields.io/crates/v/nt-time?style=for-the-badge&logo=rust
 [version-url]: https://crates.io/crates/nt-time
-[docs-badge]: https://img.shields.io/docsrs/nt-time?label=Docs.rs&logo=docsdotrs&style=for-the-badge
+[msrv-badge]: https://img.shields.io/crates/msrv/nt-time?style=for-the-badge&logo=rust
+[docs-badge]: https://img.shields.io/docsrs/nt-time?style=for-the-badge&logo=docsdotrs&label=Docs.rs
 [docs-url]: https://docs.rs/nt-time
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
 [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
