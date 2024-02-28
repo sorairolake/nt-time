@@ -14,11 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
-== {compare-url}/v0.6.7\...HEAD[Unreleased]
+== {compare-url}/v0.6.7\...v0.6.8[0.6.8] - 2024-02-28
 
 === Changed
 
 * Bump MSRV to 1.74.0 ({pull-request-url}/114[#114])
+* Change `chrono::Duration` to `chrono::TimeDelta`
+  ({pull-request-url}/123[#123])
 
 == {compare-url}/v0.6.6\...v0.6.7[0.6.7] - 2024-01-18
 
