@@ -1110,6 +1110,22 @@ impl Add<time::Duration> for FileTime {
     }
 }
 
+#[cfg(feature = "chrono")]
+impl Add<chrono::TimeDelta> for FileTime {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, rhs: chrono::TimeDelta) -> Self::Output {
+        use chrono::TimeDelta;
+
+        if rhs > TimeDelta::zero() {
+            self + rhs.abs().to_std().expect("duration is less than zero")
+        } else {
+            self - rhs.abs().to_std().expect("duration is less than zero")
+        }
+    }
+}
+
 impl AddAssign<core::time::Duration> for FileTime {
     #[inline]
     fn add_assign(&mut self, rhs: core::time::Duration) {
@@ -1120,6 +1136,14 @@ impl AddAssign<core::time::Duration> for FileTime {
 impl AddAssign<time::Duration> for FileTime {
     #[inline]
     fn add_assign(&mut self, rhs: time::Duration) {
+        *self = *self + rhs;
+    }
+}
+
+#[cfg(feature = "chrono")]
+impl AddAssign<chrono::TimeDelta> for FileTime {
+    #[inline]
+    fn add_assign(&mut self, rhs: chrono::TimeDelta) {
         *self = *self + rhs;
     }
 }
@@ -1156,6 +1180,22 @@ impl Sub<time::Duration> for FileTime {
             self - rhs.unsigned_abs()
         } else {
             self + rhs.unsigned_abs()
+        }
+    }
+}
+
+#[cfg(feature = "chrono")]
+impl Sub<chrono::TimeDelta> for FileTime {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: chrono::TimeDelta) -> Self::Output {
+        use chrono::TimeDelta;
+
+        if rhs > TimeDelta::zero() {
+            self - rhs.abs().to_std().expect("duration is less than zero")
+        } else {
+            self + rhs.abs().to_std().expect("duration is less than zero")
         }
     }
 }
@@ -1235,6 +1275,14 @@ impl SubAssign<core::time::Duration> for FileTime {
 impl SubAssign<time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: time::Duration) {
+        *self = *self - rhs;
+    }
+}
+
+#[cfg(feature = "chrono")]
+impl SubAssign<chrono::TimeDelta> for FileTime {
+    #[inline]
+    fn sub_assign(&mut self, rhs: chrono::TimeDelta) {
         *self = *self - rhs;
     }
 }
@@ -3156,6 +3204,78 @@ mod tests {
         let _: FileTime = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
     }
 
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn add_positive_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + TimeDelta::zero(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(1),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(100),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX + TimeDelta::zero(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(1), FileTime::MAX);
+        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(99), FileTime::MAX);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn add_positive_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let _: FileTime = FileTime::MAX + TimeDelta::nanoseconds(100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn add_negative_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        assert_eq!(FileTime::MAX + -TimeDelta::zero(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + -TimeDelta::nanoseconds(1), FileTime::MAX);
+        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(-99), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX + TimeDelta::nanoseconds(-100),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + -TimeDelta::zero(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(1),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH
+        );
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn add_negative_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let _: FileTime = FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-100);
+    }
+
     #[test]
     fn add_assign_std_duration() {
         use core::time::Duration;
@@ -3309,6 +3429,112 @@ mod tests {
         ft += Duration::nanoseconds(-100);
     }
 
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn add_assign_positive_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += TimeDelta::zero();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += TimeDelta::nanoseconds(99);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += TimeDelta::nanoseconds(100);
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += TimeDelta::zero();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += TimeDelta::nanoseconds(99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn add_assign_positive_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let mut ft = FileTime::MAX;
+        ft += TimeDelta::nanoseconds(100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn add_assign_negative_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += -TimeDelta::zero();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += -TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += TimeDelta::nanoseconds(-99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += TimeDelta::nanoseconds(-100);
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += -TimeDelta::zero();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += -TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += TimeDelta::nanoseconds(-99);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn add_assign_negative_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let mut ft = FileTime::NT_TIME_EPOCH;
+        ft += TimeDelta::nanoseconds(-100);
+    }
+
     #[test]
     fn sub_file_time() {
         use core::time::Duration;
@@ -3432,6 +3658,78 @@ mod tests {
         use time::Duration;
 
         let _: FileTime = FileTime::MAX - Duration::nanoseconds(-100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_positive_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        assert_eq!(FileTime::MAX - TimeDelta::zero(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(1), FileTime::MAX);
+        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(99), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX - TimeDelta::nanoseconds(100),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - TimeDelta::zero(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(1),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH
+        );
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn sub_positive_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let _: FileTime = FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_negative_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - -TimeDelta::zero(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(1),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-100),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX - -TimeDelta::zero(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - -TimeDelta::nanoseconds(1), FileTime::MAX);
+        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(-99), FileTime::MAX);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn sub_negative_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let _: FileTime = FileTime::MAX - TimeDelta::nanoseconds(-100);
     }
 
     #[cfg(feature = "std")]
@@ -3780,6 +4078,112 @@ mod tests {
 
         let mut ft = FileTime::MAX;
         ft -= Duration::nanoseconds(-100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_assign_positive_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= TimeDelta::zero();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= TimeDelta::nanoseconds(99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= TimeDelta::nanoseconds(100);
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= TimeDelta::zero();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= TimeDelta::nanoseconds(99);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn sub_assign_positive_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let mut ft = FileTime::NT_TIME_EPOCH;
+        ft -= TimeDelta::nanoseconds(100);
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    fn sub_assign_negative_chrono_time_delta() {
+        use chrono::TimeDelta;
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= -TimeDelta::zero();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= -TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= TimeDelta::nanoseconds(-99);
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= TimeDelta::nanoseconds(-100);
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= -TimeDelta::zero();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= -TimeDelta::nanoseconds(1);
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= TimeDelta::nanoseconds(-99);
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[cfg(feature = "chrono")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn sub_assign_negative_chrono_time_delta_with_overflow() {
+        use chrono::TimeDelta;
+
+        let mut ft = FileTime::MAX;
+        ft -= TimeDelta::nanoseconds(-100);
     }
 
     #[test]
