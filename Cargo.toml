@@ -17,6 +17,10 @@ keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
 include = ["/LICENSES", "/README.md", "/src"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "doc_cfg"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[example]]
@@ -60,7 +64,3 @@ default = ["std"]
 std = ["time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "doc_cfg"]
