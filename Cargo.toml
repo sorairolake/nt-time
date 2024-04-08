@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.6.9"
+version = "0.6.10"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.74.0"
@@ -16,6 +16,10 @@ license = "Apache-2.0 OR MIT"
 keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
 include = ["/LICENSES", "/README.md", "/src"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "doc_cfg"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -45,14 +49,14 @@ path = "examples/unix2ft.rs"
 required-features = ["default"]
 
 [dependencies]
-chrono = { version = "0.4.34", default-features = false, optional = true }
+chrono = { version = "0.4.37", default-features = false, optional = true }
 serde = { version = "1.0.197", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.34", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.80"
-clap = { version = "4.5.1", features = ["derive"] }
-serde_json = "1.0.114"
+anyhow = "1.0.81"
+clap = { version = "4.5.4", features = ["derive"] }
+serde_json = "1.0.115"
 serde_test = "1.0.176"
 
 [features]
@@ -60,7 +64,3 @@ default = ["std"]
 std = ["time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "doc_cfg"]
