@@ -50,7 +50,7 @@ required-features = ["default"]
 
 [dependencies]
 chrono = { version = "0.4.38", default-features = false, optional = true }
-serde = { version = "1.0.198", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.199", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.36", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
