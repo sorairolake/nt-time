@@ -1483,15 +1483,13 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     fn from(ft: FileTime) -> Self {
         use chrono::TimeDelta;
 
-        let duration = TimeDelta::try_seconds(
+        let duration = TimeDelta::seconds(
             i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
                 .expect("the number of seconds should be in the range of `i64`"),
-        )
-        .expect("the number of seconds should be in the range of `TimeDelta`")
-            + TimeDelta::nanoseconds(
-                i64::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                    .expect("the number of nanoseconds should be in the range of `i64`"),
-            );
+        ) + TimeDelta::nanoseconds(
+            i64::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
+                .expect("the number of nanoseconds should be in the range of `i64`"),
+        );
         "1601-01-01 00:00:00 UTC"
             .parse::<Self>()
             .expect("date and time should be valid as RFC 3339")

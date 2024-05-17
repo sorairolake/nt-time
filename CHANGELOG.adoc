@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.6.10\...HEAD[Unreleased]
+
+=== Changed
+
+* Use `TimeDelta::seconds` instead of `TimeDelta::try_seconds`
+  ({pull-request-url}/151[#151])
+
 == {compare-url}/v0.6.9\...v0.6.10[0.6.10] - 2024-04-08
 
 === Changed
