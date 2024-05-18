@@ -16,6 +16,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.6.10\...HEAD[Unreleased]
 
+=== Added
+
+* Add `zip::DateTime` integration ({pull-request-url}/153[#153])
+
 === Changed
 
 * Use `TimeDelta::seconds` instead of `TimeDelta::try_seconds`
