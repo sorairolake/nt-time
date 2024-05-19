@@ -24,6 +24,7 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Use `TimeDelta::seconds` instead of `TimeDelta::try_seconds`
   ({pull-request-url}/151[#151])
+* Split `file_time.rs` into submodules ({pull-request-url}/154[#154])
 
 == {compare-url}/v0.6.9\...v0.6.10[0.6.10] - 2024-04-08
 
