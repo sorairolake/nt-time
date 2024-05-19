@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.6.10\...v0.6.11[0.6.11] - 2024-05-19
+
+=== Added
+
+* Add `zip::DateTime` integration ({pull-request-url}/153[#153])
+
+=== Changed
+
+* Use `TimeDelta::seconds` instead of `TimeDelta::try_seconds`
+  ({pull-request-url}/151[#151])
+* Split `file_time.rs` into submodules ({pull-request-url}/154[#154])
+
 == {compare-url}/v0.6.9\...v0.6.10[0.6.10] - 2024-04-08
 
 === Changed

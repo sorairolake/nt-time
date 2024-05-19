@@ -87,9 +87,9 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.6.10/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.6.11/")]
 #![no_std]
-#![cfg_attr(doc_cfg, feature(doc_auto_cfg, doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
 #![forbid(unsafe_code)]
 #![deny(missing_debug_implementations, missing_docs)]
@@ -113,5 +113,7 @@ pub use chrono;
 #[cfg(feature = "serde")]
 pub use serde;
 pub use time;
+#[cfg(feature = "zip")]
+pub use zip;
 
 pub use crate::file_time::FileTime;

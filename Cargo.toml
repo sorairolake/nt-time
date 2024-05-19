@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.6.10"
+version = "0.6.11"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.74.0"
@@ -19,7 +19,7 @@ include = ["/LICENSES", "/README.md", "/src"]
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--cfg", "doc_cfg"]
+rustdoc-args = ["--cfg", "docsrs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -49,14 +49,15 @@ path = "examples/unix2ft.rs"
 required-features = ["default"]
 
 [dependencies]
-chrono = { version = "0.4.37", default-features = false, optional = true }
-serde = { version = "1.0.197", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.34", default-features = false, features = ["macros"] }
+chrono = { version = "0.4.38", default-features = false, optional = true }
+serde = { version = "1.0.202", default-features = false, features = ["derive"], optional = true }
+time = { version = "0.3.36", default-features = false, features = ["macros"] }
+zip = { version = "1.3.0", default-features = false, optional = true }
 
 [dev-dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.86"
 clap = { version = "4.5.4", features = ["derive"] }
-serde_json = "1.0.115"
+serde_json = "1.0.117"
 serde_test = "1.0.176"
 
 [features]
@@ -64,3 +65,4 @@ default = ["std"]
 std = ["time/std", "chrono?/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
+zip = ["dep:zip", "std"]
