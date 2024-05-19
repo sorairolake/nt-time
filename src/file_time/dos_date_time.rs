@@ -26,10 +26,10 @@ impl FileTime {
     /// provided. `resolution` represents this additional finer resolution.
     ///
     /// When the `offset` parameter is [`Some`], converts `date` and `time` from
-    /// UTC to the local date and time with the provided [UTC offset] and
-    /// returns it with the UTC offset. When the `offset` parameter is [`None`]
-    /// or is not a multiple of 15 minute intervals, consider UTC to be the
-    /// local date and time and returns [`None`] as the UTC offset.
+    /// UTC to the local date and time in the provided time zone and returns it
+    /// with the [UTC offset]. When the `offset` parameter is [`None`] or is not
+    /// a multiple of 15 minute intervals, returns the UTC date and time as a
+    /// date and time and [`None`] as the UTC offset.
     ///
     /// # Errors
     ///
@@ -79,8 +79,8 @@ impl FileTime {
     /// );
     /// ```
     ///
-    /// When the UTC offset is not a multiple of 15 minute intervals, consider
-    /// UTC to be the local date and time:
+    /// When the UTC offset is not a multiple of 15 minute intervals, returns
+    /// the UTC date and time:
     ///
     /// ```
     /// # use nt_time::{time::macros::offset, FileTime};
@@ -175,9 +175,9 @@ impl FileTime {
     /// units) is added to `time`.
     ///
     /// When `offset` is [`Some`], converts `date` and `time` from the local
-    /// date and time with the provided [UTC offset] to UTC. When `offset` is
-    /// [`None`] or is not a multiple of 15 minute intervals, consider UTC to be
-    /// the local date and time.
+    /// date and time in the provided time zone to UTC. When `offset` is
+    /// [`None`] or is not a multiple of 15 minute intervals, assumes the
+    /// provided date and time is in UTC.
     ///
     /// # Errors
     ///
@@ -219,8 +219,8 @@ impl FileTime {
     /// assert!(FileTime::from_dos_date_time(0x0021, 0x001e, None, None).is_err());
     /// ```
     ///
-    /// When the UTC offset is not a multiple of 15 minute intervals, consider
-    /// UTC to be the local date and time:
+    /// When the [UTC offset] is not a multiple of 15 minute intervals, assumes
+    /// the provided date and time is in UTC:
     ///
     /// ```
     /// # use nt_time::{time::macros::offset, FileTime};
@@ -431,8 +431,8 @@ mod tests {
         );
         // `2002-11-27 03:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, returns the UTC
+        // date and time.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:00:01)))
@@ -441,8 +441,8 @@ mod tests {
         );
         // `2002-11-27 03:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, returns the UTC
+        // date and time.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:01)))
@@ -451,8 +451,8 @@ mod tests {
         );
         // `2002-11-27 03:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, returns the UTC
+        // date and time.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:14)))
@@ -461,8 +461,8 @@ mod tests {
         );
         // `2002-11-27 03:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, returns the UTC
+        // date and time.
         assert_eq!(
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time(Some(offset!(-08:14:59)))
@@ -605,32 +605,32 @@ mod tests {
         );
         // From `2002-11-26 19:25:00 -08:00:01` to `2002-11-26 19:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, assumes the
+        // provided date and time is in UTC.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00:01))).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
         // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, assumes the
+        // provided date and time is in UTC.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:01))).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
         // From `2002-11-26 19:25:00 -08:14` to `2002-11-26 19:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, assumes the
+        // provided date and time is in UTC.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
         // From `2002-11-26 19:25:00 -08:14:59` to `2002-11-26 19:25:00 UTC`.
         //
-        // When the UTC offset is not a multiple of 15 minute intervals, consider UTC to
-        // be the local date and time.
+        // When the UTC offset is not a multiple of 15 minute intervals, assumes the
+        // provided date and time is in UTC.
         assert_eq!(
             FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14:59))).unwrap(),
             FileTime::new(126_828_123_000_000_000)

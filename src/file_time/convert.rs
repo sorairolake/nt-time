@@ -228,6 +228,8 @@ impl TryFrom<FileTime> for zip::DateTime {
 
     /// Converts a `FileTime` to a [`zip::DateTime`].
     ///
+    /// This method returns the UTC date and time.
+    ///
     /// # Errors
     ///
     /// Returns [`Err`] if `ft` is out of range for [`zip::DateTime`].
@@ -505,6 +507,8 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
 #[cfg(feature = "zip")]
 impl From<zip::DateTime> for FileTime {
     /// Converts a [`zip::DateTime`] to a `FileTime`.
+    ///
+    /// This method assumes `dt` is in UTC.
     ///
     /// # Panics
     ///
