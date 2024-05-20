@@ -311,6 +311,26 @@ impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+#[cfg(feature = "zip")]
+impl Sub<FileTime> for zip::DateTime {
+    type Output = std::time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        FileTime::from(self) - rhs
+    }
+}
+
+#[cfg(feature = "zip")]
+impl Sub<zip::DateTime> for FileTime {
+    type Output = std::time::Duration;
+
+    #[inline]
+    fn sub(self, rhs: zip::DateTime) -> Self::Output {
+        self - Self::from(rhs)
+    }
+}
+
 impl SubAssign<core::time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
@@ -1308,6 +1328,69 @@ mod tests {
         assert_eq!(
             FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
+        );
+    }
+
+    #[cfg(feature = "zip")]
+    #[test]
+    fn sub_file_time_from_zip_date_time() {
+        use std::time::Duration;
+
+        use zip::DateTime;
+
+        assert_eq!(
+            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
+                - FileTime::new(159_992_927_980_000_000),
+            Duration::ZERO
+        );
+        assert_eq!(
+            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
+                - (FileTime::new(159_992_927_980_000_000) - Duration::from_nanos(1)),
+            Duration::ZERO
+        );
+        assert_eq!(
+            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
+                - (FileTime::new(159_992_927_980_000_000) - Duration::from_nanos(99)),
+            Duration::ZERO
+        );
+        assert_eq!(
+            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
+                - (FileTime::new(159_992_927_980_000_000) - Duration::from_nanos(100)),
+            Duration::from_nanos(100)
+        );
+        assert_eq!(
+            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
+                - FileTime::new(119_600_064_000_000_000),
+            Duration::from_secs(4_039_286_398)
+        );
+    }
+
+    #[cfg(feature = "zip")]
+    #[test]
+    fn sub_zip_date_time_from_file_time() {
+        use std::time::Duration;
+
+        use zip::DateTime;
+
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                - DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap(),
+            Duration::ZERO
+        );
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                - DateTime::from_date_and_time(2107, 12, 31, 23, 59, 57).unwrap(),
+            Duration::from_secs(2)
+        );
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                - DateTime::from_date_and_time(2107, 12, 31, 23, 59, 56).unwrap(),
+            Duration::from_secs(2)
+        );
+        assert_eq!(
+            FileTime::new(159_992_927_980_000_000)
+                - DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap(),
+            Duration::from_secs(4_039_286_398)
         );
     }
 

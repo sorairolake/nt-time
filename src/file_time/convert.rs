@@ -228,6 +228,8 @@ impl TryFrom<FileTime> for zip::DateTime {
 
     /// Converts a `FileTime` to a [`zip::DateTime`].
     ///
+    /// This method returns the UTC date and time.
+    ///
     /// # Errors
     ///
     /// Returns [`Err`] if `ft` is out of range for [`zip::DateTime`].
@@ -506,6 +508,8 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
 impl From<zip::DateTime> for FileTime {
     /// Converts a [`zip::DateTime`] to a `FileTime`.
     ///
+    /// This method assumes `dt` is in UTC.
+    ///
     /// # Panics
     ///
     /// Panics if `dt` is an invalid [`zip::DateTime`].
@@ -707,18 +711,18 @@ mod tests {
             assert_eq!(dt.year(), 1980);
             assert_eq!(dt.month(), 1);
             assert_eq!(dt.day(), 1);
-            assert_eq!(dt.hour(), u8::MIN);
-            assert_eq!(dt.minute(), u8::MIN);
-            assert_eq!(dt.second(), u8::MIN);
+            assert_eq!(dt.hour(), 0);
+            assert_eq!(dt.minute(), 0);
+            assert_eq!(dt.second(), 0);
         }
         {
             let dt = DateTime::try_from(FileTime::new(119_600_064_010_000_000)).unwrap();
             assert_eq!(dt.year(), 1980);
             assert_eq!(dt.month(), 1);
             assert_eq!(dt.day(), 1);
-            assert_eq!(dt.hour(), u8::MIN);
-            assert_eq!(dt.minute(), u8::MIN);
-            assert_eq!(dt.second(), u8::MIN);
+            assert_eq!(dt.hour(), 0);
+            assert_eq!(dt.minute(), 0);
+            assert_eq!(dt.second(), 0);
         }
         {
             // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
@@ -1041,11 +1045,11 @@ mod tests {
         use zip::DateTime;
 
         {
-            let dt = DateTime::from_date_and_time(1980, 1, 1, u8::MIN, u8::MIN, u8::MIN).unwrap();
+            let dt = DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap();
             assert_eq!(FileTime::from(dt), FileTime::new(119_600_064_000_000_000));
         }
         {
-            let dt = DateTime::from_date_and_time(1980, 1, 1, u8::MIN, u8::MIN, 1).unwrap();
+            let dt = DateTime::from_date_and_time(1980, 1, 1, 0, 0, 1).unwrap();
             assert_eq!(FileTime::from(dt), FileTime::new(119_600_064_000_000_000));
         }
         {
