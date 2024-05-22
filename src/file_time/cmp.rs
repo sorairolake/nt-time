@@ -168,15 +168,12 @@ mod tests {
 
     #[test]
     fn order() {
-        assert_eq!(FileTime::UNIX_EPOCH.cmp(&FileTime::MAX), Ordering::Less);
+        assert!(FileTime::UNIX_EPOCH < FileTime::MAX);
         assert_eq!(
             FileTime::UNIX_EPOCH.cmp(&FileTime::UNIX_EPOCH),
             Ordering::Equal
         );
-        assert_eq!(
-            FileTime::UNIX_EPOCH.cmp(&FileTime::NT_TIME_EPOCH),
-            Ordering::Greater
-        );
+        assert!(FileTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "std")]
@@ -352,18 +349,12 @@ mod tests {
     fn order_system_time_and_file_time() {
         use std::time::SystemTime;
 
-        assert_eq!(
-            SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::new(9_223_372_036_854_775_807)),
-            Some(Ordering::Less)
-        );
+        assert!(SystemTime::UNIX_EPOCH < FileTime::new(9_223_372_036_854_775_807));
         assert_eq!(
             SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
-            Some(Ordering::Greater)
-        );
+        assert!(SystemTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "std")]
@@ -371,54 +362,38 @@ mod tests {
     fn order_file_time_and_system_time() {
         use std::time::{Duration, SystemTime};
 
-        assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(
-                &(SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-            ),
-            Some(Ordering::Less)
+        assert!(
+            FileTime::UNIX_EPOCH
+                < (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_eq!(
             FileTime::UNIX_EPOCH.partial_cmp(&SystemTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(
-                &(SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH))
-            ),
-            Some(Ordering::Greater)
+        assert!(
+            FileTime::UNIX_EPOCH
+                > (SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH))
         );
     }
 
     #[test]
     fn order_offset_date_time_and_file_time() {
-        assert_eq!(
-            OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::new(2_650_467_743_999_999_999)),
-            Some(Ordering::Less)
-        );
+        assert!(OffsetDateTime::UNIX_EPOCH < FileTime::new(2_650_467_743_999_999_999));
         assert_eq!(
             OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
-            Some(Ordering::Greater)
-        );
+        assert!(OffsetDateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
     fn order_file_time_and_offset_date_time() {
-        assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&datetime!(9999-12-31 23:59:59.999_999_900 UTC)),
-            Some(Ordering::Less)
-        );
+        assert!(FileTime::UNIX_EPOCH < datetime!(9999-12-31 23:59:59.999_999_900 UTC));
         assert_eq!(
             FileTime::UNIX_EPOCH.partial_cmp(&OffsetDateTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&datetime!(1601-01-01 00:00 UTC)),
-            Some(Ordering::Greater)
-        );
+        assert!(FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00 UTC));
     }
 
     #[cfg(feature = "chrono")]
@@ -426,18 +401,12 @@ mod tests {
     fn order_chrono_date_time_and_file_time() {
         use chrono::{DateTime, Utc};
 
-        assert_eq!(
-            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::MAX),
-            Some(Ordering::Less)
-        );
+        assert!(DateTime::<Utc>::UNIX_EPOCH < FileTime::MAX);
         assert_eq!(
             DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::NT_TIME_EPOCH),
-            Some(Ordering::Greater)
-        );
+        assert!(DateTime::<Utc>::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "chrono")]
@@ -445,23 +414,17 @@ mod tests {
     fn order_file_time_and_chrono_date_time() {
         use chrono::{DateTime, Utc};
 
-        assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(
-                &"+60056-05-28 05:36:10.955161500 UTC"
+        assert!(
+            FileTime::UNIX_EPOCH
+                < "+60056-05-28 05:36:10.955161500 UTC"
                     .parse::<DateTime<Utc>>()
                     .unwrap()
-            ),
-            Some(Ordering::Less)
         );
         assert_eq!(
             FileTime::UNIX_EPOCH.partial_cmp(&DateTime::<Utc>::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            FileTime::UNIX_EPOCH
-                .partial_cmp(&"1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()),
-            Some(Ordering::Greater)
-        );
+        assert!(FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
     }
 
     #[cfg(feature = "zip")]
@@ -469,11 +432,9 @@ mod tests {
     fn order_zip_date_time_and_file_time() {
         use zip::DateTime;
 
-        assert_eq!(
-            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30)
-                .unwrap()
-                .partial_cmp(&FileTime::new(159_992_927_980_000_000)),
-            Some(Ordering::Less)
+        assert!(
+            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()
+                < FileTime::new(159_992_927_980_000_000)
         );
         assert_eq!(
             DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30)
@@ -481,11 +442,9 @@ mod tests {
                 .partial_cmp(&FileTime::new(131_869_247_100_000_000)),
             Some(Ordering::Equal)
         );
-        assert_eq!(
-            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30)
-                .unwrap()
-                .partial_cmp(&FileTime::new(119_600_064_000_000_000)),
-            Some(Ordering::Greater)
+        assert!(
+            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()
+                > FileTime::new(119_600_064_000_000_000)
         );
     }
 
@@ -494,20 +453,18 @@ mod tests {
     fn order_file_time_and_zip_date_time() {
         use zip::DateTime;
 
-        assert_eq!(
+        assert!(
             FileTime::new(131_869_247_100_000_000)
-                .partial_cmp(&DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()),
-            Some(Ordering::Less)
+                < DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
         );
         assert_eq!(
             FileTime::new(131_869_247_100_000_000)
                 .partial_cmp(&DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()),
             Some(Ordering::Equal)
         );
-        assert_eq!(
+        assert!(
             FileTime::new(131_869_247_100_000_000)
-                .partial_cmp(&DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()),
-            Some(Ordering::Greater)
+                > DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()
         );
     }
 }
