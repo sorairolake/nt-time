@@ -23,6 +23,24 @@ impl DosDateTimeRangeError {
     }
 
     /// Returns the corresponding [`DosDateTimeRangeErrorKind`] for this error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{error::DosDateTimeRangeErrorKind, FileTime};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH
+    ///         .to_dos_date_time(None)
+    ///         .unwrap_err()
+    ///         .kind(),
+    ///     DosDateTimeRangeErrorKind::Negative
+    /// );
+    /// assert_eq!(
+    ///     FileTime::MAX.to_dos_date_time(None).unwrap_err().kind(),
+    ///     DosDateTimeRangeErrorKind::Overflow
+    /// );
+    /// ```
     #[must_use]
     #[inline]
     pub const fn kind(&self) -> DosDateTimeRangeErrorKind {
@@ -103,6 +121,21 @@ impl FileTimeRangeError {
     }
 
     /// Returns the corresponding [`FileTimeRangeErrorKind`] for this error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{error::FileTimeRangeErrorKind, FileTime};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::MIN).unwrap_err().kind(),
+    ///     FileTimeRangeErrorKind::Negative
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::MAX).unwrap_err().kind(),
+    ///     FileTimeRangeErrorKind::Overflow
+    /// );
+    /// ```
     #[must_use]
     #[inline]
     pub const fn kind(&self) -> FileTimeRangeErrorKind {
