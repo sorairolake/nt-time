@@ -14,15 +14,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     time::{macros::datetime, OffsetDateTime},
-    /// #     FileTime,
-    /// # };
+    /// # use nt_time::{time::macros::datetime, FileTime};
     /// #
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-    ///     datetime!(1601-01-01 00:00 UTC)
-    /// );
+    /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
     /// ```
     ///
     /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
@@ -37,10 +31,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::{time::OffsetDateTime, FileTime};
     /// #
-    /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
-    ///     OffsetDateTime::UNIX_EPOCH
-    /// );
+    /// assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
@@ -53,14 +44,11 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     time::{macros::datetime, OffsetDateTime},
-    /// #     FileTime,
-    /// # };
+    /// # use nt_time::{time::macros::datetime, FileTime};
     /// #
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
+    ///     FileTime::MAX,
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
     /// ```
@@ -75,25 +63,19 @@ mod tests {
 
     #[test]
     fn nt_time_epoch() {
-        assert_eq!(
-            OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            datetime!(1601-01-01 00:00 UTC)
-        );
+        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
     }
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(
-            OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
-            OffsetDateTime::UNIX_EPOCH
-        );
+        assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
     }
 
     #[cfg(feature = "large-dates")]
     #[test]
     fn max() {
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::MAX).unwrap(),
+            FileTime::MAX,
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
         );
     }

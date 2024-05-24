@@ -23,6 +23,24 @@ impl DosDateTimeRangeError {
     }
 
     /// Returns the corresponding [`DosDateTimeRangeErrorKind`] for this error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{error::DosDateTimeRangeErrorKind, FileTime};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH
+    ///         .to_dos_date_time(None)
+    ///         .unwrap_err()
+    ///         .kind(),
+    ///     DosDateTimeRangeErrorKind::Negative
+    /// );
+    /// assert_eq!(
+    ///     FileTime::MAX.to_dos_date_time(None).unwrap_err().kind(),
+    ///     DosDateTimeRangeErrorKind::Overflow
+    /// );
+    /// ```
     #[must_use]
     #[inline]
     pub const fn kind(&self) -> DosDateTimeRangeErrorKind {
@@ -45,13 +63,12 @@ impl std::error::Error for DosDateTimeRangeError {}
 pub enum DosDateTimeRangeErrorKind {
     /// Value was negative.
     ///
-    /// This means the date and time was before "1980-01-01 00:00:00 UTC".
+    /// This means the date and time was before "1980-01-01 00:00:00".
     Negative,
 
     /// Value was too big to be represented as [MS-DOS date and time].
     ///
-    /// This means the date and time was after "2107-12-31 23:59:59.990000000
-    /// UTC".
+    /// This means the date and time was after "2107-12-31 23:59:59.990000000".
     ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     Overflow,
@@ -62,13 +79,10 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Negative => {
-                write!(f, "date and time is before `1980-01-01 00:00:00 UTC`")
+                write!(f, "date and time is before `1980-01-01 00:00:00`")
             }
             Self::Overflow => {
-                write!(
-                    f,
-                    "date and time is after `2107-12-31 23:59:59.990000000 UTC`"
-                )
+                write!(f, "date and time is after `2107-12-31 23:59:59.990000000`")
             }
         }
     }
@@ -103,6 +117,21 @@ impl FileTimeRangeError {
     }
 
     /// Returns the corresponding [`FileTimeRangeErrorKind`] for this error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{error::FileTimeRangeErrorKind, FileTime};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::MIN).unwrap_err().kind(),
+    ///     FileTimeRangeErrorKind::Negative
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(i64::MAX).unwrap_err().kind(),
+    ///     FileTimeRangeErrorKind::Overflow
+    /// );
+    /// ```
     #[must_use]
     #[inline]
     pub const fn kind(&self) -> FileTimeRangeErrorKind {
@@ -277,14 +306,14 @@ mod tests {
                 "{}",
                 DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
             ),
-            "date and time is before `1980-01-01 00:00:00 UTC`"
+            "date and time is before `1980-01-01 00:00:00`"
         );
         assert_eq!(
             format!(
                 "{}",
                 DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
             ),
-            "date and time is after `2107-12-31 23:59:59.990000000 UTC`"
+            "date and time is after `2107-12-31 23:59:59.990000000`"
         );
     }
 
@@ -368,11 +397,11 @@ mod tests {
     fn display_dos_date_time_range_error_kind() {
         assert_eq!(
             format!("{}", DosDateTimeRangeErrorKind::Negative),
-            "date and time is before `1980-01-01 00:00:00 UTC`"
+            "date and time is before `1980-01-01 00:00:00`"
         );
         assert_eq!(
             format!("{}", DosDateTimeRangeErrorKind::Overflow),
-            "date and time is after `2107-12-31 23:59:59.990000000 UTC`"
+            "date and time is after `2107-12-31 23:59:59.990000000`"
         );
     }
 
