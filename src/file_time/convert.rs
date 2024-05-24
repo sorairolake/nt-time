@@ -280,7 +280,8 @@ impl TryFrom<FileTime> for zip::DateTime {
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         let (date, time, ..) = ft.to_dos_date_time(None)?;
-        let dt = Self::try_from_msdos(date, time).expect("date and time should be valid as `zip::DateTime`");
+        let dt = Self::try_from_msdos(date, time)
+            .expect("date and time should be valid as `zip::DateTime`");
         Ok(dt)
     }
 }
