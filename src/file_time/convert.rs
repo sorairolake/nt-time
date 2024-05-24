@@ -280,7 +280,8 @@ impl TryFrom<FileTime> for zip::DateTime {
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         let (date, time, ..) = ft.to_dos_date_time(None)?;
-        let dt = Self::from_msdos(date, time);
+        let dt = Self::try_from_msdos(date, time)
+            .expect("date and time should be valid as `zip::DateTime`");
         Ok(dt)
     }
 }
@@ -1057,16 +1058,6 @@ mod tests {
 
     #[cfg(feature = "zip")]
     #[test]
-    #[should_panic(expected = "assertion failed: dt.is_valid()")]
-    fn from_zip_date_time_to_file_time_with_too_small_zip_date_time() {
-        use zip::DateTime;
-
-        let dt = DateTime::from_msdos(u16::MIN, u16::MIN);
-        let _: FileTime = FileTime::from(dt);
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
     fn from_zip_date_time_to_file_time() {
         use zip::DateTime;
 
@@ -1091,15 +1082,5 @@ mod tests {
             let dt = DateTime::from_date_and_time(2107, 12, 31, 23, 59, 59).unwrap();
             assert_eq!(FileTime::from(dt), FileTime::new(159_992_927_980_000_000));
         }
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    #[should_panic(expected = "assertion failed: dt.is_valid()")]
-    fn from_zip_date_time_to_file_time_with_too_big_zip_date_time() {
-        use zip::DateTime;
-
-        let dt = DateTime::from_msdos(u16::MAX, u16::MAX);
-        let _: FileTime = FileTime::from(dt);
     }
 }
