@@ -126,10 +126,12 @@ impl FileTime {
             // The UTC offset must be in the range of a 7-bit signed integer.
             assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
         }
+        #[cfg(not(feature = "large-dates"))]
         let dt = OffsetDateTime::try_from(self)
-            .ok()
-            .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
-            .ok_or_else(|| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
+            .map_err(|_| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
+        #[cfg(feature = "large-dates")]
+        let dt = OffsetDateTime::from(self);
+        let dt = dt.to_offset(offset.unwrap_or(UtcOffset::UTC));
         match dt.year() {
             ..=1979 => Err(DosDateTimeRangeError::new(
                 DosDateTimeRangeErrorKind::Negative,

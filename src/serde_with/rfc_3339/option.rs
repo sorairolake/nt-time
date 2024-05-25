@@ -39,7 +39,7 @@
 //! [RFC 3339 format]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
+use serde::{de::Error as _, Deserializer, Serializer};
 use time::{serde::rfc3339, OffsetDateTime};
 
 use crate::FileTime;
@@ -51,13 +51,17 @@ use crate::FileTime;
 ///
 /// [RFC 3339 format]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    rfc3339::option::serialize(
-        &(*ft)
-            .map(OffsetDateTime::try_from)
-            .transpose()
-            .map_err(S::Error::custom)?,
-        serializer,
-    )
+    #[cfg(not(feature = "large-dates"))]
+    use serde::ser::Error as _;
+
+    #[cfg(not(feature = "large-dates"))]
+    let dt = (*ft)
+        .map(OffsetDateTime::try_from)
+        .transpose()
+        .map_err(S::Error::custom)?;
+    #[cfg(feature = "large-dates")]
+    let dt = (*ft).map(OffsetDateTime::from);
+    rfc3339::option::serialize(&dt, serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -135,7 +139,7 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("1600-12-31T23:59:59.999999999Z"),
+                Token::BorrowedStr("1600-12-31T23:59:59.999999900Z"),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );

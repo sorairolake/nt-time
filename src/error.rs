@@ -88,22 +88,6 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
     }
 }
 
-/// The error type indicating that a [`OffsetDateTime`](time::OffsetDateTime)
-/// was out of range.
-#[allow(clippy::module_name_repetitions)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct OffsetDateTimeRangeError;
-
-impl fmt::Display for OffsetDateTimeRangeError {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "date and time is out of range for `OffsetDateTime`")
-    }
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for OffsetDateTimeRangeError {}
-
 /// The error type indicating that a [`FileTime`](crate::FileTime) was out of
 /// range.
 #[allow(clippy::module_name_repetitions)]
@@ -403,47 +387,6 @@ mod tests {
             format!("{}", DosDateTimeRangeErrorKind::Overflow),
             "date and time is after `2107-12-31 23:59:59.990000000`"
         );
-    }
-
-    #[test]
-    fn clone_offset_date_time_range_error() {
-        assert_eq!(OffsetDateTimeRangeError.clone(), OffsetDateTimeRangeError);
-    }
-
-    #[test]
-    fn copy_offset_date_time_range_error() {
-        let a = OffsetDateTimeRangeError;
-        let b = a;
-        assert_eq!(a, b);
-    }
-
-    #[test]
-    fn debug_offset_date_time_range_error() {
-        assert_eq!(
-            format!("{OffsetDateTimeRangeError:?}"),
-            "OffsetDateTimeRangeError"
-        );
-    }
-
-    #[test]
-    fn offset_date_time_range_error_equality() {
-        assert_eq!(OffsetDateTimeRangeError, OffsetDateTimeRangeError);
-    }
-
-    #[test]
-    fn display_offset_date_time_range_error() {
-        assert_eq!(
-            format!("{OffsetDateTimeRangeError}"),
-            "date and time is out of range for `OffsetDateTime`"
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn source_offset_date_time_range_error() {
-        use std::error::Error;
-
-        assert!(OffsetDateTimeRangeError.source().is_none());
     }
 
     #[test]

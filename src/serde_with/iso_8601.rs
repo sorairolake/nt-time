@@ -36,7 +36,7 @@
 
 pub mod option;
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
+use serde::{de::Error as _, Deserializer, Serializer};
 use time::serde::iso8601;
 
 use crate::FileTime;
@@ -48,7 +48,14 @@ use crate::FileTime;
 ///
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    iso8601::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
+    #[cfg(not(feature = "large-dates"))]
+    use serde::ser::Error as _;
+
+    #[cfg(not(feature = "large-dates"))]
+    let dt = (*ft).try_into().map_err(S::Error::custom)?;
+    #[cfg(feature = "large-dates")]
+    let dt = (*ft).into();
+    iso8601::serialize(&dt, serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -106,7 +113,7 @@ mod tests {
         assert_de_tokens_error::<Test>(
             &[
                 Token::NewtypeStruct { name: "Test" },
-                Token::BorrowedStr("+001600-12-31T23:59:59.999999999Z"),
+                Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );

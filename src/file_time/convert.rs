@@ -6,11 +6,11 @@
 
 use core::num::TryFromIntError;
 
-use time::{macros::datetime, OffsetDateTime};
+use time::OffsetDateTime;
 
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind, OffsetDateTimeRangeError};
+use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
-use super::{FileTime, FILE_TIMES_PER_SEC};
+use super::FileTime;
 
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the file time.
@@ -104,6 +104,8 @@ impl From<FileTime> for std::time::SystemTime {
     fn from(ft: FileTime) -> Self {
         use std::time::Duration;
 
+        use super::FILE_TIMES_PER_SEC;
+
         let duration = Duration::new(
             ft.to_raw() / FILE_TIMES_PER_SEC,
             u32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
@@ -113,8 +115,9 @@ impl From<FileTime> for std::time::SystemTime {
     }
 }
 
+#[cfg(not(feature = "large-dates"))]
 impl TryFrom<FileTime> for OffsetDateTime {
-    type Error = OffsetDateTimeRangeError;
+    type Error = time::error::ComponentRange;
 
     /// Converts a `FileTime` to a [`OffsetDateTime`].
     ///
@@ -138,19 +141,20 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
     ///     OffsetDateTime::UNIX_EPOCH
     /// );
-    /// ```
     ///
-    /// With the `large-dates` feature disabled, returns [`Err`] if the file
-    /// time represents after "9999-12-31 23:59:59.999999900 UTC":
-    ///
-    /// ```
-    /// # use nt_time::{time::OffsetDateTime, FileTime};
-    /// #
-    /// # #[cfg(not(feature = "large-dates"))]
+    /// // After `9999-12-31 23:59:59.999999900 UTC`.
     /// assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
     /// ```
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
+        Self::from_unix_timestamp_nanos(ft.to_unix_time_nanos())
+    }
+}
+
+#[cfg(feature = "large-dates")]
+impl From<FileTime> for OffsetDateTime {
+    /// Converts a `FileTime` to a [`OffsetDateTime`].
     ///
-    /// With the `large-dates` feature enabled, this always succeeds:
+    /// # Examples
     ///
     /// ```
     /// # use nt_time::{
@@ -158,29 +162,22 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// #     FileTime,
     /// # };
     /// #
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
-    ///     datetime!(+10000-01-01 00:00 UTC)
+    ///     OffsetDateTime::from(FileTime::NT_TIME_EPOCH),
+    ///     datetime!(1601-01-01 00:00 UTC)
     /// );
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
+    ///     OffsetDateTime::from(FileTime::UNIX_EPOCH),
+    ///     OffsetDateTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     OffsetDateTime::from(FileTime::MAX),
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
     /// ```
-    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        use time::Duration;
-
-        let duration = Duration::new(
-            i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
-                .expect("the number of seconds should be in the range of `i64`"),
-            i32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `i32`"),
-        );
-        datetime!(1601-01-01 00:00 UTC)
-            .checked_add(duration)
-            .ok_or(OffsetDateTimeRangeError)
+    fn from(ft: FileTime) -> Self {
+        Self::from_unix_timestamp_nanos(ft.to_unix_time_nanos())
+            .expect("date and time should be in the range of `OffsetDateTime`")
     }
 }
 
@@ -206,19 +203,14 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
-        use chrono::TimeDelta;
-
-        let duration = TimeDelta::seconds(
-            i64::try_from(ft.to_raw() / FILE_TIMES_PER_SEC)
+        let ut = ft.to_unix_time_nanos();
+        Self::from_timestamp(
+            i64::try_from(ut / 1_000_000_000)
                 .expect("the number of seconds should be in the range of `i64`"),
-        ) + TimeDelta::nanoseconds(
-            i64::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `i64`"),
-        );
-        "1601-01-01 00:00:00 UTC"
-            .parse::<Self>()
-            .expect("date and time should be valid as RFC 3339")
-            + duration
+            u32::try_from(ut % 1_000_000_000)
+                .expect("the number of nanoseconds should be in the range of `u32`"),
+        )
+        .expect("Unix time in nanoseconds should be in the range of `DateTime<Utc>`")
     }
 }
 
@@ -434,7 +426,9 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
-    /// assert!(FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::NANOSECOND).is_err());
+    /// assert!(
+    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100)).is_err()
+    /// );
     /// ```
     ///
     /// With the `large-dates` feature enabled, returns [`Err`] if
@@ -454,14 +448,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
-        use core::time::Duration;
-
-        let elapsed = Duration::try_from(dt - datetime!(1601-01-01 00:00 UTC))
-            .map(|d| d.as_nanos())
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
-        let ft = u64::try_from(elapsed / 100)
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Overflow))?;
-        Ok(Self::new(ft))
+        Self::from_unix_time_nanos(dt.unix_timestamp_nanos())
     }
 }
 
@@ -494,7 +481,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(
-    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - TimeDelta::nanoseconds(1)
+    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - TimeDelta::nanoseconds(100)
     /// )
     /// .is_err());
     ///
@@ -507,18 +494,9 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
-        use chrono::{DateTime, Utc};
-
-        let elapsed = (dt
-            - "1601-01-01 00:00:00 UTC"
-                .parse::<DateTime<Utc>>()
-                .expect("date and time should be valid as RFC 3339"))
-        .to_std()
-        .map(|d| d.as_nanos())
-        .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
-        let ft = u64::try_from(elapsed / 100)
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Overflow))?;
-        Ok(Self::new(ft))
+        let ut =
+            (i128::from(dt.timestamp()) * 1_000_000_000) + i128::from(dt.timestamp_subsec_nanos());
+        Self::from_unix_time_nanos(ut)
     }
 }
 
@@ -621,8 +599,11 @@ mod tests {
         }
     }
 
+    #[cfg(not(feature = "large-dates"))]
     #[test]
     fn try_from_file_time_to_offset_date_time() {
+        use time::macros::datetime;
+
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
             datetime!(1601-01-01 00:00 UTC)
@@ -640,25 +621,36 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn try_from_file_time_to_offset_date_time_with_invalid_file_time() {
-        assert_eq!(
-            OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap_err(),
-            OffsetDateTimeRangeError
-        );
+        assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
     }
 
     #[cfg(feature = "large-dates")]
     #[test]
-    fn try_from_file_time_to_offset_date_time_with_large_dates() {
+    fn from_file_time_to_offset_date_time() {
+        use time::macros::datetime;
+
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
+            OffsetDateTime::from(FileTime::NT_TIME_EPOCH),
+            datetime!(1601-01-01 00:00 UTC)
+        );
+        assert_eq!(
+            OffsetDateTime::from(FileTime::UNIX_EPOCH),
+            OffsetDateTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            OffsetDateTime::from(FileTime::new(2_650_467_743_999_999_999)),
+            datetime!(9999-12-31 23:59:59.999_999_900 UTC)
+        );
+        assert_eq!(
+            OffsetDateTime::from(FileTime::new(2_650_467_744_000_000_000)),
             datetime!(+10000-01-01 00:00 UTC)
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
+            OffsetDateTime::from(FileTime::new(i64::MAX.try_into().unwrap())),
             datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::MAX).unwrap(),
+            OffsetDateTime::from(FileTime::MAX),
             datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
         );
     }
@@ -722,6 +714,7 @@ mod tests {
     }
 
     #[cfg(feature = "zip")]
+    #[allow(clippy::cognitive_complexity)]
     #[test]
     fn try_from_file_time_to_zip_date_time() {
         use zip::DateTime;
@@ -917,16 +910,19 @@ mod tests {
 
     #[test]
     fn try_from_offset_date_time_to_file_time_before_nt_time_epoch() {
-        use time::Duration;
+        use time::{macros::datetime, Duration};
 
         assert_eq!(
-            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::NANOSECOND).unwrap_err(),
+            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100))
+                .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
 
     #[test]
     fn try_from_offset_date_time_to_file_time() {
+        use time::macros::datetime;
+
         assert_eq!(
             FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
             FileTime::NT_TIME_EPOCH
@@ -944,6 +940,8 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_offset_date_time_to_file_time_with_large_dates() {
+        use time::macros::datetime;
+
         assert_eq!(
             FileTime::try_from(datetime!(+10000-01-01 00:00 UTC)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
@@ -961,7 +959,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
-        use time::Duration;
+        use time::{macros::datetime, Duration};
 
         assert_eq!(
             FileTime::try_from(
@@ -980,7 +978,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(
                 "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-                    - TimeDelta::nanoseconds(1)
+                    - TimeDelta::nanoseconds(100)
             )
             .unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)

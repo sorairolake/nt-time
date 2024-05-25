@@ -31,15 +31,23 @@ impl PartialEq<std::time::SystemTime> for FileTime {
 impl PartialEq<FileTime> for OffsetDateTime {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
-        self == &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`")
+        #[cfg(not(feature = "large-dates"))]
+        let other = Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let other = Self::from(*other);
+        self == &other
     }
 }
 
 impl PartialEq<OffsetDateTime> for FileTime {
     #[inline]
     fn eq(&self, other: &OffsetDateTime) -> bool {
-        &OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`")
-            == other
+        #[cfg(not(feature = "large-dates"))]
+        let dt =
+            OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let dt = OffsetDateTime::from(*self);
+        &dt == other
     }
 }
 
@@ -98,18 +106,23 @@ impl PartialOrd<std::time::SystemTime> for FileTime {
 impl PartialOrd<FileTime> for OffsetDateTime {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
-        self.partial_cmp(
-            &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`"),
-        )
+        #[cfg(not(feature = "large-dates"))]
+        let other = Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let other = Self::from(*other);
+        self.partial_cmp(&other)
     }
 }
 
 impl PartialOrd<OffsetDateTime> for FileTime {
     #[inline]
     fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
-        OffsetDateTime::try_from(*self)
-            .expect("`self` is out of range for `OffsetDateTime`")
-            .partial_cmp(other)
+        #[cfg(not(feature = "large-dates"))]
+        let dt =
+            OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let dt = OffsetDateTime::from(*self);
+        dt.partial_cmp(other)
     }
 }
 

@@ -276,7 +276,11 @@ impl Sub<FileTime> for OffsetDateTime {
 
     #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
-        self - Self::try_from(rhs).expect("RHS is out of range for `OffsetDateTime`")
+        #[cfg(not(feature = "large-dates"))]
+        let rhs = Self::try_from(rhs).expect("RHS is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let rhs = Self::from(rhs);
+        self - rhs
     }
 }
 
@@ -285,7 +289,11 @@ impl Sub<OffsetDateTime> for FileTime {
 
     #[inline]
     fn sub(self, rhs: OffsetDateTime) -> Self::Output {
-        OffsetDateTime::try_from(self).expect("LHS is out of range for `OffsetDateTime`") - rhs
+        #[cfg(not(feature = "large-dates"))]
+        let dt = OffsetDateTime::try_from(self).expect("LHS is out of range for `OffsetDateTime`");
+        #[cfg(feature = "large-dates")]
+        let dt = OffsetDateTime::from(self);
+        dt - rhs
     }
 }
 
