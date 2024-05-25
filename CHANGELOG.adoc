@@ -29,6 +29,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Change `TryFrom<FileTime> for OffsetDateTime` to return
   `time::error::ComponentRange` instead of `OffsetDateTimeRangeError`
   ({pull-request-url}/167[#167])
+* Change `TryFrom<FileTime> for zip::DateTime` to return
+  `zip::result::DateTimeRangeError` ({pull-request-url}/168[#168])
 
 === Removed
 

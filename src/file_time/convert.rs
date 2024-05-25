@@ -216,7 +216,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
 
 #[cfg(feature = "zip")]
 impl TryFrom<FileTime> for zip::DateTime {
-    type Error = crate::error::DosDateTimeRangeError;
+    type Error = zip::result::DateTimeRangeError;
 
     /// Converts a `FileTime` to a [`zip::DateTime`].
     ///
@@ -271,10 +271,11 @@ impl TryFrom<FileTime> for zip::DateTime {
     /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        let (date, time, ..) = ft.to_dos_date_time(None)?;
-        let dt = Self::try_from_msdos(date, time)
-            .expect("date and time should be valid as `zip::DateTime`");
-        Ok(dt)
+        use zip::result::DateTimeRangeError;
+
+        ft.to_dos_date_time(None)
+            .map_err(|_| DateTimeRangeError)
+            .and_then(|(date, time, ..)| Self::try_from_msdos(date, time))
     }
 }
 
@@ -699,18 +700,10 @@ mod tests {
     fn try_from_file_time_to_zip_date_time_before_zip_date_time() {
         use zip::DateTime;
 
-        use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
-
         // `1979-12-31 23:59:58 UTC`.
-        assert_eq!(
-            DateTime::try_from(FileTime::new(119_600_063_980_000_000)).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
+        assert!(DateTime::try_from(FileTime::new(119_600_063_980_000_000)).is_err());
         // `1979-12-31 23:59:59 UTC`.
-        assert_eq!(
-            DateTime::try_from(FileTime::new(119_600_063_990_000_000)).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
+        assert!(DateTime::try_from(FileTime::new(119_600_063_990_000_000)).is_err());
     }
 
     #[cfg(feature = "zip")]
@@ -778,13 +771,8 @@ mod tests {
     fn try_from_file_time_to_zip_date_time_after_zip_date_time() {
         use zip::DateTime;
 
-        use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
-
         // `2108-01-01 00:00:00 UTC`.
-        assert_eq!(
-            DateTime::try_from(FileTime::new(159_992_928_000_000_000)).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-        );
+        assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     }
 
     #[test]
