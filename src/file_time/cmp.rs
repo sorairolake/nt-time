@@ -29,25 +29,31 @@ impl PartialEq<std::time::SystemTime> for FileTime {
 }
 
 impl PartialEq<FileTime> for OffsetDateTime {
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
-        #[cfg(not(feature = "large-dates"))]
-        let other = Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let other = Self::from(*other);
-        self == &other
+        self == &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`")
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn eq(&self, other: &FileTime) -> bool {
+        self == &Self::from(*other)
     }
 }
 
 impl PartialEq<OffsetDateTime> for FileTime {
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn eq(&self, other: &OffsetDateTime) -> bool {
-        #[cfg(not(feature = "large-dates"))]
-        let dt =
-            OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let dt = OffsetDateTime::from(*self);
-        &dt == other
+        &OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`")
+            == other
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn eq(&self, other: &OffsetDateTime) -> bool {
+        &OffsetDateTime::from(*self) == other
     }
 }
 
@@ -104,25 +110,34 @@ impl PartialOrd<std::time::SystemTime> for FileTime {
 }
 
 impl PartialOrd<FileTime> for OffsetDateTime {
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
-        #[cfg(not(feature = "large-dates"))]
-        let other = Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let other = Self::from(*other);
-        self.partial_cmp(&other)
+        self.partial_cmp(
+            &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`"),
+        )
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
+        self.partial_cmp(&Self::from(*other))
     }
 }
 
 impl PartialOrd<OffsetDateTime> for FileTime {
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
-        #[cfg(not(feature = "large-dates"))]
-        let dt =
-            OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let dt = OffsetDateTime::from(*self);
-        dt.partial_cmp(other)
+        OffsetDateTime::try_from(*self)
+            .expect("`self` is out of range for `OffsetDateTime`")
+            .partial_cmp(other)
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
+        OffsetDateTime::from(*self).partial_cmp(other)
     }
 }
 

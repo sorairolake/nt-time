@@ -52,16 +52,22 @@ use crate::FileTime;
 /// [RFC 3339 format]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     #[cfg(not(feature = "large-dates"))]
-    use serde::ser::Error as _;
+    {
+        use serde::ser::Error as _;
 
-    #[cfg(not(feature = "large-dates"))]
-    let dt = (*ft)
-        .map(OffsetDateTime::try_from)
-        .transpose()
-        .map_err(S::Error::custom)?;
+        rfc3339::option::serialize(
+            &(*ft)
+                .map(OffsetDateTime::try_from)
+                .transpose()
+                .map_err(S::Error::custom)?,
+            serializer,
+        )
+    }
+
     #[cfg(feature = "large-dates")]
-    let dt = (*ft).map(OffsetDateTime::from);
-    rfc3339::option::serialize(&dt, serializer)
+    {
+        rfc3339::option::serialize(&(*ft).map(OffsetDateTime::from), serializer)
+    }
 }
 
 #[allow(clippy::missing_errors_doc)]

@@ -49,13 +49,16 @@ use crate::FileTime;
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
     #[cfg(not(feature = "large-dates"))]
-    use serde::ser::Error as _;
+    {
+        use serde::ser::Error as _;
 
-    #[cfg(not(feature = "large-dates"))]
-    let dt = (*ft).try_into().map_err(S::Error::custom)?;
+        iso8601::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
+    }
+
     #[cfg(feature = "large-dates")]
-    let dt = (*ft).into();
-    iso8601::serialize(&dt, serializer)
+    {
+        iso8601::serialize(&(*ft).into(), serializer)
+    }
 }
 
 #[allow(clippy::missing_errors_doc)]

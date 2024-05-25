@@ -274,26 +274,32 @@ impl Sub<std::time::SystemTime> for FileTime {
 impl Sub<FileTime> for OffsetDateTime {
     type Output = time::Duration;
 
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
-        #[cfg(not(feature = "large-dates"))]
-        let rhs = Self::try_from(rhs).expect("RHS is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let rhs = Self::from(rhs);
-        self - rhs
+        self - Self::try_from(rhs).expect("RHS is out of range for `OffsetDateTime`")
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self - Self::from(rhs)
     }
 }
 
 impl Sub<OffsetDateTime> for FileTime {
     type Output = time::Duration;
 
+    #[cfg(not(feature = "large-dates"))]
     #[inline]
     fn sub(self, rhs: OffsetDateTime) -> Self::Output {
-        #[cfg(not(feature = "large-dates"))]
-        let dt = OffsetDateTime::try_from(self).expect("LHS is out of range for `OffsetDateTime`");
-        #[cfg(feature = "large-dates")]
-        let dt = OffsetDateTime::from(self);
-        dt - rhs
+        OffsetDateTime::try_from(self).expect("LHS is out of range for `OffsetDateTime`") - rhs
+    }
+
+    #[cfg(feature = "large-dates")]
+    #[inline]
+    fn sub(self, rhs: OffsetDateTime) -> Self::Output {
+        OffsetDateTime::from(self) - rhs
     }
 }
 
