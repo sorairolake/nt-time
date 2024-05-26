@@ -92,7 +92,7 @@ mod tests {
         assert_ser_tokens_error::<Test>(
             &Test(FileTime::MAX),
             &[Token::NewtypeStruct { name: "Test" }],
-            "date and time is out of range for `OffsetDateTime`",
+            "timestamp must be in the range -377705116800..=253402300799",
         );
     }
 
