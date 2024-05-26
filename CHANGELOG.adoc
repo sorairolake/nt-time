@@ -14,6 +14,20 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.6.13\...v0.7.0[0.7.0] - 2024-05-26
+
+=== Changed
+
+* Change `TryFrom<FileTime> for OffsetDateTime` to return
+  `time::error::ComponentRange` instead of `OffsetDateTimeRangeError`
+  ({pull-request-url}/167[#167])
+* Change `TryFrom<FileTime> for zip::DateTime` to return
+  `zip::result::DateTimeRangeError` ({pull-request-url}/168[#168])
+
+=== Removed
+
+* Remove `OffsetDateTimeRangeError` ({pull-request-url}/167[#167])
+
 == {compare-url}/v0.6.12\...v0.6.13[0.6.13] - 2024-05-24
 
 === Fixed

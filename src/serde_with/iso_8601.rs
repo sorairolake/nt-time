@@ -106,7 +106,7 @@ mod tests {
         assert_de_tokens_error::<Test>(
             &[
                 Token::NewtypeStruct { name: "Test" },
-                Token::BorrowedStr("+001600-12-31T23:59:59.999999999Z"),
+                Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );

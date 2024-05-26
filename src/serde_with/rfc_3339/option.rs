@@ -115,7 +115,7 @@ mod tests {
         assert_ser_tokens_error::<Test>(
             &Test(Some(FileTime::MAX)),
             &[Token::NewtypeStruct { name: "Test" }],
-            "date and time is out of range for `OffsetDateTime`",
+            "timestamp must be in the range -377705116800..=253402300799",
         );
     }
 
@@ -135,7 +135,7 @@ mod tests {
             &[
                 Token::NewtypeStruct { name: "Test" },
                 Token::Some,
-                Token::BorrowedStr("1600-12-31T23:59:59.999999999Z"),
+                Token::BorrowedStr("1600-12-31T23:59:59.999999900Z"),
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );
