@@ -184,13 +184,13 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     chrono::{DateTime, TimeZone, Utc},
+    /// #     chrono::{DateTime, Utc},
     /// #     FileTime,
     /// # };
     /// #
     /// assert_eq!(
     ///     DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
-    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()
+    ///     "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
     /// );
     /// assert_eq!(
     ///     DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
@@ -374,7 +374,6 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///     SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
     /// )
     /// .is_err());
-    ///
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// #[cfg(not(windows))]
     /// assert!(FileTime::try_from(
@@ -462,12 +461,12 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     chrono::{DateTime, TimeDelta, TimeZone, Utc},
+    /// #     chrono::{DateTime, TimeDelta, Utc},
     /// #     FileTime,
     /// # };
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()).unwrap(),
+    ///     FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()).unwrap(),
     ///     FileTime::NT_TIME_EPOCH
     /// );
     /// assert_eq!(
@@ -477,14 +476,14 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::try_from(
-    ///     Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() - TimeDelta::nanoseconds(100)
+    ///     "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap() - TimeDelta::nanoseconds(100)
     /// )
     /// .is_err());
-    ///
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(FileTime::try_from(
-    ///     Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10).unwrap()
-    ///         + TimeDelta::nanoseconds(955_161_500)
+    ///     "+60056-05-28 05:36:10.955161500 UTC"
+    ///         .parse::<DateTime<Utc>>()
+    ///         .unwrap()
     ///         + TimeDelta::nanoseconds(100)
     /// )
     /// .is_err());
