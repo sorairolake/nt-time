@@ -16,16 +16,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.6.13\...HEAD[Unreleased]
 
-=== Added
-
-* Add `From<FileTime> for OffsetDateTime` for when the `large-dates` feature is
-  enabled ({pull-request-url}/167[#167])
-
 === Changed
 
-* When the `large-dates` feature is enabled, change to use
-  `From<FileTime> for OffsetDateTime` instead of
-  `TryFrom<FileTime> for OffsetDateTime` ({pull-request-url}/167[#167])
 * Change `TryFrom<FileTime> for OffsetDateTime` to return
   `time::error::ComponentRange` instead of `OffsetDateTimeRangeError`
   ({pull-request-url}/167[#167])

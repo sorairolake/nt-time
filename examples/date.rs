@@ -11,6 +11,7 @@
 // Lint levels of Clippy.
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
+use anyhow::Context;
 use clap::Parser;
 use nt_time::{time::OffsetDateTime, FileTime};
 
@@ -21,21 +22,10 @@ struct Opt {
     time: FileTime,
 }
 
-#[cfg(not(feature = "large-dates"))]
 fn main() -> anyhow::Result<()> {
-    use anyhow::Context;
-
     let opt = Opt::parse();
 
     let dt = OffsetDateTime::try_from(opt.time).context("could not convert time")?;
     println!("{dt}");
     Ok(())
-}
-
-#[cfg(feature = "large-dates")]
-fn main() {
-    let opt = Opt::parse();
-
-    let dt = OffsetDateTime::from(opt.time);
-    println!("{dt}");
 }

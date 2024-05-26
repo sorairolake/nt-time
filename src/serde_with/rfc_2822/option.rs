@@ -39,7 +39,7 @@
 //! [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error as _, Deserializer, Serializer};
+use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
 use time::{serde::rfc2822, OffsetDateTime};
 
 use crate::FileTime;
@@ -51,23 +51,13 @@ use crate::FileTime;
 ///
 /// [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    #[cfg(not(feature = "large-dates"))]
-    {
-        use serde::ser::Error as _;
-
-        rfc2822::option::serialize(
-            &(*ft)
-                .map(OffsetDateTime::try_from)
-                .transpose()
-                .map_err(S::Error::custom)?,
-            serializer,
-        )
-    }
-
-    #[cfg(feature = "large-dates")]
-    {
-        rfc2822::option::serialize(&(*ft).map(OffsetDateTime::from), serializer)
-    }
+    rfc2822::option::serialize(
+        &(*ft)
+            .map(OffsetDateTime::try_from)
+            .transpose()
+            .map_err(S::Error::custom)?,
+        serializer,
+    )
 }
 
 #[allow(clippy::missing_errors_doc)]
