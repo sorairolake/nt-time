@@ -20,6 +20,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Add property based tests ({pull-request-url}/173[#173])
 
+=== Removed
+
+* Remove `FileTime::as_u64` ({pull-request-url}/174[#174])
+
 == {compare-url}/v0.6.13\...v0.7.0[0.7.0] - 2024-05-26
 
 === Changed

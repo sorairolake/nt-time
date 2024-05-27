@@ -102,24 +102,6 @@ impl FileTime {
         self.0
     }
 
-    /// Returns the contents of this `FileTime` as the underlying [`u64`] value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
-    /// assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
-    /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
-    /// ```
-    #[deprecated(since = "0.5.0", note = "use `FileTime::to_raw` instead")]
-    #[must_use]
-    #[inline]
-    pub const fn as_u64(self) -> u64 {
-        self.to_raw()
-    }
-
     /// Returns the memory representation of this `FileTime` as a byte array in
     /// big-endian byte order.
     ///
@@ -333,14 +315,6 @@ mod tests {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
-    }
-
-    #[allow(deprecated)]
-    #[test]
-    fn as_u64() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
-        assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
-        assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
     }
 
     #[test]
