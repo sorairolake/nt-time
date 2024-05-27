@@ -173,6 +173,14 @@ mod tests {
         assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn display_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft}"), format!("{}", ft.to_raw()));
+    }
+
     #[test]
     fn octal() {
         assert_eq!(format!("{:o}", FileTime::NT_TIME_EPOCH), "0");
@@ -207,6 +215,17 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn octal_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:o}"), format!("{:o}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#o}"), format!("{:#o}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:022o}"), format!("{:022o}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#024o}"), format!("{:#024o}", ft.to_raw()));
+    }
+
     #[test]
     fn lower_hex() {
         assert_eq!(format!("{:x}", FileTime::NT_TIME_EPOCH), "0");
@@ -232,6 +251,17 @@ mod tests {
         assert_eq!(format!("{:#018x}", FileTime::MAX), "0xffffffffffffffff");
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn lower_hex_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:x}"), format!("{:x}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#x}"), format!("{:#x}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:016x}"), format!("{:016x}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#018x}"), format!("{:#018x}", ft.to_raw()));
+    }
+
     #[test]
     fn upper_hex() {
         assert_eq!(format!("{:X}", FileTime::NT_TIME_EPOCH), "0");
@@ -255,6 +285,17 @@ mod tests {
         assert_eq!(format!("{:#X}", FileTime::MAX), "0xFFFFFFFFFFFFFFFF");
         assert_eq!(format!("{:016X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
         assert_eq!(format!("{:#018X}", FileTime::MAX), "0xFFFFFFFFFFFFFFFF");
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn upper_hex_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:X}"), format!("{:X}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#X}"), format!("{:#X}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:016X}"), format!("{:016X}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#018X}"), format!("{:#018X}", ft.to_raw()));
     }
 
     #[test]
@@ -303,6 +344,17 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn binary_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:b}"), format!("{:b}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#b}"), format!("{:#b}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:064b}"), format!("{:064b}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:#066b}"), format!("{:#066b}", ft.to_raw()));
+    }
+
     #[test]
     fn lower_exp() {
         assert_eq!(format!("{:e}", FileTime::NT_TIME_EPOCH), "0e0");
@@ -322,6 +374,15 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn lower_exp_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:e}"), format!("{:e}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:024e}"), format!("{:024e}", ft.to_raw()));
+    }
+
     #[test]
     fn upper_exp() {
         assert_eq!(format!("{:E}", FileTime::NT_TIME_EPOCH), "0E0");
@@ -339,5 +400,14 @@ mod tests {
             format!("{:024E}", FileTime::MAX),
             "1.8446744073709551615E19"
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn upper_exp_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(format!("{ft:E}"), format!("{:E}", ft.to_raw()));
+        prop_assert_eq!(format!("{ft:024E}"), format!("{:024E}", ft.to_raw()));
     }
 }

@@ -197,6 +197,18 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn serialize_json_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
+        use proptest::prop_assert_eq;
+
+        let ft = Test {
+            time: FileTime::from_unix_time(ts).unwrap(),
+        };
+        let json = serde_json::to_string(&ft).unwrap();
+        prop_assert_eq!(json, format!(r#"{{"time":{ts}}}"#));
+    }
+
     #[test]
     fn deserialize_json() {
         assert_eq!(
@@ -217,5 +229,15 @@ mod tests {
                 time: FileTime::MAX - Duration::from_nanos(955_161_500)
             }
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn deserialize_json_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
+        use proptest::prop_assert_eq;
+
+        let json = format!(r#"{{"time":{ts}}}"#);
+        let ft = serde_json::from_str::<Test>(&json).unwrap();
+        prop_assert_eq!(ft.time, FileTime::from_unix_time(ts).unwrap());
     }
 }

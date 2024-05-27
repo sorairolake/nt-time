@@ -368,6 +368,18 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn serialize_json_roundtrip(raw: u64) {
+        use proptest::prop_assert_eq;
+
+        let ft = Test {
+            time: FileTime::new(raw),
+        };
+        let json = serde_json::to_string(&ft).unwrap();
+        prop_assert_eq!(json, format!(r#"{{"time":{raw}}}"#));
+    }
+
     #[test]
     fn serialize_optional_json() {
         assert_eq!(
@@ -397,6 +409,22 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn serialize_optional_json_roundtrip(raw: Option<u64>) {
+        use proptest::prop_assert_eq;
+
+        let ft = TestOption {
+            time: raw.map(FileTime::new),
+        };
+        let json = serde_json::to_string(&ft).unwrap();
+        if let Some(r) = raw {
+            prop_assert_eq!(json, format!(r#"{{"time":{r}}}"#));
+        } else {
+            prop_assert_eq!(json, r#"{"time":null}"#);
+        }
+    }
+
     #[test]
     fn deserialize_json() {
         assert_eq!(
@@ -417,6 +445,16 @@ mod tests {
                 time: FileTime::MAX
             }
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn deserialize_json_roundtrip(raw: u64) {
+        use proptest::prop_assert_eq;
+
+        let json = format!(r#"{{"time":{raw}}}"#);
+        let ft = serde_json::from_str::<Test>(&json).unwrap();
+        prop_assert_eq!(ft.time, FileTime::new(raw));
     }
 
     #[test]
@@ -443,5 +481,22 @@ mod tests {
             serde_json::from_str::<TestOption>(r#"{"time":null}"#).unwrap(),
             TestOption { time: None }
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn deserialize_optional_json_roundtrip(raw: Option<u64>) {
+        use std::string::String;
+
+        use proptest::prop_assert_eq;
+
+        #[allow(clippy::option_if_let_else)]
+        let json = if let Some(r) = raw {
+            format!(r#"{{"time":{r}}}"#)
+        } else {
+            String::from(r#"{"time":null}"#)
+        };
+        let ft = serde_json::from_str::<TestOption>(&json).unwrap();
+        prop_assert_eq!(ft.time, raw.map(FileTime::new));
     }
 }

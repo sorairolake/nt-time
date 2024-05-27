@@ -229,6 +229,26 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn serialize_json_roundtrip(timestamp: Option<i64>) {
+        use proptest::{prop_assert_eq, prop_assume};
+
+        if let Some(ts) = timestamp {
+            prop_assume!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+        }
+
+        let ft = Test {
+            time: timestamp.map(FileTime::from_unix_time).transpose().unwrap(),
+        };
+        let json = serde_json::to_string(&ft).unwrap();
+        if let Some(ts) = timestamp {
+            prop_assert_eq!(json, format!(r#"{{"time":{ts}}}"#));
+        } else {
+            prop_assert_eq!(json, r#"{"time":null}"#);
+        }
+    }
+
     #[test]
     fn deserialize_json() {
         assert_eq!(
@@ -252,6 +272,30 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<Test>(r#"{"time":null}"#).unwrap(),
             Test { time: None }
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn deserialize_json_roundtrip(timestamp: Option<i64>) {
+        use std::string::String;
+
+        use proptest::{prop_assert_eq, prop_assume};
+
+        if let Some(ts) = timestamp {
+            prop_assume!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+        }
+
+        #[allow(clippy::option_if_let_else)]
+        let json = if let Some(ts) = timestamp {
+            format!(r#"{{"time":{ts}}}"#)
+        } else {
+            String::from(r#"{"time":null}"#)
+        };
+        let ft = serde_json::from_str::<Test>(&json).unwrap();
+        prop_assert_eq!(
+            ft.time,
+            timestamp.map(FileTime::from_unix_time).transpose().unwrap()
         );
     }
 }

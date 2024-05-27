@@ -395,6 +395,20 @@ mod tests {
         assert_eq!(FileTime::MAX.checked_add(Duration::from_nanos(100)), None);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn checked_add_roundtrip(dur: std::time::Duration) {
+        use std::time::Duration;
+
+        use proptest::prop_assert;
+
+        if dur <= Duration::new(1_844_674_407_370, 955_161_500) {
+            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(dur).is_some());
+        } else {
+            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(dur).is_none());
+        }
+    }
+
     #[test]
     fn checked_sub() {
         use core::time::Duration;
@@ -434,6 +448,20 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn checked_sub_roundtrip(dur: std::time::Duration) {
+        use std::time::Duration;
+
+        use proptest::prop_assert;
+
+        if dur <= Duration::new(1_844_674_407_370, 955_161_500) {
+            prop_assert!(FileTime::MAX.checked_add(dur).is_some());
+        } else {
+            prop_assert!(FileTime::MAX.checked_add(dur).is_none());
+        }
+    }
+
     #[test]
     fn saturating_add() {
         use core::time::Duration;
@@ -470,6 +498,20 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn saturating_add_roundtrip(dur: std::time::Duration) {
+        use std::time::Duration;
+
+        use proptest::{prop_assert_eq, prop_assert_ne};
+
+        if dur <= Duration::new(1_844_674_407_370, 955_161_400) {
+            prop_assert_ne!(FileTime::NT_TIME_EPOCH.saturating_add(dur), FileTime::MAX);
+        } else {
+            prop_assert_eq!(FileTime::NT_TIME_EPOCH.saturating_add(dur), FileTime::MAX);
+        }
+    }
+
     #[test]
     fn saturating_sub() {
         use core::time::Duration;
@@ -504,6 +546,20 @@ mod tests {
             FileTime::NT_TIME_EPOCH.saturating_sub(Duration::from_nanos(100)),
             FileTime::NT_TIME_EPOCH
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn saturating_sub_roundtrip(dur: std::time::Duration) {
+        use std::time::Duration;
+
+        use proptest::{prop_assert_eq, prop_assert_ne};
+
+        if dur <= Duration::new(1_844_674_407_370, 955_161_400) {
+            prop_assert_ne!(FileTime::MAX.saturating_sub(dur), FileTime::NT_TIME_EPOCH);
+        } else {
+            prop_assert_eq!(FileTime::MAX.saturating_sub(dur), FileTime::NT_TIME_EPOCH);
+        }
     }
 
     #[test]

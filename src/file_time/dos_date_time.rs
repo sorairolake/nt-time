@@ -343,6 +343,19 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_dos_date_time_before_dos_date_time_epoch_roundtrip(
+        #[strategy(..=119_600_063_980_000_000_u64)] ft: u64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+    }
+
     #[allow(clippy::too_many_lines)]
     #[test]
     fn to_dos_date_time() {
@@ -507,6 +520,16 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_dos_date_time_roundtrip(
+        #[strategy(119_600_064_000_000_000..=159_992_927_980_000_000_u64)] ft: u64,
+    ) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::new(ft).to_dos_date_time(None).is_ok());
+    }
+
     #[test]
     fn to_dos_date_time_with_too_big_date_time() {
         // `2108-01-01 00:00:00 UTC`.
@@ -521,6 +544,19 @@ mod tests {
             FileTime::new(159_992_892_000_000_000)
                 .to_dos_date_time(Some(offset!(+01:00)))
                 .unwrap_err(),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_dos_date_time_with_too_big_date_time_roundtrip(
+        #[strategy(159_992_928_000_000_000_u64..)] ft: u64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
             DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
         );
     }
@@ -661,6 +697,26 @@ mod tests {
             FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:00))).unwrap(),
             FileTime::new(119_600_640_000_000_000)
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_dos_date_time_roundtrip(
+        #[strategy(1980..=2107_u16)] year: u16,
+        #[strategy(1..=12_u8)] month: u8,
+        #[strategy(1..=31_u8)] day: u8,
+        #[strategy(..=23_u8)] hour: u8,
+        #[strategy(..=59_u8)] minute: u8,
+        #[strategy(..=58_u8)] second: u8,
+    ) {
+        use proptest::{prop_assert, prop_assume};
+
+        prop_assume!(Date::from_calendar_date(year.into(), month.try_into().unwrap(), day).is_ok());
+        prop_assume!(Time::from_hms(hour, minute, second).is_ok());
+
+        let date = u16::from(day) + (u16::from(month) << 5) + ((year - 1980) << 9);
+        let time = u16::from(second / 2) + (u16::from(minute) << 5) + (u16::from(hour) << 11);
+        prop_assert!(FileTime::from_dos_date_time(date, time, None, None).is_ok());
     }
 
     #[test]
