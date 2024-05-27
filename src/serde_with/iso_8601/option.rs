@@ -19,24 +19,27 @@
 //!     FileTime,
 //! };
 //!
-//! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "iso_8601::option")] Option<FileTime>);
+//! #[derive(Deserialize, Serialize)]
+//! struct Time {
+//!     #[serde(with = "iso_8601::option")]
+//!     time: Option<FileTime>,
+//! }
 //!
-//! let json = serde_json::to_string(&DateTime(Some(FileTime::UNIX_EPOCH))).unwrap();
-//! assert_eq!(json, r#""+001970-01-01T00:00:00.000000000Z""#);
+//! let ft = Time {
+//!     time: Some(FileTime::UNIX_EPOCH),
+//! };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":"+001970-01-01T00:00:00.000000000Z"}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(Some(FileTime::UNIX_EPOCH))
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, Some(FileTime::UNIX_EPOCH));
 //!
-//! let json = serde_json::to_string(&DateTime(None)).unwrap();
-//! assert_eq!(json, "null");
+//! let ft = Time { time: None };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":null}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(None)
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, None);
 //! ```
 //!
 //! [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
@@ -85,30 +88,55 @@ mod tests {
 
     use super::*;
 
-    #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde_with::iso_8601::option")] Option<FileTime>);
+    #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+    struct Test {
+        #[serde(with = "crate::serde_with::iso_8601::option")]
+        time: Option<FileTime>,
+    }
 
     #[test]
     fn serde() {
         assert_tokens(
-            &Test(Some(FileTime::NT_TIME_EPOCH)),
+            &Test {
+                time: Some(FileTime::NT_TIME_EPOCH),
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+001601-01-01T00:00:00.000000000Z"),
+                Token::StructEnd,
             ],
         );
         assert_tokens(
-            &Test(Some(FileTime::UNIX_EPOCH)),
+            &Test {
+                time: Some(FileTime::UNIX_EPOCH),
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+001970-01-01T00:00:00.000000000Z"),
+                Token::StructEnd,
             ],
         );
         assert_tokens(
-            &Test(None),
-            &[Token::NewtypeStruct { name: "Test" }, Token::None],
+            &Test { time: None },
+            &[
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
+                Token::None,
+                Token::StructEnd,
+            ],
         );
     }
 
@@ -116,11 +144,18 @@ mod tests {
     #[test]
     fn serde_with_large_dates() {
         assert_tokens(
-            &Test(Some(FileTime::MAX)),
+            &Test {
+                time: Some(FileTime::MAX),
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+060056-05-28T05:36:10.955161500Z"),
+                Token::StructEnd,
             ],
         );
     }
@@ -129,9 +164,14 @@ mod tests {
     fn deserialize_error() {
         assert_de_tokens_error::<Test>(
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
+                Token::StructEnd,
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );
@@ -142,9 +182,14 @@ mod tests {
     fn deserialize_error_without_large_dates() {
         assert_de_tokens_error::<Test>(
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+010000-01-01T00:00:00.000000000Z"),
+                Token::StructEnd,
             ],
             "unexpected trailing characters; the end of input was expected",
         );
@@ -155,9 +200,14 @@ mod tests {
     fn deserialize_error_with_large_dates() {
         assert_de_tokens_error::<Test>(
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("+060056-05-28T05:36:10.955161600Z"),
+                Token::StructEnd,
             ],
             "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
@@ -166,44 +216,66 @@ mod tests {
     #[test]
     fn serialize_json() {
         assert_eq!(
-            serde_json::to_string(&Test(Some(FileTime::NT_TIME_EPOCH))).unwrap(),
-            r#""+001601-01-01T00:00:00.000000000Z""#
+            serde_json::to_string(&Test {
+                time: Some(FileTime::NT_TIME_EPOCH)
+            })
+            .unwrap(),
+            r#"{"time":"+001601-01-01T00:00:00.000000000Z"}"#
         );
         assert_eq!(
-            serde_json::to_string(&Test(Some(FileTime::UNIX_EPOCH))).unwrap(),
-            r#""+001970-01-01T00:00:00.000000000Z""#
+            serde_json::to_string(&Test {
+                time: Some(FileTime::UNIX_EPOCH)
+            })
+            .unwrap(),
+            r#"{"time":"+001970-01-01T00:00:00.000000000Z"}"#
         );
-        assert_eq!(serde_json::to_string(&Test(None)).unwrap(), "null");
+        assert_eq!(
+            serde_json::to_string(&Test { time: None }).unwrap(),
+            r#"{"time":null}"#
+        );
     }
 
     #[cfg(feature = "large-dates")]
     #[test]
     fn serialize_json_with_large_dates() {
         assert_eq!(
-            serde_json::to_string(&Test(Some(FileTime::MAX))).unwrap(),
-            r#""+060056-05-28T05:36:10.955161500Z""#
+            serde_json::to_string(&Test {
+                time: Some(FileTime::MAX)
+            })
+            .unwrap(),
+            r#"{"time":"+060056-05-28T05:36:10.955161500Z"}"#
         );
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1601-01-01T00:00:00Z""#).unwrap(),
-            Test(Some(FileTime::NT_TIME_EPOCH))
+            serde_json::from_str::<Test>(r#"{"time":"1601-01-01T00:00:00Z"}"#).unwrap(),
+            Test {
+                time: Some(FileTime::NT_TIME_EPOCH)
+            }
         );
         assert_eq!(
-            serde_json::from_str::<Test>(r#""1970-01-01T00:00:00Z""#).unwrap(),
-            Test(Some(FileTime::UNIX_EPOCH))
+            serde_json::from_str::<Test>(r#"{"time":"1970-01-01T00:00:00Z"}"#).unwrap(),
+            Test {
+                time: Some(FileTime::UNIX_EPOCH)
+            }
         );
-        assert_eq!(serde_json::from_str::<Test>("null").unwrap(), Test(None));
+        assert_eq!(
+            serde_json::from_str::<Test>(r#"{"time":null}"#).unwrap(),
+            Test { time: None }
+        );
     }
 
     #[cfg(feature = "large-dates")]
     #[test]
     fn deserialize_json_with_large_dates() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""+060056-05-28T05:36:10.955161500Z""#).unwrap(),
-            Test(Some(FileTime::MAX))
+            serde_json::from_str::<Test>(r#"{"time":"+060056-05-28T05:36:10.955161500Z"}"#)
+                .unwrap(),
+            Test {
+                time: Some(FileTime::MAX)
+            }
         );
     }
 }
