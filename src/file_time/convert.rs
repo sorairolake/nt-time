@@ -538,6 +538,14 @@ mod tests {
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_file_time_to_u64_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(u64::from(ft), ft.to_raw());
+    }
+
     #[test]
     fn try_from_file_time_to_i64() {
         assert_eq!(
@@ -552,6 +560,18 @@ mod tests {
             i64::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
             i64::MAX
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn try_from_file_time_to_i64_roundtrip(ft: FileTime) {
+        use proptest::prop_assert;
+
+        if ft <= FileTime::new(i64::MAX.try_into().unwrap()) {
+            prop_assert!(i64::try_from(ft).is_ok());
+        } else {
+            prop_assert!(i64::try_from(ft).is_err());
+        }
     }
 
     #[test]
@@ -766,6 +786,14 @@ mod tests {
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_u64_to_file_time_roundtrip(ft: u64) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(FileTime::from(ft), FileTime::new(ft));
+    }
+
     #[test]
     fn try_from_i64_to_file_time_before_nt_time_epoch() {
         assert_eq!(
@@ -774,6 +802,19 @@ mod tests {
         );
         assert_eq!(
             FileTime::try_from(i64::default() - 1).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn try_from_i64_to_file_time_before_nt_time_epoch_roundtrip(
+        #[strategy(..i64::default())] ft: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::try_from(ft).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -792,6 +833,14 @@ mod tests {
             FileTime::try_from(i64::MAX).unwrap(),
             FileTime::new(i64::MAX.try_into().unwrap())
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn try_from_i64_to_file_time_roundtrip(#[strategy(i64::default()..)] ft: i64) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::try_from(ft).is_ok());
     }
 
     #[cfg(feature = "std")]

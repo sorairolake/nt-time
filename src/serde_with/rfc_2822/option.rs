@@ -16,24 +16,27 @@
 //!     FileTime,
 //! };
 //!
-//! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "rfc_2822::option")] Option<FileTime>);
+//! #[derive(Deserialize, Serialize)]
+//! struct Time {
+//!     #[serde(with = "rfc_2822::option")]
+//!     time: Option<FileTime>,
+//! }
 //!
-//! let json = serde_json::to_string(&DateTime(Some(FileTime::UNIX_EPOCH))).unwrap();
-//! assert_eq!(json, r#""Thu, 01 Jan 1970 00:00:00 +0000""#);
+//! let ft = Time {
+//!     time: Some(FileTime::UNIX_EPOCH),
+//! };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(Some(FileTime::UNIX_EPOCH))
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, Some(FileTime::UNIX_EPOCH));
 //!
-//! let json = serde_json::to_string(&DateTime(None)).unwrap();
-//! assert_eq!(json, "null");
+//! let ft = Time { time: None };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":null}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(None)
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, None);
 //! ```
 //!
 //! [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
@@ -82,30 +85,56 @@ mod tests {
 
     use super::*;
 
-    #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde_with::rfc_2822::option")] Option<FileTime>);
+    #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+    struct Test {
+        #[serde(with = "crate::serde_with::rfc_2822::option")]
+        time: Option<FileTime>,
+    }
 
     #[test]
     fn serde() {
         assert_tokens(
-            &Test(Some(FileTime::UNIX_EPOCH)),
+            &Test {
+                time: Some(FileTime::UNIX_EPOCH),
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::Some,
                 Token::BorrowedStr("Thu, 01 Jan 1970 00:00:00 +0000"),
+                Token::StructEnd,
             ],
         );
         assert_tokens(
-            &Test(None),
-            &[Token::NewtypeStruct { name: "Test" }, Token::None],
+            &Test { time: None },
+            &[
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
+                Token::None,
+                Token::StructEnd,
+            ],
         );
     }
 
     #[test]
     fn serialize_error() {
         assert_ser_tokens_error::<Test>(
-            &Test(Some(FileTime::NT_TIME_EPOCH)),
-            &[Token::NewtypeStruct { name: "Test" }],
+            &Test {
+                time: Some(FileTime::NT_TIME_EPOCH),
+            },
+            &[
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
+            ],
             "The year component cannot be formatted into the requested format.",
         );
     }
@@ -113,18 +142,29 @@ mod tests {
     #[test]
     fn serialize_json() {
         assert_eq!(
-            serde_json::to_string(&Test(Some(FileTime::UNIX_EPOCH))).unwrap(),
-            r#""Thu, 01 Jan 1970 00:00:00 +0000""#
+            serde_json::to_string(&Test {
+                time: Some(FileTime::UNIX_EPOCH)
+            })
+            .unwrap(),
+            r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#
         );
-        assert_eq!(serde_json::to_string(&Test(None)).unwrap(), "null");
+        assert_eq!(
+            serde_json::to_string(&Test { time: None }).unwrap(),
+            r#"{"time":null}"#
+        );
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""Thu, 01 Jan 1970 00:00:00 +0000""#).unwrap(),
-            Test(Some(FileTime::UNIX_EPOCH))
+            serde_json::from_str::<Test>(r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#).unwrap(),
+            Test {
+                time: Some(FileTime::UNIX_EPOCH)
+            }
         );
-        assert_eq!(serde_json::from_str::<Test>("null").unwrap(), Test(None));
+        assert_eq!(
+            serde_json::from_str::<Test>(r#"{"time":null}"#).unwrap(),
+            Test { time: None }
+        );
     }
 }

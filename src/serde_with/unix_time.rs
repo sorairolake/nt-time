@@ -15,16 +15,20 @@
 //!     FileTime,
 //! };
 //!
-//! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "unix_time")] FileTime);
+//! #[derive(Deserialize, Serialize)]
+//! struct Time {
+//!     #[serde(with = "unix_time")]
+//!     time: FileTime,
+//! }
 //!
-//! let json = serde_json::to_string(&DateTime(FileTime::UNIX_EPOCH)).unwrap();
-//! assert_eq!(json, "0");
+//! let ft = Time {
+//!     time: FileTime::UNIX_EPOCH,
+//! };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":0}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(FileTime::UNIX_EPOCH)
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, FileTime::UNIX_EPOCH);
 //! ```
 //!
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
@@ -53,7 +57,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::from_unix_time(i64::deserialize(deserializer)?).map_err(D::Error::custom)
+    FileTime::from_unix_time(<_>::deserialize(deserializer)?).map_err(D::Error::custom)
 }
 
 #[cfg(test)]
@@ -66,23 +70,40 @@ mod tests {
 
     use super::*;
 
-    #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde_with::unix_time")] FileTime);
+    #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+    struct Test {
+        #[serde(with = "crate::serde_with::unix_time")]
+        time: FileTime,
+    }
 
     #[test]
     fn serde() {
         assert_tokens(
-            &Test(FileTime::NT_TIME_EPOCH),
+            &Test {
+                time: FileTime::NT_TIME_EPOCH,
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(-11_644_473_600),
+                Token::StructEnd,
             ],
         );
         assert_tokens(
-            &Test(FileTime::UNIX_EPOCH),
+            &Test {
+                time: FileTime::UNIX_EPOCH,
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(i64::default()),
+                Token::StructEnd,
             ],
         );
     }
@@ -90,10 +111,17 @@ mod tests {
     #[test]
     fn serialize() {
         assert_ser_tokens(
-            &Test(FileTime::MAX),
+            &Test {
+                time: FileTime::MAX,
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(1_833_029_933_770),
+                Token::StructEnd,
             ],
         );
     }
@@ -101,10 +129,17 @@ mod tests {
     #[test]
     fn deserialize() {
         assert_de_tokens(
-            &Test(FileTime::MAX - Duration::from_nanos(955_161_500)),
+            &Test {
+                time: FileTime::MAX - Duration::from_nanos(955_161_500),
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(1_833_029_933_770),
+                Token::StructEnd,
             ],
         );
     }
@@ -113,15 +148,25 @@ mod tests {
     fn deserialize_error() {
         assert_de_tokens_error::<Test>(
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(-11_644_473_601),
+                Token::StructEnd,
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );
         assert_de_tokens_error::<Test>(
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::I64(1_833_029_933_771),
+                Token::StructEnd,
             ],
             "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
@@ -130,32 +175,69 @@ mod tests {
     #[test]
     fn serialize_json() {
         assert_eq!(
-            serde_json::to_string(&Test(FileTime::NT_TIME_EPOCH)).unwrap(),
-            "-11644473600"
+            serde_json::to_string(&Test {
+                time: FileTime::NT_TIME_EPOCH
+            })
+            .unwrap(),
+            r#"{"time":-11644473600}"#
         );
         assert_eq!(
-            serde_json::to_string(&Test(FileTime::UNIX_EPOCH)).unwrap(),
-            "0"
+            serde_json::to_string(&Test {
+                time: FileTime::UNIX_EPOCH
+            })
+            .unwrap(),
+            r#"{"time":0}"#
         );
         assert_eq!(
-            serde_json::to_string(&Test(FileTime::MAX)).unwrap(),
-            "1833029933770"
+            serde_json::to_string(&Test {
+                time: FileTime::MAX
+            })
+            .unwrap(),
+            r#"{"time":1833029933770}"#
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn serialize_json_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
+        use proptest::prop_assert_eq;
+
+        let ft = Test {
+            time: FileTime::from_unix_time(ts).unwrap(),
+        };
+        let json = serde_json::to_string(&ft).unwrap();
+        prop_assert_eq!(json, format!(r#"{{"time":{ts}}}"#));
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>("-11644473600").unwrap(),
-            Test(FileTime::NT_TIME_EPOCH)
+            serde_json::from_str::<Test>(r#"{"time":-11644473600}"#).unwrap(),
+            Test {
+                time: FileTime::NT_TIME_EPOCH
+            }
         );
         assert_eq!(
-            serde_json::from_str::<Test>("0").unwrap(),
-            Test(FileTime::UNIX_EPOCH)
+            serde_json::from_str::<Test>(r#"{"time":0}"#).unwrap(),
+            Test {
+                time: FileTime::UNIX_EPOCH
+            }
         );
         assert_eq!(
-            serde_json::from_str::<Test>("1833029933770").unwrap(),
-            Test(FileTime::MAX - Duration::from_nanos(955_161_500))
+            serde_json::from_str::<Test>(r#"{"time":1833029933770}"#).unwrap(),
+            Test {
+                time: FileTime::MAX - Duration::from_nanos(955_161_500)
+            }
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn deserialize_json_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
+        use proptest::prop_assert_eq;
+
+        let json = format!(r#"{{"time":{ts}}}"#);
+        let ft = serde_json::from_str::<Test>(&json).unwrap();
+        prop_assert_eq!(ft.time, FileTime::from_unix_time(ts).unwrap());
     }
 }

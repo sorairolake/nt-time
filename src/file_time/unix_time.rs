@@ -158,6 +158,15 @@ mod tests {
         assert_eq!(FileTime::MAX.to_unix_time(), 1_833_029_933_770);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_unix_time_roundtrip(ft: u64) {
+        use proptest::prop_assert;
+
+        let ts = FileTime::new(ft).to_unix_time();
+        prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+    }
+
     #[test]
     fn to_unix_time_nanos() {
         assert_eq!(
@@ -171,6 +180,15 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_unix_time_nanos_roundtrip(ft: u64) {
+        use proptest::prop_assert;
+
+        let ts = FileTime::new(ft).to_unix_time_nanos();
+        prop_assert!((-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500).contains(&ts));
+    }
+
     #[test]
     fn from_unix_time_before_nt_time_epoch() {
         assert_eq!(
@@ -179,6 +197,17 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_time(i64::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_before_nt_time_epoch_roundtrip(#[strategy(..=-11_644_473_601_i64)] ts: i64) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time(ts).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -201,6 +230,14 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::from_unix_time(ts).is_ok());
+    }
+
     #[test]
     fn from_unix_time_with_too_big_date_time() {
         assert_eq!(
@@ -213,6 +250,19 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_with_too_big_date_time_roundtrip(
+        #[strategy(1_833_029_933_771_i64..)] ts: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time(ts).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
     #[test]
     fn from_unix_time_nanos_before_nt_time_epoch() {
         assert_eq!(
@@ -221,6 +271,19 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::MIN).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_nanos_before_nt_time_epoch_roundtrip(
+        #[strategy(..=-11_644_473_600_000_000_100_i128)] ts: i128,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_nanos(ts).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
         );
     }
@@ -241,6 +304,16 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_nanos_roundtrip(
+        #[strategy(-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500_i128)] ts: i128,
+    ) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::from_unix_time_nanos(ts).is_ok());
+    }
+
     #[test]
     fn from_unix_time_nanos_with_too_big_date_time() {
         assert_eq!(
@@ -249,6 +322,19 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::MAX).unwrap_err(),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_nanos_with_too_big_date_time_roundtrip(
+        #[strategy(1_833_029_933_770_955_161_501_i128..)] ts: i128,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_nanos(ts).unwrap_err(),
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
         );
     }

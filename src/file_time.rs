@@ -41,6 +41,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
 /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -99,24 +100,6 @@ impl FileTime {
     #[inline]
     pub const fn to_raw(self) -> u64 {
         self.0
-    }
-
-    /// Returns the contents of this `FileTime` as the underlying [`u64`] value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
-    /// assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
-    /// assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
-    /// ```
-    #[deprecated(since = "0.5.0", note = "use `FileTime::to_raw` instead")]
-    #[must_use]
-    #[inline]
-    pub const fn as_u64(self) -> u64 {
-        self.to_raw()
     }
 
     /// Returns the memory representation of this `FileTime` as a byte array in
@@ -334,14 +317,6 @@ mod tests {
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     }
 
-    #[allow(deprecated)]
-    #[test]
-    fn as_u64() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.as_u64(), u64::MIN);
-        assert_eq!(FileTime::UNIX_EPOCH.as_u64(), 116_444_736_000_000_000);
-        assert_eq!(FileTime::MAX.as_u64(), u64::MAX);
-    }
-
     #[test]
     fn to_be_bytes() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
@@ -352,6 +327,14 @@ mod tests {
         assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_be_bytes_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(ft.to_be_bytes(), ft.to_raw().to_be_bytes());
+    }
+
     #[test]
     fn to_le_bytes() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
@@ -360,6 +343,14 @@ mod tests {
             [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
         );
         assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_le_bytes_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
     }
 
     #[test]
@@ -375,6 +366,17 @@ mod tests {
         assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     }
 
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_be_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_be_bytes(bytes),
+            FileTime::new(u64::from_be_bytes(bytes))
+        );
+    }
+
     #[test]
     fn from_le_bytes() {
         assert_eq!(
@@ -386,6 +388,17 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_le_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_le_bytes(bytes),
+            FileTime::new(u64::from_le_bytes(bytes))
+        );
     }
 
     #[test]
@@ -413,6 +426,15 @@ mod tests {
             FileTime::from_str("+18446744073709551615").unwrap(),
             FileTime::MAX
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_str_roundtrip(#[strategy(r"\+?[0-9]{1,19}")] s: std::string::String) {
+        use proptest::prop_assert_eq;
+
+        let ft = s.parse().unwrap();
+        prop_assert_eq!(FileTime::from_str(&s).unwrap(), FileTime::new(ft));
     }
 
     #[cfg(feature = "std")]
@@ -503,6 +525,16 @@ mod tests {
                 .kind(),
             &IntErrorKind::InvalidDigit
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_str_with_invalid_digit_roundtrip(
+        #[strategy(r"-[0-9]+|[^0-9]+")] s: std::string::String,
+    ) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::from_str(&s).is_err());
     }
 
     #[cfg(feature = "std")]

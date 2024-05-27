@@ -16,16 +16,20 @@
 //!     FileTime,
 //! };
 //!
-//! #[derive(Debug, Deserialize, PartialEq, Serialize)]
-//! struct DateTime(#[serde(with = "rfc_2822")] FileTime);
+//! #[derive(Deserialize, Serialize)]
+//! struct Time {
+//!     #[serde(with = "rfc_2822")]
+//!     time: FileTime,
+//! }
 //!
-//! let json = serde_json::to_string(&DateTime(FileTime::UNIX_EPOCH)).unwrap();
-//! assert_eq!(json, r#""Thu, 01 Jan 1970 00:00:00 +0000""#);
+//! let ft = Time {
+//!     time: FileTime::UNIX_EPOCH,
+//! };
+//! let json = serde_json::to_string(&ft).unwrap();
+//! assert_eq!(json, r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#);
 //!
-//! assert_eq!(
-//!     serde_json::from_str::<DateTime>(&json).unwrap(),
-//!     DateTime(FileTime::UNIX_EPOCH)
-//! );
+//! let ft: Time = serde_json::from_str(&json).unwrap();
+//! assert_eq!(ft.time, FileTime::UNIX_EPOCH);
 //! ```
 //!
 //! [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
@@ -65,16 +69,26 @@ mod tests {
 
     use super::*;
 
-    #[derive(Debug, Deserialize, PartialEq, Serialize)]
-    struct Test(#[serde(with = "crate::serde_with::rfc_2822")] FileTime);
+    #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
+    struct Test {
+        #[serde(with = "crate::serde_with::rfc_2822")]
+        time: FileTime,
+    }
 
     #[test]
     fn serde() {
         assert_tokens(
-            &Test(FileTime::UNIX_EPOCH),
+            &Test {
+                time: FileTime::UNIX_EPOCH,
+            },
             &[
-                Token::NewtypeStruct { name: "Test" },
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
                 Token::BorrowedStr("Thu, 01 Jan 1970 00:00:00 +0000"),
+                Token::StructEnd,
             ],
         );
     }
@@ -82,8 +96,16 @@ mod tests {
     #[test]
     fn serialize_error() {
         assert_ser_tokens_error::<Test>(
-            &Test(FileTime::NT_TIME_EPOCH),
-            &[Token::NewtypeStruct { name: "Test" }],
+            &Test {
+                time: FileTime::NT_TIME_EPOCH,
+            },
+            &[
+                Token::Struct {
+                    name: "Test",
+                    len: 1,
+                },
+                Token::Str("time"),
+            ],
             "The year component cannot be formatted into the requested format.",
         );
     }
@@ -91,16 +113,21 @@ mod tests {
     #[test]
     fn serialize_json() {
         assert_eq!(
-            serde_json::to_string(&Test(FileTime::UNIX_EPOCH)).unwrap(),
-            r#""Thu, 01 Jan 1970 00:00:00 +0000""#
+            serde_json::to_string(&Test {
+                time: FileTime::UNIX_EPOCH
+            })
+            .unwrap(),
+            r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#
         );
     }
 
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#""Thu, 01 Jan 1970 00:00:00 +0000""#).unwrap(),
-            Test(FileTime::UNIX_EPOCH)
+            serde_json::from_str::<Test>(r#"{"time":"Thu, 01 Jan 1970 00:00:00 +0000"}"#).unwrap(),
+            Test {
+                time: FileTime::UNIX_EPOCH
+            }
         );
     }
 }
