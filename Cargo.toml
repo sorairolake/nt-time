@@ -52,7 +52,7 @@ required-features = ["default"]
 chrono = { version = "0.4.38", default-features = false, optional = true }
 serde = { version = "1.0.203", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.36", default-features = false, features = ["macros"] }
-zip = { version = "2.1.0", default-features = false, optional = true }
+zip = { version = "2.1.2", default-features = false, optional = true }
 
 [dev-dependencies]
 anyhow = "1.0.86"
