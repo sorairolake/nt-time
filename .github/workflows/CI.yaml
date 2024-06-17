@@ -10,7 +10,7 @@ on:
     branches:
       - "develop"
       - "master"
-      - "release/**"
+      - 'release/**'
   schedule:
     - cron: "0 0 * * 0"
 
