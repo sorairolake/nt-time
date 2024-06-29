@@ -12,8 +12,8 @@ use core::{
 /// The error type indicating that [MS-DOS date and time] was out of range.
 ///
 /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct DosDateTimeRangeError(DosDateTimeRangeErrorKind);
 
 impl DosDateTimeRangeError {
@@ -90,8 +90,8 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
 
 /// The error type indicating that a [`FileTime`](crate::FileTime) was out of
 /// range.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FileTimeRangeError(FileTimeRangeErrorKind);
 
 impl FileTimeRangeError {
@@ -166,8 +166,8 @@ impl fmt::Display for FileTimeRangeErrorKind {
 }
 
 /// An error which can be returned when parsing a [`FileTime`](crate::FileTime).
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct ParseFileTimeError(ParseIntError);
 
 impl ParseFileTimeError {

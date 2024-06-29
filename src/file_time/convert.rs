@@ -708,8 +708,8 @@ mod tests {
     }
 
     #[cfg(feature = "zip")]
-    #[allow(clippy::cognitive_complexity)]
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn try_from_file_time_to_zip_date_time() {
         use zip::DateTime;
 
