@@ -59,7 +59,7 @@ anyhow = "1.0.86"
 clap = { version = "4.5.8", features = ["derive"] }
 proptest = "1.5.0"
 proptest-derive = "0.5.0"
-serde_json = "1.0.118"
+serde_json = "1.0.120"
 serde_test = "1.0.176"
 test-strategy = "0.3.1"
 
