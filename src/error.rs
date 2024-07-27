@@ -58,6 +58,12 @@ impl fmt::Display for DosDateTimeRangeError {
 #[cfg(feature = "std")]
 impl std::error::Error for DosDateTimeRangeError {}
 
+impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
+    fn from(kind: DosDateTimeRangeErrorKind) -> Self {
+        Self::new(kind)
+    }
+}
+
 /// Details of the error that caused a [`DosDateTimeRangeError`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DosDateTimeRangeErrorKind {
@@ -132,6 +138,12 @@ impl fmt::Display for FileTimeRangeError {
 
 #[cfg(feature = "std")]
 impl std::error::Error for FileTimeRangeError {}
+
+impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
+    fn from(kind: FileTimeRangeErrorKind) -> Self {
+        Self::new(kind)
+    }
+}
 
 /// Details of the error that caused a [`FileTimeRangeError`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -319,6 +331,18 @@ mod tests {
     }
 
     #[test]
+    fn from_dos_date_time_range_error_kind_to_dos_date_time_range_error() {
+        assert_eq!(
+            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Negative),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Overflow),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+        );
+    }
+
+    #[test]
     fn clone_dos_date_time_range_error_kind() {
         assert_eq!(
             DosDateTimeRangeErrorKind::Negative.clone(),
@@ -495,6 +519,18 @@ mod tests {
         assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             .source()
             .is_none());
+    }
+
+    #[test]
+    fn from_file_time_range_error_kind_to_file_time_range_error() {
+        assert_eq!(
+            FileTimeRangeError::from(FileTimeRangeErrorKind::Negative),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTimeRangeError::from(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
     }
 
     #[test]

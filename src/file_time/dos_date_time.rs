@@ -129,14 +129,10 @@ impl FileTime {
         let dt = OffsetDateTime::try_from(self)
             .ok()
             .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
-            .ok_or_else(|| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
+            .ok_or(DosDateTimeRangeErrorKind::Overflow)?;
         match dt.year() {
-            ..=1979 => Err(DosDateTimeRangeError::new(
-                DosDateTimeRangeErrorKind::Negative,
-            )),
-            2108.. => Err(DosDateTimeRangeError::new(
-                DosDateTimeRangeErrorKind::Overflow,
-            )),
+            ..=1979 => Err(DosDateTimeRangeErrorKind::Negative.into()),
+            2108.. => Err(DosDateTimeRangeErrorKind::Overflow.into()),
             _ => {
                 let (date, time) = (dt.date(), dt.time());
 
@@ -318,28 +314,28 @@ mod tests {
             FileTime::new(119_600_063_980_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1979-12-31 23:59:59 UTC`.
         assert_eq!(
             FileTime::new(119_600_063_990_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1980-01-01 00:59:58 UTC`.
         assert_eq!(
             FileTime::new(119_600_099_980_000_000)
                 .to_dos_date_time(Some(offset!(-01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1980-01-01 00:59:59 UTC`.
         assert_eq!(
             FileTime::new(119_600_099_990_000_000)
                 .to_dos_date_time(Some(offset!(-01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -352,7 +348,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -537,14 +533,14 @@ mod tests {
             FileTime::new(159_992_928_000_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
         // `2107-12-31 23:00:00 UTC`.
         assert_eq!(
             FileTime::new(159_992_892_000_000_000)
                 .to_dos_date_time(Some(offset!(+01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -557,7 +553,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
     }
 
