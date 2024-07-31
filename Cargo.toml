@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.74.0"
@@ -58,7 +58,7 @@ anyhow = "1.0.86"
 clap = { version = "4.5.11", features = ["derive"] }
 proptest = "1.5.0"
 proptest-derive = "0.5.0"
-serde_json = "1.0.120"
+serde_json = "1.0.121"
 serde_test = "1.0.176"
 test-strategy = "0.4.0"
 
