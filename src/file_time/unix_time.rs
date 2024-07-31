@@ -94,10 +94,10 @@ impl FileTime {
     pub fn from_unix_time(timestamp: i64) -> Result<Self, FileTimeRangeError> {
         (timestamp <= 1_833_029_933_770)
             .then_some(timestamp)
-            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
             .and_then(|ts| {
                 u64::try_from(ts + 11_644_473_600)
-                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+                    .map_err(|_| FileTimeRangeErrorKind::Negative.into())
             })
             .map(|t| t * FILE_TIMES_PER_SEC)
             .map(Self::new)
@@ -137,11 +137,11 @@ impl FileTime {
     pub fn from_unix_time_nanos(timestamp: i128) -> Result<Self, FileTimeRangeError> {
         (timestamp <= 1_833_029_933_770_955_161_500)
             .then_some(timestamp)
-            .ok_or_else(|| FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow))
+            .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
             .and_then(|ts| {
                 ((ts + 11_644_473_600_000_000_000) / 100)
                     .try_into()
-                    .map_err(|_| FileTimeRangeError::new(FileTimeRangeErrorKind::Negative))
+                    .map_err(|_| FileTimeRangeErrorKind::Negative.into())
             })
             .map(Self::new)
     }
@@ -193,11 +193,11 @@ mod tests {
     fn from_unix_time_before_nt_time_epoch() {
         assert_eq!(
             FileTime::from_unix_time(-11_644_473_601).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
         assert_eq!(
             FileTime::from_unix_time(i64::MIN).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -208,7 +208,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::from_unix_time(ts).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -242,11 +242,11 @@ mod tests {
     fn from_unix_time_with_too_big_date_time() {
         assert_eq!(
             FileTime::from_unix_time(1_833_029_933_771).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
         assert_eq!(
             FileTime::from_unix_time(i64::MAX).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -259,7 +259,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::from_unix_time(ts).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -267,11 +267,11 @@ mod tests {
     fn from_unix_time_nanos_before_nt_time_epoch() {
         assert_eq!(
             FileTime::from_unix_time_nanos(-11_644_473_600_000_000_100).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::MIN).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -284,7 +284,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::from_unix_time_nanos(ts).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -318,11 +318,11 @@ mod tests {
     fn from_unix_time_nanos_with_too_big_date_time() {
         assert_eq!(
             FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_501).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::MAX).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -335,7 +335,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::from_unix_time_nanos(ts).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 }

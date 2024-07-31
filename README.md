@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.8.0"
+nt-time = "0.8.1"
 ```
 
 ### Example
@@ -87,7 +87,7 @@ See the [documentation][docs-url] for more details.
 
 ## Minimum supported Rust version
 
-The minimum supported Rust version (MSRV) of this library is v1.65.0.
+The minimum supported Rust version (MSRV) of this library is v1.74.0.
 
 ## Changelog
 
@@ -104,7 +104,7 @@ Copyright &copy; 2023&ndash;2024 Shun Sakai (see [AUTHORS.adoc])
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.
 
-This project is compliant with version 3.0 of the [_REUSE Specification_]. See
+This project is compliant with version 3.2 of the [_REUSE Specification_]. See
 copyright notices of individual files for more details on copyright and
 licensing information.
 

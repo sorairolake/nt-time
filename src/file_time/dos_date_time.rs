@@ -129,14 +129,10 @@ impl FileTime {
         let dt = OffsetDateTime::try_from(self)
             .ok()
             .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
-            .ok_or_else(|| DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow))?;
+            .ok_or(DosDateTimeRangeErrorKind::Overflow)?;
         match dt.year() {
-            ..=1979 => Err(DosDateTimeRangeError::new(
-                DosDateTimeRangeErrorKind::Negative,
-            )),
-            2108.. => Err(DosDateTimeRangeError::new(
-                DosDateTimeRangeErrorKind::Overflow,
-            )),
+            ..=1979 => Err(DosDateTimeRangeErrorKind::Negative.into()),
+            2108.. => Err(DosDateTimeRangeErrorKind::Overflow.into()),
             _ => {
                 let (date, time) = (dt.date(), dt.time());
 
@@ -318,28 +314,28 @@ mod tests {
             FileTime::new(119_600_063_980_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1979-12-31 23:59:59 UTC`.
         assert_eq!(
             FileTime::new(119_600_063_990_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1980-01-01 00:59:58 UTC`.
         assert_eq!(
             FileTime::new(119_600_099_980_000_000)
                 .to_dos_date_time(Some(offset!(-01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
         // `1980-01-01 00:59:59 UTC`.
         assert_eq!(
             FileTime::new(119_600_099_990_000_000)
                 .to_dos_date_time(Some(offset!(-01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -352,12 +348,12 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+            DosDateTimeRangeErrorKind::Negative.into()
         );
     }
 
-    #[allow(clippy::too_many_lines)]
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn to_dos_date_time() {
         // `1980-01-01 00:00:00 UTC`.
         assert_eq!(
@@ -537,14 +533,14 @@ mod tests {
             FileTime::new(159_992_928_000_000_000)
                 .to_dos_date_time(None)
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
         // `2107-12-31 23:00:00 UTC`.
         assert_eq!(
             FileTime::new(159_992_892_000_000_000)
                 .to_dos_date_time(Some(offset!(+01:00)))
                 .unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -557,13 +553,13 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time(None).unwrap_err(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
+            DosDateTimeRangeErrorKind::Overflow.into()
         );
     }
 
-    #[allow(clippy::should_panic_without_expect)]
     #[test]
     #[should_panic]
+    #[allow(clippy::should_panic_without_expect)]
     fn to_dos_date_time_with_invalid_positive_offset() {
         // From `1980-01-01 00:00:00 UTC` to `1980-01-01 16:00:00 +16:00`.
         let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(119_600_064_000_000_000)
@@ -571,9 +567,9 @@ mod tests {
             .unwrap();
     }
 
-    #[allow(clippy::should_panic_without_expect)]
     #[test]
     #[should_panic]
+    #[allow(clippy::should_panic_without_expect)]
     fn to_dos_date_time_with_invalid_negative_offset() {
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:44:58 -16:15`.
         let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(159_992_927_980_000_000)
@@ -738,25 +734,25 @@ mod tests {
         assert!(FileTime::from_dos_date_time(0x0021, 0xc000, None, None).is_err());
     }
 
-    #[allow(clippy::should_panic_without_expect)]
     #[test]
     #[should_panic]
+    #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_resolution() {
         let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     }
 
-    #[allow(clippy::should_panic_without_expect)]
     #[test]
     #[should_panic]
+    #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_positive_offset() {
         // From `2107-12-31 23:59:58 +16:00` to `2107-12-31 07:59:58 UTC`.
         let _: FileTime =
             FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
     }
 
-    #[allow(clippy::should_panic_without_expect)]
     #[test]
     #[should_panic]
+    #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_negative_offset() {
         // From `1980-01-01 00:00:00 -16:15` to `1980-01-01 16:15:00 UTC`.
         let _: FileTime =

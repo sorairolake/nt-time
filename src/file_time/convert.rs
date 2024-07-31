@@ -338,7 +338,7 @@ impl TryFrom<i64> for FileTime {
     #[inline]
     fn try_from(ft: i64) -> Result<Self, Self::Error> {
         ft.try_into()
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))
+            .map_err(|_| FileTimeRangeErrorKind::Negative.into())
             .map(Self::new)
     }
 }
@@ -387,9 +387,8 @@ impl TryFrom<std::time::SystemTime> for FileTime {
         let elapsed = st
             .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
             .map(|d| d.as_nanos())
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Negative))?;
-        let ft = u64::try_from(elapsed / 100)
-            .map_err(|_| Self::Error::new(FileTimeRangeErrorKind::Overflow))?;
+            .map_err(|_| FileTimeRangeErrorKind::Negative)?;
+        let ft = u64::try_from(elapsed / 100).map_err(|_| FileTimeRangeErrorKind::Overflow)?;
         Ok(Self::new(ft))
     }
 }
@@ -708,8 +707,8 @@ mod tests {
     }
 
     #[cfg(feature = "zip")]
-    #[allow(clippy::cognitive_complexity)]
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn try_from_file_time_to_zip_date_time() {
         use zip::DateTime;
 
@@ -798,11 +797,11 @@ mod tests {
     fn try_from_i64_to_file_time_before_nt_time_epoch() {
         assert_eq!(
             FileTime::try_from(i64::MIN).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
         assert_eq!(
             FileTime::try_from(i64::default() - 1).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -815,7 +814,7 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::try_from(ft).unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -855,7 +854,7 @@ mod tests {
                 SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
             })
             .unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -921,7 +920,7 @@ mod tests {
                     SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600)
                 )
                 .unwrap_err(),
-                FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+                FileTimeRangeErrorKind::Overflow.into()
             );
         }
     }
@@ -933,7 +932,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100))
                 .unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -984,7 +983,7 @@ mod tests {
                 datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
             )
             .unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 
@@ -999,7 +998,7 @@ mod tests {
                     - TimeDelta::nanoseconds(100)
             )
             .unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+            FileTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -1068,7 +1067,7 @@ mod tests {
                     + TimeDelta::nanoseconds(100)
             )
             .unwrap_err(),
-            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 

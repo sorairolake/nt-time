@@ -12,8 +12,8 @@ use core::{
 /// The error type indicating that [MS-DOS date and time] was out of range.
 ///
 /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct DosDateTimeRangeError(DosDateTimeRangeErrorKind);
 
 impl DosDateTimeRangeError {
@@ -58,6 +58,12 @@ impl fmt::Display for DosDateTimeRangeError {
 #[cfg(feature = "std")]
 impl std::error::Error for DosDateTimeRangeError {}
 
+impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
+    fn from(kind: DosDateTimeRangeErrorKind) -> Self {
+        Self::new(kind)
+    }
+}
+
 /// Details of the error that caused a [`DosDateTimeRangeError`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DosDateTimeRangeErrorKind {
@@ -90,8 +96,8 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
 
 /// The error type indicating that a [`FileTime`](crate::FileTime) was out of
 /// range.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct FileTimeRangeError(FileTimeRangeErrorKind);
 
 impl FileTimeRangeError {
@@ -133,6 +139,12 @@ impl fmt::Display for FileTimeRangeError {
 #[cfg(feature = "std")]
 impl std::error::Error for FileTimeRangeError {}
 
+impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
+    fn from(kind: FileTimeRangeErrorKind) -> Self {
+        Self::new(kind)
+    }
+}
+
 /// Details of the error that caused a [`FileTimeRangeError`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FileTimeRangeErrorKind {
@@ -166,8 +178,8 @@ impl fmt::Display for FileTimeRangeErrorKind {
 }
 
 /// An error which can be returned when parsing a [`FileTime`](crate::FileTime).
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct ParseFileTimeError(ParseIntError);
 
 impl ParseFileTimeError {
@@ -315,6 +327,18 @@ mod tests {
             DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
                 .source()
                 .is_none()
+        );
+    }
+
+    #[test]
+    fn from_dos_date_time_range_error_kind_to_dos_date_time_range_error() {
+        assert_eq!(
+            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Negative),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Overflow),
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
         );
     }
 
@@ -495,6 +519,18 @@ mod tests {
         assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             .source()
             .is_none());
+    }
+
+    #[test]
+    fn from_file_time_range_error_kind_to_file_time_range_error() {
+        assert_eq!(
+            FileTimeRangeError::from(FileTimeRangeErrorKind::Negative),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+        );
+        assert_eq!(
+            FileTimeRangeError::from(FileTimeRangeErrorKind::Overflow),
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+        );
     }
 
     #[test]
