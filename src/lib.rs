@@ -113,7 +113,5 @@ pub use chrono;
 #[cfg(feature = "serde")]
 pub use serde;
 pub use time;
-#[cfg(feature = "zip")]
-pub use zip;
 
 pub use crate::file_time::FileTime;

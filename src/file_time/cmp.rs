@@ -61,22 +61,6 @@ impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
-#[cfg(feature = "zip")]
-impl PartialEq<FileTime> for zip::DateTime {
-    #[inline]
-    fn eq(&self, other: &FileTime) -> bool {
-        &FileTime::from(*self) == other
-    }
-}
-
-#[cfg(feature = "zip")]
-impl PartialEq<zip::DateTime> for FileTime {
-    #[inline]
-    fn eq(&self, other: &zip::DateTime) -> bool {
-        self == &Self::from(*other)
-    }
-}
-
 #[cfg(feature = "std")]
 impl PartialOrd<FileTime> for std::time::SystemTime {
     #[inline]
@@ -128,22 +112,6 @@ impl PartialOrd<chrono::DateTime<chrono::Utc>> for FileTime {
         use chrono::{DateTime, Utc};
 
         DateTime::<Utc>::from(*self).partial_cmp(other)
-    }
-}
-
-#[cfg(feature = "zip")]
-impl PartialOrd<FileTime> for zip::DateTime {
-    #[inline]
-    fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
-        FileTime::from(*self).partial_cmp(other)
-    }
-}
-
-#[cfg(feature = "zip")]
-impl PartialOrd<zip::DateTime> for FileTime {
-    #[inline]
-    fn partial_cmp(&self, other: &zip::DateTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
     }
 }
 
@@ -298,52 +266,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "zip")]
-    #[test]
-    fn equality_zip_date_time_and_file_time() {
-        use zip::DateTime;
-
-        assert_eq!(
-            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap(),
-            FileTime::new(159_992_927_980_000_000)
-        );
-        assert_ne!(
-            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap(),
-            FileTime::new(119_600_064_000_000_000)
-        );
-        assert_ne!(
-            DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap(),
-            FileTime::new(159_992_927_980_000_000)
-        );
-        assert_eq!(
-            DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap(),
-            FileTime::new(119_600_064_000_000_000)
-        );
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn equality_file_time_and_zip_date_time() {
-        use zip::DateTime;
-
-        assert_eq!(
-            FileTime::new(159_992_927_980_000_000),
-            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
-        );
-        assert_ne!(
-            FileTime::new(119_600_064_000_000_000),
-            DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
-        );
-        assert_ne!(
-            FileTime::new(159_992_927_980_000_000),
-            DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()
-        );
-        assert_eq!(
-            FileTime::new(119_600_064_000_000_000),
-            DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()
-        );
-    }
-
     #[cfg(feature = "std")]
     #[test]
     fn order_system_time_and_file_time() {
@@ -425,46 +347,5 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert!(FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn order_zip_date_time_and_file_time() {
-        use zip::DateTime;
-
-        assert!(
-            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()
-                < FileTime::new(159_992_927_980_000_000)
-        );
-        assert_eq!(
-            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30)
-                .unwrap()
-                .partial_cmp(&FileTime::new(131_869_247_100_000_000)),
-            Some(Ordering::Equal)
-        );
-        assert!(
-            DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()
-                > FileTime::new(119_600_064_000_000_000)
-        );
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn order_file_time_and_zip_date_time() {
-        use zip::DateTime;
-
-        assert!(
-            FileTime::new(131_869_247_100_000_000)
-                < DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()
-        );
-        assert_eq!(
-            FileTime::new(131_869_247_100_000_000)
-                .partial_cmp(&DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap()),
-            Some(Ordering::Equal)
-        );
-        assert!(
-            FileTime::new(131_869_247_100_000_000)
-                > DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()
-        );
     }
 }

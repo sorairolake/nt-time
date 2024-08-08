@@ -209,71 +209,6 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     }
 }
 
-#[cfg(feature = "zip")]
-impl TryFrom<FileTime> for zip::DateTime {
-    type Error = zip::result::DateTimeRangeError;
-
-    /// Converts a `FileTime` to a [`zip::DateTime`].
-    ///
-    /// This method returns the UTC date and time. The resolution of
-    /// [`zip::DateTime`] is 2 seconds, so the part of `ft` which is less than 2
-    /// seconds is truncated.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if `ft` is out of range for [`zip::DateTime`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::{zip::DateTime, FileTime};
-    /// #
-    /// # {
-    /// // `1980-01-01 00:00:00 UTC`.
-    /// let dt = DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap();
-    /// assert_eq!(dt.year(), 1980);
-    /// assert_eq!(dt.month(), 1);
-    /// assert_eq!(dt.day(), 1);
-    /// assert_eq!(dt.hour(), 0);
-    /// assert_eq!(dt.minute(), 0);
-    /// assert_eq!(dt.second(), 0);
-    /// # }
-    /// # {
-    /// // `2107-12-31 23:59:58 UTC`.
-    /// let dt = DateTime::try_from(FileTime::new(159_992_927_980_000_000)).unwrap();
-    /// assert_eq!(dt.year(), 2107);
-    /// assert_eq!(dt.month(), 12);
-    /// assert_eq!(dt.day(), 31);
-    /// assert_eq!(dt.hour(), 23);
-    /// assert_eq!(dt.minute(), 59);
-    /// assert_eq!(dt.second(), 58);
-    /// # }
-    ///
-    /// # {
-    /// // `2107-12-31 23:59:59 UTC`.
-    /// let dt = DateTime::try_from(FileTime::new(159_992_927_990_000_000)).unwrap();
-    /// assert_eq!(dt.year(), 2107);
-    /// assert_eq!(dt.month(), 12);
-    /// assert_eq!(dt.day(), 31);
-    /// assert_eq!(dt.hour(), 23);
-    /// assert_eq!(dt.minute(), 59);
-    /// assert_eq!(dt.second(), 58);
-    /// # }
-    ///
-    /// // Before `1980-01-01 00:00:00`.
-    /// assert!(DateTime::try_from(FileTime::new(119_600_063_990_000_000)).is_err());
-    /// // After `2107-12-31 23:59:58`.
-    /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
-    /// ```
-    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        use zip::result::DateTimeRangeError;
-
-        ft.to_dos_date_time(None)
-            .map_err(|_| DateTimeRangeError)
-            .and_then(|(date, time, ..)| Self::try_from_msdos(date, time))
-    }
-}
-
 impl From<u64> for FileTime {
     /// Converts the file time to a `FileTime`.
     ///
@@ -494,38 +429,6 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
-#[cfg(feature = "zip")]
-impl From<zip::DateTime> for FileTime {
-    /// Converts a [`zip::DateTime`] to a `FileTime`.
-    ///
-    /// This method assumes `dt` is in UTC.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `dt` is an invalid [`zip::DateTime`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::{zip::DateTime, FileTime};
-    /// #
-    /// assert_eq!(
-    ///     FileTime::from(DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap()),
-    ///     FileTime::new(119_600_064_000_000_000)
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from(DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap()),
-    ///     FileTime::new(159_992_927_980_000_000)
-    /// );
-    /// ```
-    fn from(dt: zip::DateTime) -> Self {
-        assert!(dt.is_valid());
-        let (date, time) = (dt.datepart(), dt.timepart());
-        Self::from_dos_date_time(date, time, None, None)
-            .expect("date and time should be valid as `zip::DateTime`")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -693,86 +596,6 @@ mod tests {
                 .parse::<DateTime<Utc>>()
                 .unwrap()
         );
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn try_from_file_time_to_zip_date_time_before_zip_date_time() {
-        use zip::DateTime;
-
-        // `1979-12-31 23:59:58 UTC`.
-        assert!(DateTime::try_from(FileTime::new(119_600_063_980_000_000)).is_err());
-        // `1979-12-31 23:59:59 UTC`.
-        assert!(DateTime::try_from(FileTime::new(119_600_063_990_000_000)).is_err());
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    #[allow(clippy::cognitive_complexity)]
-    fn try_from_file_time_to_zip_date_time() {
-        use zip::DateTime;
-
-        {
-            // `1980-01-01 00:00:00 UTC`.
-            let dt = DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap();
-            assert_eq!(dt.year(), 1980);
-            assert_eq!(dt.month(), 1);
-            assert_eq!(dt.day(), 1);
-            assert_eq!(dt.hour(), 0);
-            assert_eq!(dt.minute(), 0);
-            assert_eq!(dt.second(), 0);
-        }
-        {
-            // `1980-01-01 00:00:01 UTC`.
-            let dt = DateTime::try_from(FileTime::new(119_600_064_010_000_000)).unwrap();
-            assert_eq!(dt.year(), 1980);
-            assert_eq!(dt.month(), 1);
-            assert_eq!(dt.day(), 1);
-            assert_eq!(dt.hour(), 0);
-            assert_eq!(dt.minute(), 0);
-            assert_eq!(dt.second(), 0);
-        }
-        {
-            // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
-            //
-            // `2018-11-17 10:38:30 UTC`.
-            let dt = DateTime::try_from(FileTime::new(131_869_247_100_000_000)).unwrap();
-            assert_eq!(dt.year(), 2018);
-            assert_eq!(dt.month(), 11);
-            assert_eq!(dt.day(), 17);
-            assert_eq!(dt.hour(), 10);
-            assert_eq!(dt.minute(), 38);
-            assert_eq!(dt.second(), 30);
-        }
-        {
-            // `2107-12-31 23:59:58 UTC`.
-            let dt = DateTime::try_from(FileTime::new(159_992_927_980_000_000)).unwrap();
-            assert_eq!(dt.year(), 2107);
-            assert_eq!(dt.month(), 12);
-            assert_eq!(dt.day(), 31);
-            assert_eq!(dt.hour(), 23);
-            assert_eq!(dt.minute(), 59);
-            assert_eq!(dt.second(), 58);
-        }
-        {
-            // `2107-12-31 23:59:59 UTC`.
-            let dt = DateTime::try_from(FileTime::new(159_992_927_990_000_000)).unwrap();
-            assert_eq!(dt.year(), 2107);
-            assert_eq!(dt.month(), 12);
-            assert_eq!(dt.day(), 31);
-            assert_eq!(dt.hour(), 23);
-            assert_eq!(dt.minute(), 59);
-            assert_eq!(dt.second(), 58);
-        }
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn try_from_file_time_to_zip_date_time_after_zip_date_time() {
-        use zip::DateTime;
-
-        // `2108-01-01 00:00:00 UTC`.
-        assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     }
 
     #[test]
@@ -1069,33 +892,5 @@ mod tests {
             .unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
         );
-    }
-
-    #[cfg(feature = "zip")]
-    #[test]
-    fn from_zip_date_time_to_file_time() {
-        use zip::DateTime;
-
-        {
-            let dt = DateTime::from_date_and_time(1980, 1, 1, 0, 0, 0).unwrap();
-            assert_eq!(FileTime::from(dt), FileTime::new(119_600_064_000_000_000));
-        }
-        {
-            let dt = DateTime::from_date_and_time(1980, 1, 1, 0, 0, 1).unwrap();
-            assert_eq!(FileTime::from(dt), FileTime::new(119_600_064_000_000_000));
-        }
-        {
-            // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
-            let dt = DateTime::from_date_and_time(2018, 11, 17, 10, 38, 30).unwrap();
-            assert_eq!(FileTime::from(dt), FileTime::new(131_869_247_100_000_000));
-        }
-        {
-            let dt = DateTime::from_date_and_time(2107, 12, 31, 23, 59, 58).unwrap();
-            assert_eq!(FileTime::from(dt), FileTime::new(159_992_927_980_000_000));
-        }
-        {
-            let dt = DateTime::from_date_and_time(2107, 12, 31, 23, 59, 59).unwrap();
-            assert_eq!(FileTime::from(dt), FileTime::new(159_992_927_980_000_000));
-        }
     }
 }
