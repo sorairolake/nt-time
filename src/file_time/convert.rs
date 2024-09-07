@@ -38,8 +38,9 @@ impl TryFrom<FileTime> for i64 {
 
     /// Converts a `FileTime` to the file time.
     ///
-    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
-    /// [.NET],[^fromfiletime][^tofiletime] etc.
+    /// The file time is sometimes represented as an [`i64`] value, such as the
+    /// [`winrt::clock`] struct in [WinRT], or the [`DateTime.FromFileTime`]
+    /// method and the [`DateTime.ToFileTime`] method in [.NET].
     ///
     /// # Errors
     ///
@@ -62,13 +63,10 @@ impl TryFrom<FileTime> for i64 {
     /// assert!(i64::try_from(FileTime::MAX).is_err());
     /// ```
     ///
-    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
-    ///
-    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
-    ///
-    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
-    ///
+    /// [`winrt::clock`]: https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock
     /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [`DateTime.FromFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime
+    /// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
     /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
@@ -238,8 +236,9 @@ impl TryFrom<i64> for FileTime {
 
     /// Converts the file time to a `FileTime`.
     ///
-    /// The file time may be represented as an [`i64`] value in [WinRT],[^clock]
-    /// [.NET],[^fromfiletime][^tofiletime] etc.
+    /// The file time is sometimes represented as an [`i64`] value, such as the
+    /// [`winrt::clock`] struct in [WinRT], or the [`DateTime.FromFileTime`]
+    /// method and the [`DateTime.ToFileTime`] method in [.NET].
     ///
     /// # Errors
     ///
@@ -262,13 +261,10 @@ impl TryFrom<i64> for FileTime {
     /// assert!(FileTime::try_from(i64::MIN).is_err());
     /// ```
     ///
-    /// [^clock]: <https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock>
-    ///
-    /// [^fromfiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime>
-    ///
-    /// [^tofiletime]: <https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime>
-    ///
+    /// [`winrt::clock`]: https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock
     /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+    /// [`DateTime.FromFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime
+    /// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
     /// [.NET]: https://dotnet.microsoft.com/
     #[inline]
     fn try_from(ft: i64) -> Result<Self, Self::Error> {

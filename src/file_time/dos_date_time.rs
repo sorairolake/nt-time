@@ -38,8 +38,7 @@ impl FileTime {
     ///
     /// # Panics
     ///
-    /// Panics if `offset` is not in the range "UTC-16:00" to
-    /// "UTC+15:45".[^offsetfromutc-field]
+    /// Panics if `offset` is out of range for the [OffsetFromUtc field].
     ///
     /// # Examples
     ///
@@ -109,14 +108,13 @@ impl FileTime {
     /// );
     /// ```
     ///
-    /// [^offsetfromutc-field]: <https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field>
-    ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
     /// [finer resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
     /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
+    /// [OffsetFromUtc field]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field
     pub fn to_dos_date_time(
         self,
         offset: Option<UtcOffset>,
@@ -184,8 +182,7 @@ impl FileTime {
     /// Panics if any of the following are true:
     ///
     /// - `resolution` is greater than 199.
-    /// - `offset` is not in the range "UTC-16:00" to
-    ///   "UTC+15:45".[^offsetfromutc-field]
+    /// - `offset` is out of range for the [OffsetFromUtc field].
     ///
     /// # Examples
     ///
@@ -247,13 +244,12 @@ impl FileTime {
     /// let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     /// ```
     ///
-    /// [^offsetfromutc-field]: <https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field>
-    ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [exFAT]: https://en.wikipedia.org/wiki/ExFAT
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
     /// [finer resolution]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#749-10msincrement-fields
+    /// [OffsetFromUtc field]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#74101-offsetfromutc-field
     /// [UTC offset]: https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7410-utcoffset-fields
     pub fn from_dos_date_time(
         date: u16,
