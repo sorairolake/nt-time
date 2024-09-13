@@ -89,6 +89,16 @@ See the [documentation][docs-url] for more details.
 
 The minimum supported Rust version (MSRV) of this library is v1.74.0.
 
+## Source code
+
+The upstream repository is available at
+<https://github.com/sorairolake/nt-time.git>.
+
+The source code is also available at:
+
+- <https://gitlab.com/sorairolake/nt-time.git>
+- <https://codeberg.org/sorairolake/nt-time.git>
+
 ## Changelog
 
 Please see [CHANGELOG.adoc].
