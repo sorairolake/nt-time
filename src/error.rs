@@ -5,6 +5,7 @@
 //! Error types for this crate.
 
 use core::{
+    error::Error,
     fmt,
     num::{IntErrorKind, ParseIntError},
 };
@@ -55,8 +56,7 @@ impl fmt::Display for DosDateTimeRangeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for DosDateTimeRangeError {}
+impl Error for DosDateTimeRangeError {}
 
 impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
     fn from(kind: DosDateTimeRangeErrorKind) -> Self {
@@ -136,8 +136,7 @@ impl fmt::Display for FileTimeRangeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for FileTimeRangeError {}
+impl Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
     fn from(kind: FileTimeRangeErrorKind) -> Self {
@@ -204,10 +203,9 @@ impl fmt::Display for ParseFileTimeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ParseFileTimeError {
+impl Error for ParseFileTimeError {
     #[inline]
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.0)
     }
 }
@@ -313,11 +311,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_dos_date_time_range_error() {
-        use std::error::Error;
-
         assert!(
             DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
                 .source()
@@ -508,11 +503,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_file_time_range_error() {
-        use std::error::Error;
-
         assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
             .source()
             .is_none());
@@ -694,11 +686,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_parse_file_time_error() {
-        use std::error::Error;
-
         assert_eq!(
             ParseFileTimeError::new(u64::from_str("").unwrap_err())
                 .source()
