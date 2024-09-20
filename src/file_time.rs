@@ -259,6 +259,11 @@ impl FromStr for FileTime {
 
 #[cfg(test)]
 mod tests {
+    use core::{
+        error::Error,
+        num::{IntErrorKind, ParseIntError},
+    };
+
     use super::*;
 
     #[test]
@@ -437,14 +442,8 @@ mod tests {
         prop_assert_eq!(FileTime::from_str(&s).unwrap(), FileTime::new(ft));
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn from_str_when_empty() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
         assert_eq!(
             FileTime::from_str("")
                 .unwrap_err()
@@ -457,14 +456,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn from_str_with_invalid_digit() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
         assert_eq!(
             FileTime::from_str("a")
                 .unwrap_err()
@@ -537,14 +530,8 @@ mod tests {
         prop_assert!(FileTime::from_str(&s).is_err());
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn from_str_when_positive_overflow() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
         assert_eq!(
             FileTime::from_str("18446744073709551616")
                 .unwrap_err()

@@ -16,6 +16,11 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.8.1\...HEAD[Unreleased]
 
+=== Changed
+
+* Make `Error` trait available in `no_std` mode ({pull-request-url}/219[#219])
+* Bump MSRV to 1.81.0 ({pull-request-url}/219[#219])
+
 === Removed
 
 * Remove `zip::DateTime` integration ({pull-request-url}/210[#210])
