@@ -73,10 +73,6 @@ Enables the [`serde`] crate.
 Allows Serde representations to use a human-readable format. This implicitly
 enables the `serde` feature.
 
-#### `zip`
-
-Enables the [`zip`] crate. This implicitly enables the `std` feature.
-
 ### `no_std` support
 
 This supports `no_std` mode. Disables the `default` feature to enable this.
@@ -131,7 +127,6 @@ licensing information.
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
 [`serde`]: https://serde.rs/
-[`zip`]: https://crates.io/crates/zip
 [CHANGELOG.adoc]: CHANGELOG.adoc
 [CONTRIBUTING.adoc]: CONTRIBUTING.adoc
 [AUTHORS.adoc]: AUTHORS.adoc
