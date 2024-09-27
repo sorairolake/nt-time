@@ -52,7 +52,7 @@ use crate::FileTime;
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    ft.map(FileTime::to_unix_time).serialize(serializer)
+    ft.map(FileTime::to_unix_time_secs).serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -65,7 +65,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     Option::deserialize(deserializer)?
-        .map(FileTime::from_unix_time)
+        .map(FileTime::from_unix_time_secs)
         .transpose()
         .map_err(D::Error::custom)
 }
@@ -239,7 +239,10 @@ mod tests {
         }
 
         let ft = Test {
-            time: timestamp.map(FileTime::from_unix_time).transpose().unwrap(),
+            time: timestamp
+                .map(FileTime::from_unix_time_secs)
+                .transpose()
+                .unwrap(),
         };
         let json = serde_json::to_string(&ft).unwrap();
         if let Some(ts) = timestamp {
@@ -295,7 +298,10 @@ mod tests {
         let ft = serde_json::from_str::<Test>(&json).unwrap();
         prop_assert_eq!(
             ft.time,
-            timestamp.map(FileTime::from_unix_time).transpose().unwrap()
+            timestamp
+                .map(FileTime::from_unix_time_secs)
+                .transpose()
+                .unwrap()
         );
     }
 }

@@ -51,10 +51,7 @@ impl TryFrom<FileTime> for i64 {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-    ///     i64::default()
-    /// );
+    /// assert_eq!(i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(), 0);
     /// assert_eq!(
     ///     i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
     ///     116_444_736_000_000_000
@@ -196,14 +193,9 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
-        let ut = ft.to_unix_time_nanos();
-        Self::from_timestamp(
-            i64::try_from(ut / 1_000_000_000)
-                .expect("the number of seconds should be in the range of `i64`"),
-            u32::try_from(ut % 1_000_000_000)
-                .expect("the number of nanoseconds should be in the range of `u32`"),
-        )
-        .expect("Unix time in nanoseconds should be in the range of `DateTime<Utc>`")
+        let ut = ft.to_unix_time();
+        Self::from_timestamp(ut.0, ut.1)
+            .expect("Unix time in nanoseconds should be in the range of `DateTime<Utc>`")
     }
 }
 
@@ -249,10 +241,7 @@ impl TryFrom<i64> for FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::try_from(i64::default()).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
-    /// );
+    /// assert_eq!(FileTime::try_from(0_i64).unwrap(), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
     ///     FileTime::UNIX_EPOCH
@@ -419,9 +408,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// .is_err());
     /// ```
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
-        let ut =
-            (i128::from(dt.timestamp()) * 1_000_000_000) + i128::from(dt.timestamp_subsec_nanos());
-        Self::from_unix_time_nanos(ut)
+        Self::from_unix_time(dt.timestamp(), dt.timestamp_subsec_nanos())
     }
 }
 

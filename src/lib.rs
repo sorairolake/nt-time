@@ -56,7 +56,7 @@
 //!     OffsetDateTime::UNIX_EPOCH
 //! );
 //!
-//! let ft = FileTime::from_unix_time(ut).unwrap();
+//! let ft = FileTime::from_unix_time_secs(ut).unwrap();
 //! assert_eq!(ft, FileTime::UNIX_EPOCH);
 //!
 //! // `1980-01-01 00:00:00 UTC`.
