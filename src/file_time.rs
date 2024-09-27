@@ -12,6 +12,8 @@ mod convert;
 mod dos_date_time;
 mod fmt;
 mod ops;
+#[cfg(feature = "rand")]
+mod rand;
 #[cfg(feature = "serde")]
 mod serde;
 mod unix_time;

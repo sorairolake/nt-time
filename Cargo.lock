@@ -251,6 +251,7 @@ dependencies = [
  "clap",
  "proptest",
  "proptest-derive",
+ "rand",
  "serde",
  "serde_json",
  "serde_test",

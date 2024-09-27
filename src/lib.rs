@@ -110,6 +110,8 @@ pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "rand")]
+pub use rand;
 #[cfg(feature = "serde")]
 pub use serde;
 pub use time;

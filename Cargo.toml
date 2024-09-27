@@ -49,6 +49,7 @@ required-features = ["default"]
 
 [dependencies]
 chrono = { version = "0.4.38", default-features = false, optional = true }
+rand = { version = "0.8.5", default-features = false, optional = true }
 serde = { version = "1.0.210", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.36", default-features = false, features = ["macros"] }
 
@@ -63,6 +64,9 @@ test-strategy = "0.4.0"
 
 [features]
 default = ["std"]
-std = ["time/std", "chrono?/std"]
+chrono = ["dep:chrono"]
+rand = ["dep:rand"]
+serde = ["dep:serde"]
+std = ["chrono?/std", "rand?/std", "time/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]

@@ -64,6 +64,10 @@ Enables the `large-dates` feature of the [`time`] crate.
 
 Enables the [`chrono`] crate.
 
+#### `rand`
+
+Enables the [`rand`] crate.
+
 #### `serde`
 
 Enables the [`serde`] crate.
@@ -126,6 +130,7 @@ licensing information.
 [Rust]: https://www.rust-lang.org/
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
+[`rand`]: https://crates.io/crates/rand
 [`serde`]: https://serde.rs/
 [CHANGELOG.adoc]: CHANGELOG.adoc
 [CONTRIBUTING.adoc]: CONTRIBUTING.adoc
