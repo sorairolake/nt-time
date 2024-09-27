@@ -38,7 +38,7 @@ default: build
 
 # Apply lint suggestions
 @clippy-fix:
-    cargo clippy --fix --allow-dirty --allow-staged -- -D warnings
+    cargo clippy --fix --allow-dirty --allow-staged --lib --bins --examples --tests -- -D warnings
 
 # Run the linter for GitHub Actions workflow files
 @lint-github-actions:

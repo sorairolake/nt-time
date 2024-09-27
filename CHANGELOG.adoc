@@ -20,6 +20,7 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Implement `rand::distributions::Distribution` for `FileTime`
   ({pull-request-url}/227[#227])
+* Add benchmarks ({pull-request-url}/228[#228])
 
 == {compare-url}/v0.9.1\...v0.10.0[0.10.0] - 2024-09-27
 
