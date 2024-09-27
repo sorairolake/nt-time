@@ -14,6 +14,24 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.9.1\...v0.10.0[0.10.0] - 2024-09-27
+
+=== Changed
+
+* Take the number of additional nanoseconds as a parameter of
+  `FileTime::to_unix_time` ({pull-request-url}/225[#225])
+* Add the number of additional nanoseconds as a return value for
+  `FileTime::from_unix_time` ({pull-request-url}/225[#225])
+* Rename previous `FileTime::to_unix_time` to `FileTime::to_unix_time_secs`
+  ({pull-request-url}/225[#225])
+* Rename previous `FileTime::from_unix_time` to `FileTime::from_unix_time_secs`
+  ({pull-request-url}/225[#225])
+
+=== Fixed
+
+* Divisions in conversion operations between `FileTime` and Unix time round
+  towards negative infinity ({pull-request-url}/225[#225])
+
 == {compare-url}/v0.9.0\...v0.9.1[0.9.1] - 2024-09-22
 
 === Fixed

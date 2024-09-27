@@ -47,7 +47,7 @@ use crate::FileTime;
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    ft.to_unix_time().serialize(serializer)
+    ft.to_unix_time_secs().serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -57,7 +57,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::from_unix_time(<_>::deserialize(deserializer)?).map_err(D::Error::custom)
+    FileTime::from_unix_time_secs(<_>::deserialize(deserializer)?).map_err(D::Error::custom)
 }
 
 #[cfg(test)]
@@ -203,7 +203,7 @@ mod tests {
         use proptest::prop_assert_eq;
 
         let ft = Test {
-            time: FileTime::from_unix_time(ts).unwrap(),
+            time: FileTime::from_unix_time_secs(ts).unwrap(),
         };
         let json = serde_json::to_string(&ft).unwrap();
         prop_assert_eq!(json, format!(r#"{{"time":{ts}}}"#));
@@ -238,6 +238,6 @@ mod tests {
 
         let json = format!(r#"{{"time":{ts}}}"#);
         let ft = serde_json::from_str::<Test>(&json).unwrap();
-        prop_assert_eq!(ft.time, FileTime::from_unix_time(ts).unwrap());
+        prop_assert_eq!(ft.time, FileTime::from_unix_time_secs(ts).unwrap());
     }
 }

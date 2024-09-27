@@ -12,42 +12,25 @@
 #![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
 
 use anyhow::Context;
-use clap::{ArgGroup, Parser};
+use clap::Parser;
 use nt_time::FileTime;
 
 #[derive(Debug, Parser)]
-#[command(version, about, group(ArgGroup::new("time").required(true)))]
+#[command(version, about)]
 struct Opt {
-    /// Unix time in seconds to convert.
-    #[arg(
-        short,
-        long,
-        value_name("TIME"),
-        allow_hyphen_values(true),
-        group("time")
-    )]
-    secs: Option<i64>,
+    /// The number of whole seconds in Unix time to convert.
+    #[arg(allow_hyphen_values(true))]
+    secs: i64,
 
-    /// Unix time in nanoseconds to convert.
-    #[arg(
-        short,
-        long,
-        value_name("TIME"),
-        allow_hyphen_values(true),
-        group("time")
-    )]
-    nanos: Option<i128>,
+    /// The number of additional nanoseconds in Unix time to convert.
+    #[arg(default_value_t)]
+    nanos: u32,
 }
 
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = match (opt.secs, opt.nanos) {
-        (Some(time), None) => FileTime::from_unix_time(time),
-        (None, Some(time)) => FileTime::from_unix_time_nanos(time),
-        _ => unreachable!(),
-    }
-    .context("could not convert time")?;
+    let ft = FileTime::from_unix_time(opt.secs, opt.nanos).context("could not convert time")?;
     println!("{ft}");
     Ok(())
 }

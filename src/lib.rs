@@ -56,7 +56,7 @@
 //!     OffsetDateTime::UNIX_EPOCH
 //! );
 //!
-//! let ft = FileTime::from_unix_time(ut).unwrap();
+//! let ft = FileTime::from_unix_time_secs(ut).unwrap();
 //! assert_eq!(ft, FileTime::UNIX_EPOCH);
 //!
 //! // `1980-01-01 00:00:00 UTC`.
@@ -87,7 +87,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.9.1/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.10.0/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.

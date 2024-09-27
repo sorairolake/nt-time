@@ -114,11 +114,11 @@ impl FileTimeRangeError {
     /// # use nt_time::{error::FileTimeRangeErrorKind, FileTime};
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time(i64::MIN).unwrap_err().kind(),
+    ///     FileTime::from_unix_time_secs(i64::MIN).unwrap_err().kind(),
     ///     FileTimeRangeErrorKind::Negative
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time(i64::MAX).unwrap_err().kind(),
+    ///     FileTime::from_unix_time_secs(i64::MAX).unwrap_err().kind(),
     ///     FileTimeRangeErrorKind::Overflow
     /// );
     /// ```
