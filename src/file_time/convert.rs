@@ -192,6 +192,7 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     ///     DateTime::<Utc>::UNIX_EPOCH
     /// );
     /// ```
+    #[inline]
     fn from(ft: FileTime) -> Self {
         let ut = ft.to_unix_time();
         Self::from_timestamp(ut.0, ut.1)
@@ -407,6 +408,7 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// )
     /// .is_err());
     /// ```
+    #[inline]
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
         Self::from_unix_time(dt.timestamp(), dt.timestamp_subsec_nanos())
     }

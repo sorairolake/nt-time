@@ -62,6 +62,7 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
+    #[inline]
     pub fn to_unix_time_secs(self) -> i64 {
         self.to_unix_time().0
     }
@@ -87,6 +88,7 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
+    #[inline]
     pub fn to_unix_time_nanos(self) -> i128 {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
@@ -140,6 +142,7 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[inline]
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
         assert!(nanos < NANOS_PER_SEC);
         let ts = (i128::from(secs) * 1_000_000_000) + i128::from(nanos);
@@ -179,6 +182,7 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[inline]
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         Self::from_unix_time(secs, 0)
     }
