@@ -17,11 +17,6 @@ use core::str::FromStr;
 use nt_time::FileTime;
 use test::Bencher;
 
-#[bench]
-fn clone(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH);
-}
-
 #[cfg(feature = "std")]
 #[bench]
 fn now(b: &mut Bencher) {
