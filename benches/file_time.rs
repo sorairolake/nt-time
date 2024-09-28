@@ -13,19 +13,19 @@
 extern crate test;
 
 use core::str::FromStr;
-use test::Bencher;
 
 use nt_time::FileTime;
+use test::Bencher;
 
 #[bench]
 fn clone(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH.clone());
+    b.iter(|| FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "std")]
 #[bench]
 fn now(b: &mut Bencher) {
-    b.iter(|| FileTime::now());
+    b.iter(FileTime::now);
 }
 
 #[bench]
@@ -60,7 +60,7 @@ fn from_le_bytes(b: &mut Bencher) {
 
 #[bench]
 fn default(b: &mut Bencher) {
-    b.iter(|| FileTime::default());
+    b.iter(FileTime::default);
 }
 
 #[bench]

@@ -12,9 +12,8 @@
 
 extern crate test;
 
-use test::Bencher;
-
 use nt_time::FileTime;
+use test::Bencher;
 
 #[bench]
 fn to_unix_time(b: &mut Bencher) {

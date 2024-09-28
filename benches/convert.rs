@@ -12,9 +12,8 @@
 
 extern crate test;
 
-use test::Bencher;
-
 use nt_time::{time::OffsetDateTime, FileTime};
+use test::Bencher;
 
 #[bench]
 fn from_file_time_to_u64(b: &mut Bencher) {

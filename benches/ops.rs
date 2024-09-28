@@ -12,9 +12,8 @@
 
 extern crate test;
 
-use test::Bencher;
-
 use nt_time::{time::macros::datetime, FileTime};
+use test::Bencher;
 
 #[bench]
 fn checked_add(b: &mut Bencher) {

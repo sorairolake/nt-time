@@ -12,12 +12,11 @@
 
 extern crate test;
 
-use test::Bencher;
-
 use nt_time::{
     time::{macros::datetime, OffsetDateTime},
     FileTime,
 };
+use test::Bencher;
 
 #[bench]
 fn equality(b: &mut Bencher) {

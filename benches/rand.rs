@@ -13,12 +13,11 @@
 
 extern crate test;
 
-use test::Bencher;
-
 use nt_time::{
     rand::{rngs::mock::StepRng, Rng},
     FileTime,
 };
+use test::Bencher;
 
 #[bench]
 fn sample(b: &mut Bencher) {

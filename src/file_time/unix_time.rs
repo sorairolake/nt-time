@@ -6,9 +6,8 @@
 //!
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
-
 use super::FileTime;
+use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 const NANOS_PER_SEC: u32 = 1_000_000_000;
 

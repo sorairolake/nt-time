@@ -9,9 +9,8 @@
 
 use time::{error::ComponentRange, macros::offset, Date, OffsetDateTime, Time, UtcOffset};
 
-use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
-
 use super::FileTime;
+use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
 
 impl FileTime {
     /// Returns [MS-DOS date and time] which represents the same date and time
