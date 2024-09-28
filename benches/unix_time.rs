@@ -27,6 +27,16 @@ fn to_unix_time_secs(b: &mut Bencher) {
 }
 
 #[bench]
+fn to_unix_time_millis(b: &mut Bencher) {
+    b.iter(|| FileTime::UNIX_EPOCH.to_unix_time_millis());
+}
+
+#[bench]
+fn to_unix_time_micros(b: &mut Bencher) {
+    b.iter(|| FileTime::UNIX_EPOCH.to_unix_time_micros());
+}
+
+#[bench]
 fn to_unix_time_nanos(b: &mut Bencher) {
     b.iter(|| FileTime::UNIX_EPOCH.to_unix_time_nanos());
 }
@@ -39,6 +49,16 @@ fn from_unix_time(b: &mut Bencher) {
 #[bench]
 fn from_unix_time_secs(b: &mut Bencher) {
     b.iter(|| FileTime::from_unix_time_secs(i64::default()).unwrap());
+}
+
+#[bench]
+fn from_unix_time_millis(b: &mut Bencher) {
+    b.iter(|| FileTime::from_unix_time_millis(i64::default()).unwrap());
+}
+
+#[bench]
+fn from_unix_time_micros(b: &mut Bencher) {
+    b.iter(|| FileTime::from_unix_time_micros(i64::default()).unwrap());
 }
 
 #[bench]

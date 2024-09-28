@@ -67,6 +67,63 @@ impl FileTime {
         self.to_unix_time().0
     }
 
+    #[allow(clippy::missing_panics_doc)]
+    /// Returns [Unix time] in milliseconds which represents the same date and
+    /// time as this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH.to_unix_time_millis(),
+    ///     -11_644_473_600_000
+    /// );
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_millis(), 0);
+    /// assert_eq!(FileTime::MAX.to_unix_time_millis(), 1_833_029_933_770_955);
+    /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[must_use]
+    #[inline]
+    pub fn to_unix_time_millis(self) -> i64 {
+        self.to_unix_time_nanos()
+            .div_euclid(1_000_000)
+            .try_into()
+            .expect("the number of milliseconds should be in the range of `i64`")
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    /// Returns [Unix time] in microseconds which represents the same date and
+    /// time as this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH.to_unix_time_micros(),
+    ///     -11_644_473_600_000_000
+    /// );
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_micros(), 0);
+    /// assert_eq!(
+    ///     FileTime::MAX.to_unix_time_micros(),
+    ///     1_833_029_933_770_955_161
+    /// );
+    /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[must_use]
+    #[inline]
+    pub fn to_unix_time_micros(self) -> i64 {
+        self.to_unix_time_nanos()
+            .div_euclid(1000)
+            .try_into()
+            .expect("the number of microseconds should be in the range of `i64`")
+    }
+
     /// Returns [Unix time] in nanoseconds which represents the same date and
     /// time as this `FileTime`.
     ///
@@ -185,6 +242,84 @@ impl FileTime {
     #[inline]
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         Self::from_unix_time(secs, 0)
+    }
+
+    /// Creates a `FileTime` with the given [Unix time] in milliseconds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `millis` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(-11_644_473_600_000).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(0).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
+    ///     FileTime::MAX - Duration::from_nanos(161_500)
+    /// );
+    ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
+    /// assert!(FileTime::from_unix_time_millis(-11_644_473_600_001).is_err());
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
+    /// assert!(FileTime::from_unix_time_millis(1_833_029_933_770_956).is_err());
+    /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[inline]
+    pub fn from_unix_time_millis(millis: i64) -> Result<Self, FileTimeRangeError> {
+        let nanos = i128::from(millis) * 1_000_000;
+        Self::from_unix_time_nanos(nanos)
+    }
+
+    /// Creates a `FileTime` with the given [Unix time] in microseconds.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `micros` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(-11_644_473_600_000_000).unwrap(),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(0).unwrap(),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
+    ///     FileTime::MAX - Duration::from_nanos(500)
+    /// );
+    ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
+    /// assert!(FileTime::from_unix_time_micros(-11_644_473_600_000_001).is_err());
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
+    /// assert!(FileTime::from_unix_time_micros(1_833_029_933_770_955_162).is_err());
+    /// ```
+    ///
+    /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[inline]
+    pub fn from_unix_time_micros(micros: i64) -> Result<Self, FileTimeRangeError> {
+        let nanos = i128::from(micros) * 1000;
+        Self::from_unix_time_nanos(nanos)
     }
 
     /// Creates a `FileTime` with the given [Unix time] in nanoseconds.
@@ -344,6 +479,140 @@ mod tests {
 
         let ts = FileTime::new(ft).to_unix_time_secs();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+    }
+
+    #[test]
+    fn to_unix_time_millis() {
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH.to_unix_time_millis(),
+            -11_644_473_600_000
+        );
+        assert_eq!(FileTime::new(1).to_unix_time_millis(), -11_644_473_600_000);
+        assert_eq!(
+            FileTime::new(9999).to_unix_time_millis(),
+            -11_644_473_600_000
+        );
+        assert_eq!(
+            FileTime::new(10000).to_unix_time_millis(),
+            -11_644_473_599_999
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_millis(1)).to_unix_time_millis(),
+            i64::default() - 1
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_nanos(999_900)).to_unix_time_millis(),
+            i64::default() - 1
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_nanos(100)).to_unix_time_millis(),
+            i64::default() - 1
+        );
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_millis(), i64::default());
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(999_900)).to_unix_time_millis(),
+            i64::default()
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(100)).to_unix_time_millis(),
+            i64::default()
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_millis(1)).to_unix_time_millis(),
+            i64::default() + 1
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(161_600)).to_unix_time_millis(),
+            1_833_029_933_770_954
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(161_500)).to_unix_time_millis(),
+            1_833_029_933_770_955
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(161_400)).to_unix_time_millis(),
+            1_833_029_933_770_955
+        );
+        assert_eq!(FileTime::MAX.to_unix_time_millis(), 1_833_029_933_770_955);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_unix_time_millis_roundtrip(ft: u64) {
+        use proptest::prop_assert;
+
+        let ts = FileTime::new(ft).to_unix_time_millis();
+        prop_assert!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
+    }
+
+    #[test]
+    fn to_unix_time_micros() {
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH.to_unix_time_micros(),
+            -11_644_473_600_000_000
+        );
+        assert_eq!(
+            FileTime::new(1).to_unix_time_micros(),
+            -11_644_473_600_000_000
+        );
+        assert_eq!(
+            FileTime::new(9).to_unix_time_micros(),
+            -11_644_473_600_000_000
+        );
+        assert_eq!(
+            FileTime::new(10).to_unix_time_micros(),
+            -11_644_473_599_999_999
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_micros(1)).to_unix_time_micros(),
+            i64::default() - 1
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_nanos(900)).to_unix_time_micros(),
+            i64::default() - 1
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH - Duration::from_nanos(100)).to_unix_time_micros(),
+            i64::default() - 1
+        );
+        assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_micros(), i64::default());
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(100)).to_unix_time_micros(),
+            i64::default()
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(900)).to_unix_time_micros(),
+            i64::default()
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_micros(1)).to_unix_time_micros(),
+            i64::default() + 1
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(600)).to_unix_time_micros(),
+            1_833_029_933_770_955_160
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(500)).to_unix_time_micros(),
+            1_833_029_933_770_955_161
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(400)).to_unix_time_micros(),
+            1_833_029_933_770_955_161
+        );
+        assert_eq!(
+            FileTime::MAX.to_unix_time_micros(),
+            1_833_029_933_770_955_161
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_unix_time_micros_roundtrip(ft: u64) {
+        use proptest::prop_assert;
+
+        let ts = FileTime::new(ft).to_unix_time_micros();
+        prop_assert!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
     }
 
     #[test]
@@ -581,8 +850,6 @@ mod tests {
 
     #[test]
     fn from_unix_time_secs() {
-        use core::time::Duration;
-
         assert_eq!(
             FileTime::from_unix_time_secs(-11_644_473_600).unwrap(),
             FileTime::NT_TIME_EPOCH
@@ -638,6 +905,182 @@ mod tests {
 
         prop_assert_eq!(
             FileTime::from_unix_time_secs(ts).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[test]
+    fn from_unix_time_millis_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time_millis(-11_644_473_600_001).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(i64::MIN).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_millis_before_nt_time_epoch_roundtrip(
+        #[strategy(..=-11_644_473_600_001_i64)] ts: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_millis(ts).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[test]
+    fn from_unix_time_millis() {
+        assert_eq!(
+            FileTime::from_unix_time_millis(-11_644_473_600_000).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(-11_644_473_599_999).unwrap(),
+            FileTime::new(10000)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(i64::default() - 1).unwrap(),
+            FileTime::UNIX_EPOCH - Duration::from_millis(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(i64::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(i64::default() + 1).unwrap(),
+            FileTime::UNIX_EPOCH + Duration::from_millis(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
+            FileTime::MAX - Duration::from_nanos(161_500)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_millis_roundtrip(
+        #[strategy(-11_644_473_600_000..=1_833_029_933_770_955_i64)] ts: i64,
+    ) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::from_unix_time_millis(ts).is_ok());
+    }
+
+    #[test]
+    fn from_unix_time_millis_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time_millis(1_833_029_933_770_956).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(i64::MAX).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_millis_with_too_big_date_time_roundtrip(
+        #[strategy(1_833_029_933_770_956_i64..)] ts: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_millis(ts).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[test]
+    fn from_unix_time_micros_before_nt_time_epoch() {
+        assert_eq!(
+            FileTime::from_unix_time_micros(-11_644_473_600_000_001).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(i64::MIN).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_micros_before_nt_time_epoch_roundtrip(
+        #[strategy(..=-11_644_473_600_000_001_i64)] ts: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_micros(ts).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[test]
+    fn from_unix_time_micros() {
+        assert_eq!(
+            FileTime::from_unix_time_micros(-11_644_473_600_000_000).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(-11_644_473_599_999_999).unwrap(),
+            FileTime::new(10)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(i64::default() - 1).unwrap(),
+            FileTime::UNIX_EPOCH - Duration::from_micros(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(i64::default()).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(i64::default() + 1).unwrap(),
+            FileTime::UNIX_EPOCH + Duration::from_micros(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
+            FileTime::MAX - Duration::from_nanos(500)
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_micros_roundtrip(
+        #[strategy(-11_644_473_600_000_000..=1_833_029_933_770_955_161_i64)] ts: i64,
+    ) {
+        use proptest::prop_assert;
+
+        prop_assert!(FileTime::from_unix_time_micros(ts).is_ok());
+    }
+
+    #[test]
+    fn from_unix_time_micros_with_too_big_date_time() {
+        assert_eq!(
+            FileTime::from_unix_time_micros(1_833_029_933_770_955_162).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(i64::MAX).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_unix_time_micros_with_too_big_date_time_roundtrip(
+        #[strategy(1_833_029_933_770_955_162_i64..)] ts: i64,
+    ) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_unix_time_micros(ts).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
         );
     }
