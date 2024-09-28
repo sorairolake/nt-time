@@ -43,7 +43,7 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
-/// This serializes using [Unix time].
+/// This serializes using [Unix time] in seconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
@@ -53,7 +53,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes a [`FileTime`] from the given Serde deserializer.
 ///
-/// This deserializes from its [Unix time].
+/// This deserializes from its [Unix time] in seconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
