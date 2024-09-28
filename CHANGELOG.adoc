@@ -23,6 +23,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Add benchmarks ({pull-request-url}/228[#228])
 * Add methods to convert between `FileTime` and Unix time in milliseconds and
   microseconds ({pull-request-url}/229[#229])
+* Add Serde support for Unix time in milliseconds, microseconds, and
+  nanoseconds ({pull-request-url}/230[#230])
 
 == {compare-url}/v0.9.1\...v0.10.0[0.10.0] - 2024-09-27
 
