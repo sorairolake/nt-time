@@ -30,7 +30,7 @@ default: build
 
 # Run the formatter with options
 @fmt-with-options:
-    cargo fmt -- --config "format_code_in_doc_comments=true,wrap_comments=true"
+    cargo +nightly fmt
 
 # Run the linter
 @clippy:
@@ -38,7 +38,7 @@ default: build
 
 # Apply lint suggestions
 @clippy-fix:
-    cargo clippy --fix --allow-dirty --allow-staged -- -D warnings
+    cargo +nightly clippy --fix --allow-dirty --allow-staged -- -D warnings
 
 # Run the linter for GitHub Actions workflow files
 @lint-github-actions:

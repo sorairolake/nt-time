@@ -9,16 +9,16 @@
 
 use time::{error::ComponentRange, macros::offset, Date, OffsetDateTime, Time, UtcOffset};
 
-use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
-
 use super::FileTime;
+use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
 
 impl FileTime {
     /// Returns [MS-DOS date and time] which represents the same date and time
     /// as this `FileTime`. This date and time is used as the timestamp such as
     /// [FAT], [exFAT] or [ZIP] file format.
     ///
-    /// This method returns a `(date, time, resolution, offset)` tuple.
+    /// This method returns a `(date, time, resolution, offset)` tuple if the
+    /// result is [`Ok`].
     ///
     /// `date` and `time` represents the local date and time. This date and time
     /// has no notion of time zone. The resolution of MS-DOS date and time is 2

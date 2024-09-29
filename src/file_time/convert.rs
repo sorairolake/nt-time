@@ -8,9 +8,8 @@ use core::num::TryFromIntError;
 
 use time::{error::ComponentRange, OffsetDateTime};
 
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
-
 use super::FileTime;
+use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the file time.

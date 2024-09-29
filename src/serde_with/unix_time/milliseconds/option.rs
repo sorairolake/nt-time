@@ -1,8 +1,9 @@
-// SPDX-FileCopyrightText: 2023 Shun Sakai
+// SPDX-FileCopyrightText: 2024 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Use [Unix time] when serializing and deserializing an [`Option<FileTime>`].
+//! Use [Unix time] in milliseconds when serializing and deserializing an
+//! [`Option<FileTime>`].
 //!
 //! Use this module in combination with Serde's [`with`] attribute.
 //!
@@ -17,7 +18,7 @@
 //!
 //! #[derive(Deserialize, Serialize)]
 //! struct Time {
-//!     #[serde(with = "unix_time::option")]
+//!     #[serde(with = "unix_time::milliseconds::option")]
 //!     time: Option<FileTime>,
 //! }
 //!
@@ -25,7 +26,7 @@
 //!     time: Some(FileTime::NT_TIME_EPOCH),
 //! };
 //! let json = serde_json::to_string(&ft).unwrap();
-//! assert_eq!(json, r#"{"time":-11644473600}"#);
+//! assert_eq!(json, r#"{"time":-11644473600000}"#);
 //!
 //! let ft: Time = serde_json::from_str(&json).unwrap();
 //! assert_eq!(ft.time, Some(FileTime::NT_TIME_EPOCH));
@@ -48,24 +49,24 @@ use crate::FileTime;
 #[allow(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
-/// This serializes using [Unix time] in seconds.
+/// This serializes using [Unix time] in milliseconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
-    ft.map(FileTime::to_unix_time_secs).serialize(serializer)
+    ft.map(FileTime::to_unix_time_millis).serialize(serializer)
 }
 
 #[allow(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
-/// This deserializes from its [Unix time] in seconds.
+/// This deserializes from its [Unix time] in milliseconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     Option::deserialize(deserializer)?
-        .map(FileTime::from_unix_time_secs)
+        .map(FileTime::from_unix_time_millis)
         .transpose()
         .map_err(D::Error::custom)
 }
@@ -82,7 +83,7 @@ mod tests {
 
     #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
     struct Test {
-        #[serde(with = "crate::serde_with::unix_time::option")]
+        #[serde(with = "crate::serde_with::unix_time::milliseconds::option")]
         time: Option<FileTime>,
     }
 
@@ -99,7 +100,7 @@ mod tests {
                 },
                 Token::Str("time"),
                 Token::Some,
-                Token::I64(-11_644_473_600),
+                Token::I64(-11_644_473_600_000),
                 Token::StructEnd,
             ],
         );
@@ -145,7 +146,7 @@ mod tests {
                 },
                 Token::Str("time"),
                 Token::Some,
-                Token::I64(1_833_029_933_770),
+                Token::I64(1_833_029_933_770_955),
                 Token::StructEnd,
             ],
         );
@@ -155,7 +156,7 @@ mod tests {
     fn deserialize() {
         assert_de_tokens(
             &Test {
-                time: Some(FileTime::MAX - Duration::from_nanos(955_161_500)),
+                time: Some(FileTime::MAX - Duration::from_nanos(161_500)),
             },
             &[
                 Token::Struct {
@@ -164,7 +165,7 @@ mod tests {
                 },
                 Token::Str("time"),
                 Token::Some,
-                Token::I64(1_833_029_933_770),
+                Token::I64(1_833_029_933_770_955),
                 Token::StructEnd,
             ],
         );
@@ -180,7 +181,7 @@ mod tests {
                 },
                 Token::Str("time"),
                 Token::Some,
-                Token::I64(-11_644_473_601),
+                Token::I64(-11_644_473_600_001),
                 Token::StructEnd,
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
@@ -193,7 +194,7 @@ mod tests {
                 },
                 Token::Str("time"),
                 Token::Some,
-                Token::I64(1_833_029_933_771),
+                Token::I64(1_833_029_933_770_956),
                 Token::StructEnd,
             ],
             "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
@@ -207,7 +208,7 @@ mod tests {
                 time: Some(FileTime::NT_TIME_EPOCH)
             })
             .unwrap(),
-            r#"{"time":-11644473600}"#
+            r#"{"time":-11644473600000}"#
         );
         assert_eq!(
             serde_json::to_string(&Test {
@@ -221,7 +222,7 @@ mod tests {
                 time: Some(FileTime::MAX)
             })
             .unwrap(),
-            r#"{"time":1833029933770}"#
+            r#"{"time":1833029933770955}"#
         );
         assert_eq!(
             serde_json::to_string(&Test { time: None }).unwrap(),
@@ -235,12 +236,12 @@ mod tests {
         use proptest::{prop_assert_eq, prop_assume};
 
         if let Some(ts) = timestamp {
-            prop_assume!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+            prop_assume!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
         }
 
         let ft = Test {
             time: timestamp
-                .map(FileTime::from_unix_time_secs)
+                .map(FileTime::from_unix_time_millis)
                 .transpose()
                 .unwrap(),
         };
@@ -255,7 +256,7 @@ mod tests {
     #[test]
     fn deserialize_json() {
         assert_eq!(
-            serde_json::from_str::<Test>(r#"{"time":-11644473600}"#).unwrap(),
+            serde_json::from_str::<Test>(r#"{"time":-11644473600000}"#).unwrap(),
             Test {
                 time: Some(FileTime::NT_TIME_EPOCH)
             }
@@ -267,9 +268,9 @@ mod tests {
             }
         );
         assert_eq!(
-            serde_json::from_str::<Test>(r#"{"time":1833029933770}"#).unwrap(),
+            serde_json::from_str::<Test>(r#"{"time":1833029933770955}"#).unwrap(),
             Test {
-                time: Some(FileTime::MAX - Duration::from_nanos(955_161_500))
+                time: Some(FileTime::MAX - Duration::from_nanos(161_500))
             }
         );
         assert_eq!(
@@ -286,7 +287,7 @@ mod tests {
         use proptest::{prop_assert_eq, prop_assume};
 
         if let Some(ts) = timestamp {
-            prop_assume!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
+            prop_assume!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
         }
 
         #[allow(clippy::option_if_let_else)]
@@ -299,7 +300,7 @@ mod tests {
         prop_assert_eq!(
             ft.time,
             timestamp
-                .map(FileTime::from_unix_time_secs)
+                .map(FileTime::from_unix_time_millis)
                 .transpose()
                 .unwrap()
         );

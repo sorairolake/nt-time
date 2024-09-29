@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.0"
+nt-time = "0.10.1"
 ```
 
 ### Example
@@ -63,6 +63,10 @@ Enables the `large-dates` feature of the [`time`] crate.
 #### `chrono`
 
 Enables the [`chrono`] crate.
+
+#### `rand`
+
+Enables the [`rand`] crate.
 
 #### `serde`
 
@@ -126,6 +130,7 @@ licensing information.
 [Rust]: https://www.rust-lang.org/
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
+[`rand`]: https://crates.io/crates/rand
 [`serde`]: https://serde.rs/
 [CHANGELOG.adoc]: CHANGELOG.adoc
 [CONTRIBUTING.adoc]: CONTRIBUTING.adoc
