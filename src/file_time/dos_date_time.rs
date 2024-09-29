@@ -17,7 +17,8 @@ impl FileTime {
     /// as this `FileTime`. This date and time is used as the timestamp such as
     /// [FAT], [exFAT] or [ZIP] file format.
     ///
-    /// This method returns a `(date, time, resolution, offset)` tuple.
+    /// This method returns a `(date, time, resolution, offset)` tuple if the
+    /// result is [`Ok`].
     ///
     /// `date` and `time` represents the local date and time. This date and time
     /// has no notion of time zone. The resolution of MS-DOS date and time is 2
