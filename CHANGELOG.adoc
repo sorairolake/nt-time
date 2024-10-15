@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.10.1\...HEAD[Unreleased]
+
+=== Changed
+
+* Make `Error` trait available in `no_std` mode ({pull-request-url}/220[#220])
+* Bump MSRV to 1.81.0 ({pull-request-url}/220[#220])
+
 == {compare-url}/v0.10.0\...v0.10.1[0.10.1] - 2024-09-29
 
 === Added
