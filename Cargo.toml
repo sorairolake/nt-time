@@ -70,3 +70,13 @@ serde = ["dep:serde"]
 std = ["chrono?/std", "rand?/std", "time/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
+
+[lints.clippy]
+cargo = "warn"
+nursery = "warn"
+pedantic = "warn"
+
+[lints.rust]
+missing_debug_implementations = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unsafe_code = "forbid"
