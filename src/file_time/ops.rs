@@ -197,6 +197,7 @@ impl AddAssign<chrono::TimeDelta> for FileTime {
 impl Sub for FileTime {
     type Output = core::time::Duration;
 
+    #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         let duration = self.to_raw() - rhs.to_raw();
         Self::Output::new(

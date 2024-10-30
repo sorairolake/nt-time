@@ -34,6 +34,7 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
+    #[inline]
     pub fn to_unix_time(self) -> (i64, u32) {
         let ts = self.to_unix_time_nanos();
         let secs = i64::try_from(ts.div_euclid(1_000_000_000))
@@ -352,6 +353,7 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    #[inline]
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
         (nanos <= 1_833_029_933_770_955_161_500)
             .then_some(nanos)

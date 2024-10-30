@@ -59,6 +59,7 @@ impl fmt::Display for DosDateTimeRangeError {
 impl std::error::Error for DosDateTimeRangeError {}
 
 impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
+    #[inline]
     fn from(kind: DosDateTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -140,6 +141,7 @@ impl fmt::Display for FileTimeRangeError {
 impl std::error::Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
+    #[inline]
     fn from(kind: FileTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }

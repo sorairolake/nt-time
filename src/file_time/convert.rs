@@ -95,6 +95,7 @@ impl From<FileTime> for std::time::SystemTime {
     ///     SystemTime::UNIX_EPOCH
     /// );
     /// ```
+    #[inline]
     fn from(ft: FileTime) -> Self {
         use std::time::Duration;
 
@@ -165,6 +166,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
     /// ```
+    #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         Self::from_unix_timestamp_nanos(ft.to_unix_time_nanos())
     }
@@ -301,6 +303,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// )
     /// .is_err());
     /// ```
+    #[inline]
     fn try_from(st: std::time::SystemTime) -> Result<Self, Self::Error> {
         use std::time::SystemTime;
 
@@ -361,6 +364,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// )
     /// .is_err());
     /// ```
+    #[inline]
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
         Self::from_unix_time_nanos(dt.unix_timestamp_nanos())
     }

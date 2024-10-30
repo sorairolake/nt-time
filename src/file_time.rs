@@ -62,6 +62,7 @@ impl FileTime {
     /// ```
     #[cfg(feature = "std")]
     #[must_use]
+    #[inline]
     pub fn now() -> Self {
         use std::time::SystemTime;
 
