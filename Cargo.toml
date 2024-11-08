@@ -4,10 +4,10 @@
 
 [package]
 name = "nt-time"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
-rust-version = "1.74.0"
+rust-version = "1.67.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -25,40 +25,40 @@ all-features = true
 [[example]]
 name = "date"
 path = "examples/date.rs"
-required-features = ["default"]
+required-features = ["std"]
 
 [[example]]
 name = "dos2ft"
 path = "examples/dos2ft.rs"
-required-features = ["default"]
+required-features = ["std"]
 
 [[example]]
 name = "ft2dos"
 path = "examples/ft2dos.rs"
-required-features = ["default"]
+required-features = ["std"]
 
 [[example]]
 name = "ft2unix"
 path = "examples/ft2unix.rs"
-required-features = ["default"]
+required-features = ["std"]
 
 [[example]]
 name = "unix2ft"
 path = "examples/unix2ft.rs"
-required-features = ["default"]
+required-features = ["std"]
 
 [dependencies]
 chrono = { version = "0.4.38", default-features = false, optional = true }
 rand = { version = "0.8.5", default-features = false, optional = true }
-serde = { version = "1.0.210", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.214", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.36", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.89"
-clap = { version = "4.5.18", features = ["derive"] }
+anyhow = "1.0.93"
+clap = { version = "4.5.20", features = ["derive"] }
 proptest = "1.5.0"
 proptest-derive = "0.5.0"
-serde_json = "1.0.128"
+serde_json = "1.0.132"
 serde_test = "1.0.177"
 test-strategy = "0.4.0"
 
@@ -70,3 +70,13 @@ serde = ["dep:serde"]
 std = ["chrono?/std", "rand?/std", "time/std"]
 large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
+
+[lints.clippy]
+cargo = "warn"
+nursery = "warn"
+pedantic = "warn"
+
+[lints.rust]
+missing_debug_implementations = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unsafe_code = "forbid"

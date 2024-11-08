@@ -14,8 +14,8 @@ on:
     - cron: "0 0 * * 0"
 
 jobs:
-  test:
-    name: Test
+  check:
+    name: Check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,11 +24,11 @@ jobs:
           - aarch64-apple-darwin
           - x86_64-pc-windows-msvc
         toolchain:
-          - 1.74.0 # MSRV
+          - 1.67.0 # MSRV
           - stable
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-22.04
+            os: ubuntu-24.04
           - target: aarch64-apple-darwin
             os: macos-14
           - target: x86_64-pc-windows-msvc
@@ -42,7 +42,53 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           targets: ${{ matrix.target }}
       - name: Cache build artifacts
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
+        with:
+          key: ${{ matrix.target }}
+      - name: Check a package
+        run: cargo check --target ${{ matrix.target }}
+      - name: Check a package (all features)
+        run: cargo check --target ${{ matrix.target }} --all-features
+      - name: Check a package (no default features)
+        run: cargo check --target ${{ matrix.target }} --no-default-features
+      - name: Check a package (`serde-human-readable` feature)
+        run: cargo check --target ${{ matrix.target }} -F serde-human-readable
+      - name: Check a package (`large-dates` and `serde-human-readable` features)
+        run: cargo check --target ${{ matrix.target }} -F large-dates,serde-human-readable
+      - name: Check a package (`serde-human-readable` feature with no default features)
+        run: cargo check --target ${{ matrix.target }} --no-default-features -F serde-human-readable
+      - name: Check a package (`large-dates` and `serde-human-readable` features with no default features)
+        run: cargo check --target ${{ matrix.target }} --no-default-features -F large-dates,serde-human-readable
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+        toolchain:
+          - 1.74.0
+          - stable
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: aarch64-apple-darwin
+            os: macos-14
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          targets: ${{ matrix.target }}
+      - name: Cache build artifacts
+        uses: Swatinem/rust-cache@v2.7.5
         with:
           key: ${{ matrix.target }}
       - name: Run tests
@@ -62,7 +108,7 @@ jobs:
 
   rustfmt:
     name: Rustfmt
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -72,13 +118,13 @@ jobs:
           toolchain: stable
           components: rustfmt
       - name: Cache build artifacts
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
       - name: Check code formatted
         run: cargo fmt -- --check
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,7 +134,7 @@ jobs:
           toolchain: stable
           components: clippy
       - name: Cache build artifacts
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
       - name: Check no lint warnings
         run: cargo clippy -- -D warnings
       - name: Check no lint warnings (all features)
@@ -98,7 +144,7 @@ jobs:
 
   doc:
     name: Documentation
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,13 +153,13 @@ jobs:
         with:
           toolchain: stable
       - name: Cache build artifacts
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
       - name: Check no `rustdoc` lint warnings
         run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --all-features
 
   benchmark:
     name: Benchmark
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,6 +168,6 @@ jobs:
         with:
           toolchain: nightly
       - name: Cache build artifacts
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2.7.5
       - name: Run benchmarks
         run: cargo bench --all-features

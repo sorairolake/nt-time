@@ -59,6 +59,7 @@ impl fmt::Display for DosDateTimeRangeError {
 impl std::error::Error for DosDateTimeRangeError {}
 
 impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
+    #[inline]
     fn from(kind: DosDateTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -140,6 +141,7 @@ impl fmt::Display for FileTimeRangeError {
 impl std::error::Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
+    #[inline]
     fn from(kind: FileTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -293,6 +295,12 @@ mod tests {
             DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow).kind(),
             DosDateTimeRangeErrorKind::Overflow
         );
+    }
+
+    #[test]
+    const fn kind_dos_date_time_range_error_is_const_fn() {
+        const _: DosDateTimeRangeErrorKind =
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative).kind();
     }
 
     #[test]
@@ -488,6 +496,12 @@ mod tests {
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow).kind(),
             FileTimeRangeErrorKind::Overflow
         );
+    }
+
+    #[test]
+    const fn kind_file_time_range_error_is_const_fn() {
+        const _: FileTimeRangeErrorKind =
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative).kind();
     }
 
     #[test]

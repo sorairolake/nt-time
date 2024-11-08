@@ -20,33 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.1"
-```
-
-### Example
-
-```rust
-use core::time::Duration;
-
-use nt_time::{
-    time::{macros::datetime, OffsetDateTime},
-    FileTime,
-};
-
-let ft = FileTime::NT_TIME_EPOCH;
-assert_eq!(
-    OffsetDateTime::try_from(ft).unwrap(),
-    datetime!(1601-01-01 00:00 UTC)
-);
-
-let ft = ft + Duration::from_secs(11_644_473_600);
-assert_eq!(
-    OffsetDateTime::try_from(ft).unwrap(),
-    OffsetDateTime::UNIX_EPOCH
-);
-assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
-
-assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
+nt-time = "0.10.2"
 ```
 
 ### Crate features
@@ -87,7 +61,7 @@ See the [documentation][docs-url] for more details.
 
 ## Minimum supported Rust version
 
-The minimum supported Rust version (MSRV) of this library is v1.74.0.
+The minimum supported Rust version (MSRV) of this library is v1.67.0.
 
 ## Source code
 

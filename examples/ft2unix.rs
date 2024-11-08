@@ -4,13 +4,6 @@
 
 //! An example of converting the file time to Unix time.
 
-// Lint levels of rustc.
-#![forbid(unsafe_code)]
-#![deny(missing_debug_implementations)]
-#![warn(rust_2018_idioms)]
-// Lint levels of Clippy.
-#![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
-
 use clap::Parser;
 use nt_time::FileTime;
 

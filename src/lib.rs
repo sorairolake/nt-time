@@ -87,15 +87,11 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.10.1/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.10.2/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
-#![forbid(unsafe_code)]
-#![deny(missing_debug_implementations, missing_docs)]
-#![warn(rust_2018_idioms)]
-// Lint levels of Clippy.
-#![warn(clippy::cargo, clippy::nursery, clippy::pedantic)]
+#![deny(missing_docs)]
 
 #[cfg(test)]
 #[macro_use]
