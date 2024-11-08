@@ -314,10 +314,20 @@ mod tests {
     }
 
     #[test]
+    const fn new_is_const_fn() {
+        const _: FileTime = FileTime::new(u64::MIN);
+    }
+
+    #[test]
     fn to_raw() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
+    }
+
+    #[test]
+    const fn to_raw_is_const_fn() {
+        const _: u64 = FileTime::NT_TIME_EPOCH.to_raw();
     }
 
     #[test]
@@ -339,6 +349,11 @@ mod tests {
     }
 
     #[test]
+    const fn to_be_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_be_bytes();
+    }
+
+    #[test]
     fn to_le_bytes() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
         assert_eq!(
@@ -354,6 +369,11 @@ mod tests {
         use proptest::prop_assert_eq;
 
         prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
+    }
+
+    #[test]
+    const fn to_le_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_le_bytes();
     }
 
     #[test]
@@ -381,6 +401,11 @@ mod tests {
     }
 
     #[test]
+    const fn from_be_bytes_is_const_fn() {
+        const _: FileTime = FileTime::from_be_bytes([u8::MIN; 8]);
+    }
+
+    #[test]
     fn from_le_bytes() {
         assert_eq!(
             FileTime::from_le_bytes([u8::MIN; 8]),
@@ -402,6 +427,11 @@ mod tests {
             FileTime::from_le_bytes(bytes),
             FileTime::new(u64::from_le_bytes(bytes))
         );
+    }
+
+    #[test]
+    const fn from_le_bytes_is_const_fn() {
+        const _: FileTime = FileTime::from_le_bytes([u8::MIN; 8]);
     }
 
     #[test]

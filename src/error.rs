@@ -298,6 +298,12 @@ mod tests {
     }
 
     #[test]
+    const fn kind_dos_date_time_range_error_is_const_fn() {
+        const _: DosDateTimeRangeErrorKind =
+            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative).kind();
+    }
+
+    #[test]
     fn display_dos_date_time_range_error() {
         assert_eq!(
             format!(
@@ -490,6 +496,12 @@ mod tests {
             FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow).kind(),
             FileTimeRangeErrorKind::Overflow
         );
+    }
+
+    #[test]
+    const fn kind_file_time_range_error_is_const_fn() {
+        const _: FileTimeRangeErrorKind =
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative).kind();
     }
 
     #[test]
