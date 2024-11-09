@@ -106,7 +106,7 @@ impl FileTime {
     }
 
     /// Returns the memory representation of this `FileTime` as a byte array in
-    /// big-endian byte order.
+    /// big-endian (network) byte order.
     ///
     /// # Examples
     ///
@@ -147,8 +147,37 @@ impl FileTime {
         self.to_raw().to_le_bytes()
     }
 
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// native byte order.
+    ///
+    /// As the target platform's native endianness is used, portable code should
+    /// use [`FileTime::to_be_bytes`] or [`FileTime::to_le_bytes`], as
+    /// appropriate, instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
+    ///     if cfg!(target_endian = "big") {
+    ///         [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+    ///     } else {
+    ///         [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+    ///     }
+    /// );
+    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.to_raw().to_ne_bytes()
+    }
+
     /// Creates a native endian `FileTime` value from its representation as a
-    /// byte array in big-endian.
+    /// byte array in big endian.
     ///
     /// # Examples
     ///
@@ -172,7 +201,7 @@ impl FileTime {
     }
 
     /// Creates a native endian `FileTime` value from its representation as a
-    /// byte array in little-endian.
+    /// byte array in little endian.
     ///
     /// # Examples
     ///
@@ -193,6 +222,38 @@ impl FileTime {
     #[inline]
     pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_le_bytes(bytes))
+    }
+
+    /// Creates a native endian `FileTime` value from its memory representation
+    /// as a byte array in native endianness.
+    ///
+    /// As the target platform's native endianness is used, portable code likely
+    /// wants to use [`FileTime::from_be_bytes`] or [`FileTime::from_le_bytes`],
+    /// as appropriate instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_ne_bytes([u8::MIN; 8]),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
+    ///         [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+    ///     } else {
+    ///         [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+    ///     }),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// ```
+    #[must_use]
+    #[inline]
+    pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
+        Self::new(u64::from_ne_bytes(bytes))
     }
 }
 
@@ -263,6 +324,12 @@ impl FromStr for FileTime {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn size_of() {
+        assert_eq!(mem::size_of::<FileTime>(), 8);
+        assert_eq!(mem::size_of::<FileTime>(), mem::size_of::<u64>());
+    }
 
     #[test]
     fn clone() {
@@ -377,6 +444,33 @@ mod tests {
     }
 
     #[test]
+    fn to_ne_bytes() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [u8::MIN; 8]);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_ne_bytes(),
+            if cfg!(target_endian = "big") {
+                [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+            } else {
+                [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+            }
+        );
+        assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn to_ne_bytes_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(ft.to_ne_bytes(), ft.to_raw().to_ne_bytes());
+    }
+
+    #[test]
+    const fn to_ne_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_ne_bytes();
+    }
+
+    #[test]
     fn from_be_bytes() {
         assert_eq!(
             FileTime::from_be_bytes([u8::MIN; 8]),
@@ -432,6 +526,39 @@ mod tests {
     #[test]
     const fn from_le_bytes_is_const_fn() {
         const _: FileTime = FileTime::from_le_bytes([u8::MIN; 8]);
+    }
+
+    #[test]
+    fn from_ne_bytes() {
+        assert_eq!(
+            FileTime::from_ne_bytes([u8::MIN; 8]),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
+                [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+            } else {
+                [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+            }),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_ne_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
+        use proptest::prop_assert_eq;
+
+        prop_assert_eq!(
+            FileTime::from_ne_bytes(bytes),
+            FileTime::new(u64::from_ne_bytes(bytes))
+        );
+    }
+
+    #[test]
+    const fn from_ne_bytes_is_const_fn() {
+        const _: FileTime = FileTime::from_ne_bytes([u8::MIN; 8]);
     }
 
     #[test]
