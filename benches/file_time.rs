@@ -38,6 +38,11 @@ fn to_le_bytes(b: &mut Bencher) {
 }
 
 #[bench]
+fn to_ne_bytes(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_ne_bytes());
+}
+
+#[bench]
 fn from_be_bytes(b: &mut Bencher) {
     b.iter(|| FileTime::from_be_bytes([u8::MIN; 8]));
 }
@@ -45,6 +50,11 @@ fn from_be_bytes(b: &mut Bencher) {
 #[bench]
 fn from_le_bytes(b: &mut Bencher) {
     b.iter(|| FileTime::from_le_bytes([u8::MIN; 8]));
+}
+
+#[bench]
+fn from_ne_bytes(b: &mut Bencher) {
+    b.iter(|| FileTime::from_ne_bytes([u8::MIN; 8]));
 }
 
 #[bench]
