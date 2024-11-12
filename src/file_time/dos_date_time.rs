@@ -241,7 +241,7 @@ impl FileTime {
     /// ```should_panic
     /// # use nt_time::FileTime;
     /// #
-    /// let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
+    /// let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     /// ```
     ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
@@ -558,7 +558,7 @@ mod tests {
     #[allow(clippy::should_panic_without_expect)]
     fn to_dos_date_time_with_invalid_positive_offset() {
         // From `1980-01-01 00:00:00 UTC` to `1980-01-01 16:00:00 +16:00`.
-        let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(119_600_064_000_000_000)
+        let _ = FileTime::new(119_600_064_000_000_000)
             .to_dos_date_time(Some(offset!(+16:00)))
             .unwrap();
     }
@@ -568,7 +568,7 @@ mod tests {
     #[allow(clippy::should_panic_without_expect)]
     fn to_dos_date_time_with_invalid_negative_offset() {
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:44:58 -16:15`.
-        let _: (u16, u16, u8, Option<UtcOffset>) = FileTime::new(159_992_927_980_000_000)
+        let _ = FileTime::new(159_992_927_980_000_000)
             .to_dos_date_time(Some(offset!(-16:15)))
             .unwrap();
     }
@@ -734,7 +734,7 @@ mod tests {
     #[should_panic]
     #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_resolution() {
-        let _: FileTime = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
+        let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
     }
 
     #[test]
@@ -742,8 +742,7 @@ mod tests {
     #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_positive_offset() {
         // From `2107-12-31 23:59:58 +16:00` to `2107-12-31 07:59:58 UTC`.
-        let _: FileTime =
-            FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
+        let _ = FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
     }
 
     #[test]
@@ -751,7 +750,7 @@ mod tests {
     #[allow(clippy::should_panic_without_expect)]
     fn from_dos_date_time_with_invalid_negative_offset() {
         // From `1980-01-01 00:00:00 -16:15` to `1980-01-01 16:15:00 UTC`.
-        let _: FileTime =
+        let _ =
             FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:15))).unwrap();
     }
 }

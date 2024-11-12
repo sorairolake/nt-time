@@ -574,7 +574,7 @@ mod tests {
     fn add_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let _: FileTime = FileTime::MAX + Duration::from_nanos(100);
+        let _ = FileTime::MAX + Duration::from_nanos(100);
     }
 
     #[test]
@@ -608,7 +608,7 @@ mod tests {
     fn add_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let _: FileTime = FileTime::MAX + Duration::nanoseconds(100);
+        let _ = FileTime::MAX + Duration::nanoseconds(100);
     }
 
     #[test]
@@ -642,7 +642,7 @@ mod tests {
     fn add_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let _: FileTime = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
+        let _ = FileTime::NT_TIME_EPOCH + Duration::nanoseconds(-100);
     }
 
     #[cfg(feature = "chrono")]
@@ -678,7 +678,7 @@ mod tests {
     fn add_positive_chrono_time_delta_with_overflow() {
         use chrono::TimeDelta;
 
-        let _: FileTime = FileTime::MAX + TimeDelta::nanoseconds(100);
+        let _ = FileTime::MAX + TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -714,7 +714,7 @@ mod tests {
     fn add_negative_chrono_time_delta_with_overflow() {
         use chrono::TimeDelta;
 
-        let _: FileTime = FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-100);
+        let _ = FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-100);
     }
 
     #[test]
@@ -996,7 +996,7 @@ mod tests {
     fn sub_file_time_with_overflow() {
         use core::time::Duration;
 
-        let _: Duration = (FileTime::MAX - Duration::from_nanos(100)) - FileTime::MAX;
+        let _ = (FileTime::MAX - Duration::from_nanos(100)) - FileTime::MAX;
     }
 
     #[test]
@@ -1030,7 +1030,7 @@ mod tests {
     fn sub_std_duration_with_overflow() {
         use core::time::Duration;
 
-        let _: FileTime = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
+        let _ = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
     }
 
     #[test]
@@ -1064,7 +1064,7 @@ mod tests {
     fn sub_positive_time_duration_with_overflow() {
         use time::Duration;
 
-        let _: FileTime = FileTime::NT_TIME_EPOCH - Duration::nanoseconds(100);
+        let _ = FileTime::NT_TIME_EPOCH - Duration::nanoseconds(100);
     }
 
     #[test]
@@ -1098,7 +1098,7 @@ mod tests {
     fn sub_negative_time_duration_with_overflow() {
         use time::Duration;
 
-        let _: FileTime = FileTime::MAX - Duration::nanoseconds(-100);
+        let _ = FileTime::MAX - Duration::nanoseconds(-100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1134,7 +1134,7 @@ mod tests {
     fn sub_positive_chrono_time_delta_with_overflow() {
         use chrono::TimeDelta;
 
-        let _: FileTime = FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(100);
+        let _ = FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1170,7 +1170,7 @@ mod tests {
     fn sub_negative_chrono_time_delta_with_overflow() {
         use chrono::TimeDelta;
 
-        let _: FileTime = FileTime::MAX - TimeDelta::nanoseconds(-100);
+        let _ = FileTime::MAX - TimeDelta::nanoseconds(-100);
     }
 
     #[cfg(feature = "std")]
@@ -1201,7 +1201,7 @@ mod tests {
     fn sub_file_time_from_system_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
-        let _: Duration = FileTime::new(9_223_372_036_854_775_806)
+        let _ = FileTime::new(9_223_372_036_854_775_806)
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
     }
 
@@ -1242,7 +1242,7 @@ mod tests {
     fn sub_system_time_from_file_time_with_overflow() {
         use std::time::{Duration, SystemTime};
 
-        let _: Duration = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
+        let _ = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
             - FileTime::new(9_223_372_036_854_775_807);
     }
 
