@@ -21,6 +21,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Add `FileTime::to_high_low` and `FileTime::from_high_low`
   ({pull-request-url}/252[#252])
 
+=== Changed
+
+* Change MSRV to 1.67.1 ({pull-request-url}/252[#252])
+
 == {compare-url}/v0.10.2\...v0.10.3[0.10.3] - 2024-11-09
 
 === Added
