@@ -255,6 +255,77 @@ impl FileTime {
     pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_ne_bytes(bytes))
     }
+
+    #[allow(clippy::cast_possible_truncation)]
+    /// Returns the high-order and low-order parts of this `FileTime`.
+    ///
+    /// The first return value represents the high-order part of this
+    /// `FileTime`, and the second return value represents the low-order part of
+    /// this `FileTime`.
+    ///
+    /// The first return value corresponds to the `dwHighDateTime` member of the
+    /// [`FILETIME`] structure of the [Win32 API], and the second return value
+    /// corresponds to the `dwLowDateTime` member of the `FILETIME` structure.
+    /// The data type of these members is [`DWORD`], a 32-bit unsigned integer
+    /// type the same as [`u32`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (u32::MIN, u32::MIN));
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_high_low(),
+    ///     (0x019d_b1de, 0xd53e_8000)
+    /// );
+    /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    /// ```
+    ///
+    /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+    /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
+    /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
+    #[must_use]
+    #[inline]
+    pub const fn to_high_low(self) -> (u32, u32) {
+        let raw = self.to_raw();
+        ((raw >> u32::BITS) as u32, raw as u32)
+    }
+
+    /// Creates a `FileTime` from [`u32`] values representing the high-order and
+    /// low-order parts of the file time.
+    ///
+    /// `high` corresponds to the `dwHighDateTime` member of the [`FILETIME`]
+    /// structure of the [Win32 API], and `low` corresponds to the
+    /// `dwLowDateTime` member of the `FILETIME` structure. The data type of
+    /// these members is [`DWORD`], a 32-bit unsigned integer type the same as
+    /// [`u32`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_high_low(u32::MIN, u32::MIN),
+    ///     FileTime::NT_TIME_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_high_low(0x019d_b1de, 0xd53e_8000),
+    ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
+    /// ```
+    ///
+    /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+    /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
+    /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
+    #[must_use]
+    #[inline]
+    pub const fn from_high_low(high: u32, low: u32) -> Self {
+        let raw = ((high as u64) << u32::BITS) | (low as u64);
+        Self::new(raw)
+    }
 }
 
 impl Default for FileTime {
@@ -559,6 +630,58 @@ mod tests {
     #[test]
     const fn from_ne_bytes_is_const_fn() {
         const _: FileTime = FileTime::from_ne_bytes([u8::MIN; 8]);
+    }
+
+    #[test]
+    fn to_high_low() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (u32::MIN, u32::MIN));
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_high_low(),
+            (0x019d_b1de, 0xd53e_8000)
+        );
+        assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    }
+
+    #[cfg(feature = "std")]
+    #[allow(clippy::cast_possible_truncation)]
+    #[test_strategy::proptest]
+    fn to_high_low_roundtrip(ft: FileTime) {
+        use proptest::prop_assert_eq;
+
+        let raw = ft.to_raw();
+        prop_assert_eq!(ft.to_high_low(), ((raw >> u32::BITS) as u32, raw as u32));
+    }
+
+    #[test]
+    const fn to_high_low_is_const_fn() {
+        const _: (u32, u32) = FileTime::NT_TIME_EPOCH.to_high_low();
+    }
+
+    #[test]
+    fn from_high_low() {
+        assert_eq!(
+            FileTime::from_high_low(u32::MIN, u32::MIN),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_high_low(0x019d_b1de, 0xd53e_8000),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
+    }
+
+    #[cfg(feature = "std")]
+    #[test_strategy::proptest]
+    fn from_high_low_roundtrip(high: u32, low: u32) {
+        use proptest::prop_assert_eq;
+
+        let raw = (u64::from(high) << u32::BITS) | u64::from(low);
+        prop_assert_eq!(FileTime::from_high_low(high, low), FileTime::new(raw));
+    }
+
+    #[test]
+    const fn from_high_low_is_const_fn() {
+        const _: FileTime = FileTime::from_high_low(u32::MIN, u32::MIN);
     }
 
     #[test]
