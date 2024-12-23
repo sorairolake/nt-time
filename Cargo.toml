@@ -54,7 +54,7 @@ serde = { version = "1.0.216", default-features = false, features = ["derive"], 
 time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.94"
+anyhow = "1.0.95"
 clap = { version = "4.5.23", features = ["derive"] }
 proptest = "1.6.0"
 proptest-derive = "0.5.1"
