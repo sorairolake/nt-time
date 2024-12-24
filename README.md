@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.3"
+nt-time = "0.10.4"
 ```
 
 ### Crate features
