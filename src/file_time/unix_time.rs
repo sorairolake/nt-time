@@ -195,7 +195,7 @@ impl FileTime {
     /// ```should_panic
     /// # use nt_time::FileTime;
     /// #
-    /// let _: FileTime = FileTime::from_unix_time(0, 1_000_000_000).unwrap();
+    /// let _ = FileTime::from_unix_time(0, 1_000_000_000).unwrap();
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
@@ -819,9 +819,8 @@ mod tests {
 
     #[test]
     #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
     fn from_unix_time_with_too_big_subsec_nanos() {
-        let _: FileTime = FileTime::from_unix_time(i64::default(), NANOS_PER_SEC).unwrap();
+        let _ = FileTime::from_unix_time(i64::default(), NANOS_PER_SEC).unwrap();
     }
 
     #[test]

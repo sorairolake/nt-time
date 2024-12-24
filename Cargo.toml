@@ -4,10 +4,10 @@
 
 [package]
 name = "nt-time"
-version = "0.10.3"
+version = "0.10.4"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.67.1"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -48,19 +48,19 @@ path = "examples/unix2ft.rs"
 required-features = ["std"]
 
 [dependencies]
-chrono = { version = "0.4.38", default-features = false, optional = true }
+chrono = { version = "0.4.39", default-features = false, optional = true }
 rand = { version = "0.8.5", default-features = false, optional = true }
-serde = { version = "1.0.214", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.36", default-features = false, features = ["macros"] }
+serde = { version = "1.0.216", default-features = false, features = ["derive"], optional = true }
+time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.93"
-clap = { version = "4.5.20", features = ["derive"] }
-proptest = "1.5.0"
-proptest-derive = "0.5.0"
-serde_json = "1.0.132"
+anyhow = "1.0.95"
+clap = { version = "4.3.24", features = ["derive"] }
+proptest = "1.6.0"
+proptest-derive = "0.5.1"
+serde_json = "1.0.134"
 serde_test = "1.0.177"
-test-strategy = "0.4.0"
+test-strategy = "0.3.1"
 
 [features]
 default = ["std"]

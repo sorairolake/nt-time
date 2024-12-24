@@ -291,7 +291,6 @@ mod tests {
             prop_assume!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
         }
 
-        #[allow(clippy::option_if_let_else)]
         let json = if let Some(ts) = timestamp {
             format!(r#"{{"time":{ts}}}"#)
         } else {

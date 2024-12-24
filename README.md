@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.3"
+nt-time = "0.10.4"
 ```
 
 ### Crate features
@@ -61,7 +61,7 @@ See the [documentation][docs-url] for more details.
 
 ## Minimum supported Rust version
 
-The minimum supported Rust version (MSRV) of this library is v1.67.0.
+The minimum supported Rust version (MSRV) of this library is v1.67.1.
 
 ## Source code
 
