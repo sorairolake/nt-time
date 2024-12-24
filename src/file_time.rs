@@ -643,7 +643,6 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[allow(clippy::cast_possible_truncation)]
     #[test_strategy::proptest]
     fn to_high_low_roundtrip(ft: FileTime) {
         use proptest::prop_assert_eq;

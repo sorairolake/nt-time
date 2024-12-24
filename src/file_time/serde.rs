@@ -490,7 +490,6 @@ mod tests {
 
         use proptest::prop_assert_eq;
 
-        #[allow(clippy::option_if_let_else)]
         let json = if let Some(r) = raw {
             format!(r#"{{"time":{r}}}"#)
         } else {

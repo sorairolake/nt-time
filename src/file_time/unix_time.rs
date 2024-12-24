@@ -819,7 +819,6 @@ mod tests {
 
     #[test]
     #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
     fn from_unix_time_with_too_big_subsec_nanos() {
         let _ = FileTime::from_unix_time(i64::default(), NANOS_PER_SEC).unwrap();
     }
