@@ -4,9 +4,9 @@
 
 = Examples
 
-link:date.rs[]::
+link:print.rs[]::
 
-  An example of printing the file time.
+  An example of printing the file time in a human-readable format.
 
 link:ft2unix.rs[]::
 

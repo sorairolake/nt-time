@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! An example of printing the file time.
+//! An example of printing the file time in a human-readable format.
 
 use anyhow::Context;
 use clap::Parser;

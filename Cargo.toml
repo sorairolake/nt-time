@@ -23,11 +23,6 @@ all-features = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[example]]
-name = "date"
-path = "examples/date.rs"
-required-features = ["std"]
-
-[[example]]
 name = "dos2ft"
 path = "examples/dos2ft.rs"
 required-features = ["std"]
@@ -40,6 +35,11 @@ required-features = ["std"]
 [[example]]
 name = "ft2unix"
 path = "examples/ft2unix.rs"
+required-features = ["std"]
+
+[[example]]
+name = "print"
+path = "examples/print.rs"
 required-features = ["std"]
 
 [[example]]
