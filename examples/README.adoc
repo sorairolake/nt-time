@@ -8,6 +8,10 @@ link:print.rs[]::
 
   An example of printing the file time in a human-readable format.
 
+link:parse.rs[]::
+
+  An example of printing a human-readable date and time as the file time.
+
 link:ft2unix.rs[]::
 
   An example of converting the file time to Unix time.

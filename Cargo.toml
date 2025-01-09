@@ -38,6 +38,11 @@ path = "examples/ft2unix.rs"
 required-features = ["std"]
 
 [[example]]
+name = "parse"
+path = "examples/parse.rs"
+required-features = ["std"]
+
+[[example]]
 name = "print"
 path = "examples/print.rs"
 required-features = ["std"]
@@ -61,6 +66,7 @@ proptest-derive = "0.5.1"
 serde_json = "1.0.135"
 serde_test = "1.0.177"
 test-strategy = "0.4.0"
+time = { version = "0.3.37", features = ["parsing"] }
 
 [features]
 default = ["std"]
