@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.10.4\...HEAD[Unreleased]
+
+=== Added
+
+* Add an example of printing a human-readable date and time as the file time
+  ({pull-request-url}/268[#268])
+
+=== Changed
+
+* Rename `examples/date.rs` to `examples/print.rs`
+  ({pull-request-url}/268[#268])
+
 == {compare-url}/v0.10.3\...v0.10.4[0.10.4] - 2024-12-24
 
 === Added
