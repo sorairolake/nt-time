@@ -4,7 +4,7 @@
 
 = Examples
 
-link:print.rs[]::
+link:format.rs[]::
 
   An example of printing the file time in a human-readable format.
 

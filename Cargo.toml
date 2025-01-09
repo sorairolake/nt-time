@@ -28,6 +28,11 @@ path = "examples/dos2ft.rs"
 required-features = ["std"]
 
 [[example]]
+name = "format"
+path = "examples/format.rs"
+required-features = ["std"]
+
+[[example]]
 name = "ft2dos"
 path = "examples/ft2dos.rs"
 required-features = ["std"]
@@ -40,11 +45,6 @@ required-features = ["std"]
 [[example]]
 name = "parse"
 path = "examples/parse.rs"
-required-features = ["std"]
-
-[[example]]
-name = "print"
-path = "examples/print.rs"
 required-features = ["std"]
 
 [[example]]

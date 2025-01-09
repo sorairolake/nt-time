@@ -23,8 +23,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 === Changed
 
-* Rename `examples/date.rs` to `examples/print.rs`
-  ({pull-request-url}/268[#268])
+* Rename `examples/date.rs` to `examples/format.rs`
+  ({pull-request-url}/269[#269])
 
 == {compare-url}/v0.10.3\...v0.10.4[0.10.4] - 2024-12-24
 
