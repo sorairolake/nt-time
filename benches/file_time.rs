@@ -58,6 +58,16 @@ fn from_ne_bytes(b: &mut Bencher) {
 }
 
 #[bench]
+fn to_high_low(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_high_low());
+}
+
+#[bench]
+fn from_high_low(b: &mut Bencher) {
+    b.iter(|| FileTime::from_high_low(u32::MIN, u32::MIN));
+}
+
+#[bench]
 fn default(b: &mut Bencher) {
     b.iter(FileTime::default);
 }
