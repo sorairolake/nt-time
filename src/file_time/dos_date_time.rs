@@ -31,6 +31,13 @@ impl FileTime {
     /// a multiple of 15 minute intervals, returns the UTC date and time as a
     /// date and time and [`None`] as the UTC offset.
     ///
+    /// Note that exFAT supports `resolution` for creation and last modified
+    /// times, and the `offset` return value for these times and last access
+    /// time, but other file systems and file formats may not support these. For
+    /// example, the built-in timestamp of ZIP used for last modified time only
+    /// records `date` and `time`, not `resolution` and the `offset` return
+    /// value.
+    ///
     /// # Errors
     ///
     /// Returns [`Err`] if the resulting date and time is out of range for
@@ -38,7 +45,8 @@ impl FileTime {
     ///
     /// # Panics
     ///
-    /// Panics if `offset` is out of range for the [OffsetFromUtc field].
+    /// Panics if the `offset` parameter is out of range for the [OffsetFromUtc
+    /// field].
     ///
     /// # Examples
     ///
@@ -172,6 +180,12 @@ impl FileTime {
     /// date and time in the provided time zone to UTC. When `offset` is
     /// [`None`] or is not a multiple of 15 minute intervals, assumes the
     /// provided date and time is in UTC.
+    ///
+    /// Note that exFAT supports `resolution` for creation and last modified
+    /// times, and `offset` for these times and last access time, but other file
+    /// systems and file formats may not support these. For example, the
+    /// built-in timestamp of ZIP used for last modified time only records
+    /// `date` and `time`, not `resolution` and `offset`.
     ///
     /// # Errors
     ///
