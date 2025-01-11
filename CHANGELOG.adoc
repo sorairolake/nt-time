@@ -25,6 +25,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Rename `examples/date.rs` to `examples/format.rs`
   ({pull-request-url}/269[#269])
+* Carry over the number of nanoseconds into the seconds if it is greater than 1
+  billion in `FileTime::from_unix_time` ({pull-request-url}/272[#272])
 
 == {compare-url}/v0.10.3\...v0.10.4[0.10.4] - 2024-12-24
 
