@@ -20,6 +20,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Add an example of printing a human-readable date and time as the file time
   ({pull-request-url}/268[#268])
+* Add `FileTime::SIGNED_MAX`, which represents the actual largest value of the
+  file time, not the theoretical maximum ({pull-request-url}/273[#273])
 
 === Changed
 

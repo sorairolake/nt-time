@@ -24,6 +24,7 @@ impl From<FileTime> for u64 {
     /// #
     /// assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
     /// assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
+    /// assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
     /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     /// ```
     #[inline]
@@ -55,6 +56,7 @@ impl TryFrom<FileTime> for i64 {
     ///     i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
     ///     116_444_736_000_000_000
     /// );
+    /// assert_eq!(i64::try_from(FileTime::SIGNED_MAX).unwrap(), i64::MAX);
     ///
     /// assert!(i64::try_from(FileTime::MAX).is_err());
     /// ```
@@ -162,6 +164,11 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// );
     /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
+    ///     OffsetDateTime::try_from(FileTime::SIGNED_MAX).unwrap(),
+    ///     datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
+    /// );
+    /// # #[cfg(feature = "large-dates")]
+    /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
@@ -217,6 +224,7 @@ impl From<u64> for FileTime {
     ///     FileTime::from(116_444_736_000_000_000),
     ///     FileTime::UNIX_EPOCH
     /// );
+    /// assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
     /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     /// ```
     #[inline]
@@ -248,6 +256,7 @@ impl TryFrom<i64> for FileTime {
     ///     FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
     ///     FileTime::UNIX_EPOCH
     /// );
+    /// assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
     ///
     /// assert!(FileTime::try_from(i64::MIN).is_err());
     /// ```
@@ -425,6 +434,7 @@ mod tests {
     fn from_file_time_to_u64() {
         assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
         assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
+        assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
@@ -446,10 +456,7 @@ mod tests {
             i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
             116_444_736_000_000_000
         );
-        assert_eq!(
-            i64::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
-            i64::MAX
-        );
+        assert_eq!(i64::try_from(FileTime::SIGNED_MAX).unwrap(), i64::MAX);
     }
 
     #[cfg(feature = "std")]
@@ -457,7 +464,7 @@ mod tests {
     fn try_from_file_time_to_i64_roundtrip(ft: FileTime) {
         use proptest::prop_assert;
 
-        if ft <= FileTime::new(i64::MAX.try_into().unwrap()) {
+        if ft <= FileTime::SIGNED_MAX {
             prop_assert!(i64::try_from(ft).is_ok());
         } else {
             prop_assert!(i64::try_from(ft).is_err());
@@ -538,7 +545,7 @@ mod tests {
             datetime!(+10000-01-01 00:00 UTC)
         );
         assert_eq!(
-            OffsetDateTime::try_from(FileTime::new(i64::MAX.try_into().unwrap())).unwrap(),
+            OffsetDateTime::try_from(FileTime::SIGNED_MAX).unwrap(),
             datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
         );
         assert_eq!(
@@ -573,7 +580,7 @@ mod tests {
                 .unwrap()
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::new(i64::MAX.try_into().unwrap())),
+            DateTime::<Utc>::from(FileTime::SIGNED_MAX),
             "+30828-09-14 02:48:05.477580700 UTC"
                 .parse::<DateTime<Utc>>()
                 .unwrap()
@@ -593,6 +600,7 @@ mod tests {
             FileTime::from(116_444_736_000_000_000),
             FileTime::UNIX_EPOCH
         );
+        assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
@@ -639,10 +647,7 @@ mod tests {
             FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
             FileTime::UNIX_EPOCH
         );
-        assert_eq!(
-            FileTime::try_from(i64::MAX).unwrap(),
-            FileTime::new(i64::MAX.try_into().unwrap())
-        );
+        assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
     }
 
     #[cfg(feature = "std")]
@@ -776,7 +781,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::try_from(datetime!(+30828-09-14 02:48:05.477_580_700 UTC)).unwrap(),
-            FileTime::new(i64::MAX.try_into().unwrap())
+            FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::try_from(datetime!(+60056-05-28 05:36:10.955_161_500 UTC)).unwrap(),
@@ -852,7 +857,7 @@ mod tests {
                     .unwrap()
             )
             .unwrap(),
-            FileTime::new(i64::MAX.try_into().unwrap())
+            FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::try_from(

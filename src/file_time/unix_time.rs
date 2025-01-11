@@ -29,6 +29,10 @@ impl FileTime {
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time(), (-11_644_473_600, 0));
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), (0, 0));
     /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time(),
+    ///     (910_692_730_085, 477_580_700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::MAX.to_unix_time(),
     ///     (1_833_029_933_770, 955_161_500)
     /// );
@@ -58,6 +62,7 @@ impl FileTime {
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time_secs(), -11_644_473_600);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_secs(), 0);
+    /// assert_eq!(FileTime::SIGNED_MAX.to_unix_time_secs(), 910_692_730_085);
     /// assert_eq!(FileTime::MAX.to_unix_time_secs(), 1_833_029_933_770);
     /// ```
     ///
@@ -84,6 +89,10 @@ impl FileTime {
     ///     -11_644_473_600_000
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_millis(), 0);
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_millis(),
+    ///     910_692_730_085_477
+    /// );
     /// assert_eq!(FileTime::MAX.to_unix_time_millis(), 1_833_029_933_770_955);
     /// ```
     ///
@@ -111,6 +120,10 @@ impl FileTime {
     ///     -11_644_473_600_000_000
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_micros(), 0);
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_micros(),
+    ///     910_692_730_085_477_580
+    /// );
     /// assert_eq!(
     ///     FileTime::MAX.to_unix_time_micros(),
     ///     1_833_029_933_770_955_161
@@ -140,6 +153,10 @@ impl FileTime {
     ///     -11_644_473_600_000_000_000
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), 0);
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_nanos(),
+    ///     910_692_730_085_477_580_700
+    /// );
     /// assert_eq!(
     ///     FileTime::MAX.to_unix_time_nanos(),
     ///     1_833_029_933_770_955_161_500
@@ -183,6 +200,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::from_unix_time(0, 0).unwrap(),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(910_692_730_085, 477_580_700).unwrap(),
+    ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(
     ///     FileTime::from_unix_time(1_833_029_933_770, 955_161_500).unwrap(),
@@ -233,6 +254,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_secs(910_692_730_085).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_secs(1_833_029_933_770).unwrap(),
     ///     FileTime::MAX - Duration::from_nanos(955_161_500)
     /// );
@@ -278,6 +303,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(910_692_730_085_477).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(580_700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
     ///     FileTime::MAX - Duration::from_nanos(161_500)
     /// );
@@ -317,6 +346,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(910_692_730_085_477_580).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
     ///     FileTime::MAX - Duration::from_nanos(500)
     /// );
@@ -352,6 +385,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::from_unix_time_nanos(0).unwrap(),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(910_692_730_085_477_580_700).unwrap(),
+    ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(
     ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
@@ -413,6 +450,10 @@ mod tests {
             (i64::default(), 100)
         );
         assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time(),
+            (910_692_730_085, 477_580_700)
+        );
+        assert_eq!(
             (FileTime::MAX - Duration::from_nanos(100)).to_unix_time(),
             (1_833_029_933_770, 955_161_400)
         );
@@ -469,6 +510,7 @@ mod tests {
             (FileTime::UNIX_EPOCH + Duration::from_secs(1)).to_unix_time_secs(),
             i64::default() + 1
         );
+        assert_eq!(FileTime::SIGNED_MAX.to_unix_time_secs(), 910_692_730_085);
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(955_161_600)).to_unix_time_secs(),
             1_833_029_933_769
@@ -532,6 +574,10 @@ mod tests {
         assert_eq!(
             (FileTime::UNIX_EPOCH + Duration::from_millis(1)).to_unix_time_millis(),
             i64::default() + 1
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_millis(),
+            910_692_730_085_477
         );
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(161_600)).to_unix_time_millis(),
@@ -601,6 +647,10 @@ mod tests {
             i64::default() + 1
         );
         assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_micros(),
+            910_692_730_085_477_580
+        );
+        assert_eq!(
             (FileTime::MAX - Duration::from_nanos(600)).to_unix_time_micros(),
             1_833_029_933_770_955_160
         );
@@ -653,6 +703,10 @@ mod tests {
         assert_eq!(
             (FileTime::UNIX_EPOCH + Duration::from_nanos(100)).to_unix_time_nanos(),
             i128::default() + 100
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_nanos(),
+            910_692_730_085_477_580_700
         );
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(100)).to_unix_time_nanos(),
@@ -802,6 +856,10 @@ mod tests {
             FileTime::UNIX_EPOCH + Duration::from_nanos(100)
         );
         assert_eq!(
+            FileTime::from_unix_time(910_692_730_085, 477_580_700).unwrap(),
+            FileTime::SIGNED_MAX
+        );
+        assert_eq!(
             FileTime::from_unix_time(1_833_029_933_770, 955_161_500).unwrap(),
             FileTime::MAX
         );
@@ -932,6 +990,10 @@ mod tests {
             FileTime::UNIX_EPOCH + Duration::from_secs(1)
         );
         assert_eq!(
+            FileTime::from_unix_time_secs(910_692_730_085).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700)
+        );
+        assert_eq!(
             FileTime::from_unix_time_secs(1_833_029_933_770).unwrap(),
             FileTime::MAX - Duration::from_nanos(955_161_500)
         );
@@ -1016,6 +1078,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_millis(i64::default() + 1).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_millis(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_millis(910_692_730_085_477).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(580_700)
         );
         assert_eq!(
             FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
@@ -1104,6 +1170,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_micros(i64::default() + 1).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_micros(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(910_692_730_085_477_580).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(700)
         );
         assert_eq!(
             FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
@@ -1240,6 +1310,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::default() + 100).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_nanos(100)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(910_692_730_085_477_580_700).unwrap(),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
