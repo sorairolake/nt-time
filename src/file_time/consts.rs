@@ -54,21 +54,24 @@ impl FileTime {
     /// value instead of [`FileTime::MAX`].
     ///
     /// Note that the actual largest value of the [`SYSTEMTIME`] structure of
-    /// the Win32 API is "+30827-12-31 23:59:59.999000000", which is different
-    /// from this constant. The `FileTimeToSystemTime` function accepts the
-    /// value of this constant, but it is an invalid date and time for the
-    /// `SYSTEMTIME` structure.
+    /// the Win32 API is "+30827-12-31 23:59:59.999000000" (which is either in
+    /// UTC or local time, depending on the function that is being called),
+    /// which is different from this constant. The `FileTimeToSystemTime`
+    /// function accepts the value of this constant, but it is an invalid date
+    /// and time for the `SYSTEMTIME` structure.
     ///
     /// # Examples
     ///
     /// ```
+    /// # #[cfg(feature = "large-dates")]
+    /// # {
     /// # use nt_time::{time::macros::datetime, FileTime};
     /// #
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
     ///     datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
     /// );
+    /// # }
     /// ```
     ///
     /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
@@ -80,7 +83,7 @@ impl FileTime {
     /// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
     /// [.NET]: https://dotnet.microsoft.com/
     /// [`SYSTEMTIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-systemtime
-    pub const SIGNED_MAX: Self = Self::new(u64::MAX >> 1);
+    pub const SIGNED_MAX: Self = Self::new(i64::MAX as u64);
 
     /// The largest value that can be represented by the file time.
     ///
@@ -98,13 +101,15 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
+    /// # #[cfg(feature = "large-dates")]
+    /// # {
     /// # use nt_time::{time::macros::datetime, FileTime};
     /// #
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
     ///     FileTime::MAX,
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
+    /// # }
     /// ```
     ///
     /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime

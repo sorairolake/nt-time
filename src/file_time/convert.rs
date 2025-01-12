@@ -143,35 +143,37 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// time represents after "9999-12-31 23:59:59.999999900 UTC":
     ///
     /// ```
+    /// # #[cfg(not(feature = "large-dates"))]
+    /// # {
     /// # use nt_time::{time::OffsetDateTime, FileTime};
     /// #
-    /// # #[cfg(not(feature = "large-dates"))]
     /// assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
+    /// # }
     /// ```
     ///
     /// With the `large-dates` feature enabled, this always succeeds:
     ///
     /// ```
+    /// # #[cfg(feature = "large-dates")]
+    /// # {
     /// # use nt_time::{
     /// #     time::{macros::datetime, OffsetDateTime},
     /// #     FileTime,
     /// # };
     /// #
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
     ///     datetime!(+10000-01-01 00:00 UTC)
     /// );
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::SIGNED_MAX).unwrap(),
     ///     datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
     /// );
-    /// # #[cfg(feature = "large-dates")]
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
     /// );
+    /// # }
     /// ```
     #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
@@ -362,16 +364,18 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// UTC":
     ///
     /// ```
+    /// # #[cfg(feature = "large-dates")]
+    /// # {
     /// # use nt_time::{
     /// #     time::{macros::datetime, Duration},
     /// #     FileTime,
     /// # };
     /// #
-    /// # #[cfg(feature = "large-dates")]
     /// assert!(FileTime::try_from(
     ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
     /// )
     /// .is_err());
+    /// # }
     /// ```
     #[inline]
     fn try_from(dt: OffsetDateTime) -> Result<Self, Self::Error> {
