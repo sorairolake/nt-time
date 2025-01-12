@@ -315,7 +315,7 @@ impl FileTime {
     /// );
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX.to_high_low(),
-    ///     (u32::MAX >> 1, u32::MAX)
+    ///     (i32::MAX as u32, u32::MAX)
     /// );
     /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     /// ```
@@ -353,7 +353,7 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+    ///     FileTime::from_high_low(i32::MAX as u32, u32::MAX),
     ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
@@ -721,7 +721,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::SIGNED_MAX.to_high_low(),
-            (u32::MAX >> 1, u32::MAX)
+            (i32::MAX as u32, u32::MAX)
         );
         assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     }
@@ -751,7 +751,7 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
-            FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+            FileTime::from_high_low(i32::MAX as u32, u32::MAX),
             FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
