@@ -31,6 +31,13 @@ impl FileTime {
     /// a multiple of 15 minute intervals, returns the UTC date and time as a
     /// date and time and [`None`] as the UTC offset.
     ///
+    /// Note that exFAT supports `resolution` for creation and last modified
+    /// times, and the `offset` return value for these times and last access
+    /// time, but other file systems and file formats may not support these. For
+    /// example, the built-in timestamp of ZIP used for last modified time only
+    /// records `date` and `time`, not `resolution` and the `offset` return
+    /// value.
+    ///
     /// # Errors
     ///
     /// Returns [`Err`] if the resulting date and time is out of range for
@@ -38,7 +45,8 @@ impl FileTime {
     ///
     /// # Panics
     ///
-    /// Panics if `offset` is out of range for the [OffsetFromUtc field].
+    /// Panics if the `offset` parameter is out of range for the [OffsetFromUtc
+    /// field].
     ///
     /// # Examples
     ///
@@ -124,17 +132,31 @@ impl FileTime {
             // The UTC offset must be in the range of a 7-bit signed integer.
             assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
         }
+
         let dt = OffsetDateTime::try_from(self)
             .ok()
             .and_then(|dt| dt.checked_to_offset(offset.unwrap_or(UtcOffset::UTC)))
             .ok_or(DosDateTimeRangeErrorKind::Overflow)?;
+
         match dt.year() {
             ..=1979 => Err(DosDateTimeRangeErrorKind::Negative.into()),
             2108.. => Err(DosDateTimeRangeErrorKind::Overflow.into()),
             _ => {
                 let (date, time) = (dt.date(), dt.time());
 
-                let (second, minute, hour) = (time.second() / 2, time.minute(), time.hour());
+                let (year, month, day) = (
+                    date.year() - 1980,
+                    i32::from(u8::from(date.month())),
+                    i32::from(date.day()),
+                );
+                let dos_date = ((year << 9) + (month << 5) + day)
+                    .try_into()
+                    .expect("the MS-DOS date should be in the range of `u16`");
+
+                let (hour, minute, second) = (time.hour(), time.minute(), time.second() / 2);
+                let dos_time =
+                    (u16::from(hour) << 11) + (u16::from(minute) << 5) + u16::from(second);
+
                 let resolution = ((time
                     - Time::from_hms(hour, minute, second * 2)
                         .expect("the MS-DOS time should be in the range of `Time`"))
@@ -143,18 +165,6 @@ impl FileTime {
                     .try_into()
                     .expect("resolution should be in the range of `u8`");
                 debug_assert!(resolution <= 199);
-                let (second, minute, hour) =
-                    (u16::from(second), u16::from(minute), u16::from(hour));
-                let dos_time = second + (minute << 5) + (hour << 11);
-
-                let (day, month, year) = (
-                    i32::from(date.day()),
-                    i32::from(u8::from(date.month())),
-                    date.year() - 1980,
-                );
-                let dos_date = (day + (month << 5) + (year << 9))
-                    .try_into()
-                    .expect("the MS-DOS date should be in the range of `u16`");
 
                 Ok((dos_date, dos_time, resolution, offset))
             }
@@ -172,6 +182,12 @@ impl FileTime {
     /// date and time in the provided time zone to UTC. When `offset` is
     /// [`None`] or is not a multiple of 15 minute intervals, assumes the
     /// provided date and time is in UTC.
+    ///
+    /// Note that exFAT supports `resolution` for creation and last modified
+    /// times, and `offset` for these times and last access time, but other file
+    /// systems and file formats may not support these. For example, the
+    /// built-in timestamp of ZIP used for last modified time only records
+    /// `date` and `time`, not `resolution` and `offset`.
     ///
     /// # Errors
     ///
@@ -259,39 +275,43 @@ impl FileTime {
     ) -> Result<Self, ComponentRange> {
         use core::time::Duration;
 
-        let (second, minute, hour) = (
-            ((time & 0x1f) * 2)
-                .try_into()
-                .expect("second should be in the range of `u8`"),
-            ((time >> 5) & 0x3f)
-                .try_into()
-                .expect("minute should be in the range of `u8`"),
-            (time >> 11)
-                .try_into()
-                .expect("hour should be in the range of `u8`"),
-        );
-        let mut time = Time::from_hms(hour, minute, second)?;
         if let Some(res) = resolution {
             assert!(res <= 199);
-            time += Duration::from_millis(u64::from(res) * 10);
         }
-
-        let (day, month, year) = (
-            (date & 0x1f)
-                .try_into()
-                .expect("day should be in the range of `u8`"),
-            u8::try_from((date >> 5) & 0x0f)
-                .expect("month should be in the range of `u8`")
-                .try_into()?,
-            ((date >> 9) + 1980).into(),
-        );
-        let date = Date::from_calendar_date(year, month, day)?;
+        let resolution = resolution.map_or(Duration::ZERO, |res| {
+            Duration::from_millis(u64::from(res) * 10)
+        });
 
         let offset = offset.filter(|o| o.whole_seconds() % 900 == 0);
         if let Some(o) = offset {
             // The UTC offset must be in the range of a 7-bit signed integer.
             assert!((offset!(-16:00)..=offset!(+15:45)).contains(&o));
         }
+
+        let (year, month, day) = (
+            ((date >> 9) + 1980).into(),
+            u8::try_from((date >> 5) & 0x0f)
+                .expect("month should be in the range of `u8`")
+                .try_into()?,
+            (date & 0x1f)
+                .try_into()
+                .expect("day should be in the range of `u8`"),
+        );
+        let date = Date::from_calendar_date(year, month, day)?;
+
+        let (hour, minute, second) = (
+            (time >> 11)
+                .try_into()
+                .expect("hour should be in the range of `u8`"),
+            ((time >> 5) & 0x3f)
+                .try_into()
+                .expect("minute should be in the range of `u8`"),
+            ((time & 0x1f) * 2)
+                .try_into()
+                .expect("second should be in the range of `u8`"),
+        );
+        let time = Time::from_hms(hour, minute, second)? + resolution;
+
         let ft = OffsetDateTime::new_in_offset(date, time, offset.unwrap_or(UtcOffset::UTC))
             .try_into()
             .expect("MS-DOS date and time should be in the range of `FileTime`");

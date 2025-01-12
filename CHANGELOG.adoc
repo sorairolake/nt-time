@@ -14,6 +14,22 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.10.4\...v0.10.5[0.10.5] - 2025-01-12
+
+=== Added
+
+* Add an example of printing a human-readable date and time as the file time
+  ({pull-request-url}/268[#268])
+* Add `FileTime::SIGNED_MAX`, which represents the actual largest value of the
+  file time, not the theoretical maximum ({pull-request-url}/273[#273])
+
+=== Changed
+
+* Rename `examples/date.rs` to `examples/format.rs`
+  ({pull-request-url}/269[#269])
+* Carry over the number of nanoseconds into the seconds if it is greater than 1
+  billion in `FileTime::from_unix_time` ({pull-request-url}/272[#272])
+
 == {compare-url}/v0.10.3\...v0.10.4[0.10.4] - 2024-12-24
 
 === Added

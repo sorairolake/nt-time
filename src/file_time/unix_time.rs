@@ -6,14 +6,16 @@
 //!
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 
-use super::FileTime;
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
+use core::time::Duration;
 
-const NANOS_PER_SEC: u32 = 1_000_000_000;
+use super::{FileTime, FILE_TIMES_PER_SEC};
+use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {
     #[allow(clippy::missing_panics_doc)]
-    /// Returns [Unix time] which represents the same date and time as this
+    /// Returns [Unix time] represented as a pair of the number of whole seconds
+    /// and the number of additional nanoseconds, like the [`timespec`]
+    /// structure in C11, which represents the same date and time as this
     /// `FileTime`.
     ///
     /// The first return value represents the number of whole seconds, and the
@@ -27,26 +29,29 @@ impl FileTime {
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time(), (-11_644_473_600, 0));
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), (0, 0));
     /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time(),
+    ///     (910_692_730_085, 477_580_700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::MAX.to_unix_time(),
     ///     (1_833_029_933_770, 955_161_500)
     /// );
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     #[must_use]
     #[inline]
     pub fn to_unix_time(self) -> (i64, u32) {
-        let ts = self.to_unix_time_nanos();
-        let secs = i64::try_from(ts.div_euclid(1_000_000_000))
-            .expect("the number of seconds should be in the range of `i64`");
-        let mut subsec_nanos = u32::try_from(ts.abs() % 1_000_000_000)
-            .expect("the number of nanoseconds should be in the range of `u32`");
-        if secs.is_negative() && subsec_nanos != 0 {
-            subsec_nanos = NANOS_PER_SEC - subsec_nanos;
-        }
+        let (secs, subsec_nanos) = (
+            self.to_unix_time_secs(),
+            u32::try_from((self.to_raw() % FILE_TIMES_PER_SEC) * 100)
+                .expect("the number of nanoseconds should be in the range of `u32`"),
+        );
         (secs, subsec_nanos)
     }
 
+    #[allow(clippy::missing_panics_doc)]
     /// Returns [Unix time] in seconds which represents the same date and time
     /// as this `FileTime`.
     ///
@@ -57,6 +62,7 @@ impl FileTime {
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time_secs(), -11_644_473_600);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_secs(), 0);
+    /// assert_eq!(FileTime::SIGNED_MAX.to_unix_time_secs(), 910_692_730_085);
     /// assert_eq!(FileTime::MAX.to_unix_time_secs(), 1_833_029_933_770);
     /// ```
     ///
@@ -64,7 +70,9 @@ impl FileTime {
     #[must_use]
     #[inline]
     pub fn to_unix_time_secs(self) -> i64 {
-        self.to_unix_time().0
+        i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
+            .expect("the number of seconds should be in the range of `i64`")
+            - 11_644_473_600
     }
 
     #[allow(clippy::missing_panics_doc)]
@@ -81,6 +89,10 @@ impl FileTime {
     ///     -11_644_473_600_000
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_millis(), 0);
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_millis(),
+    ///     910_692_730_085_477
+    /// );
     /// assert_eq!(FileTime::MAX.to_unix_time_millis(), 1_833_029_933_770_955);
     /// ```
     ///
@@ -108,6 +120,10 @@ impl FileTime {
     ///     -11_644_473_600_000_000
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_micros(), 0);
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_micros(),
+    ///     910_692_730_085_477_580
+    /// );
     /// assert_eq!(
     ///     FileTime::MAX.to_unix_time_micros(),
     ///     1_833_029_933_770_955_161
@@ -138,6 +154,10 @@ impl FileTime {
     /// );
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_nanos(), 0);
     /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_time_nanos(),
+    ///     910_692_730_085_477_580_700
+    /// );
+    /// assert_eq!(
     ///     FileTime::MAX.to_unix_time_nanos(),
     ///     1_833_029_933_770_955_161_500
     /// );
@@ -150,19 +170,21 @@ impl FileTime {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
 
-    /// Creates a `FileTime` with the given [Unix time].
+    /// Creates a `FileTime` with the given [Unix time], represented as a pair
+    /// of the number of whole seconds and the number of additional nanoseconds,
+    /// like the [`timespec`] structure in C11.
     ///
     /// `secs` is the number of whole seconds, and `nanos` is the number of
     /// additional nanoseconds.
+    ///
+    /// If the number of nanoseconds is greater than 1 billion (the number of
+    /// nanoseconds in a second), then it will carry over into the seconds
+    /// provided.
     ///
     /// # Errors
     ///
     /// Returns [`Err`] if the provided Unix time is out of range for the file
     /// time.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `nanos` is not less than 1 second.
     ///
     /// # Examples
     ///
@@ -180,30 +202,34 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time(910_692_730_085, 477_580_700).unwrap(),
+    ///     FileTime::SIGNED_MAX
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time(1_833_029_933_770, 955_161_500).unwrap(),
     ///     FileTime::MAX
+    /// );
+    ///
+    /// // The number of nanoseconds is greater than 1 billion.
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(0, 1_000_000_000).unwrap(),
+    ///     FileTime::from_unix_time(1, 0).unwrap()
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(FileTime::from_unix_time(-11_644_473_601, 999_999_999).is_err());
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
-    /// assert!(FileTime::from_unix_time(1_833_029_933_770, 955_161_501).is_err());
-    /// ```
-    ///
-    /// The number of additional nanoseconds must be less than 1 second:
-    ///
-    /// ```should_panic
-    /// # use nt_time::FileTime;
-    /// #
-    /// let _ = FileTime::from_unix_time(0, 1_000_000_000).unwrap();
+    /// assert!(FileTime::from_unix_time(1_833_029_933_770, 955_161_600).is_err());
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+    /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     #[inline]
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
-        assert!(nanos < NANOS_PER_SEC);
-        let ts = (i128::from(secs) * 1_000_000_000) + i128::from(nanos);
-        Self::from_unix_time_nanos(ts)
+        Self::from_unix_time_secs(secs).and_then(|ft| {
+            ft.checked_add(Duration::from_nanos(nanos.into()))
+                .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
+        })
     }
 
     /// Creates a `FileTime` with the given [Unix time] in seconds.
@@ -228,6 +254,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_secs(910_692_730_085).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_secs(1_833_029_933_770).unwrap(),
     ///     FileTime::MAX - Duration::from_nanos(955_161_500)
     /// );
@@ -241,7 +271,14 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[inline]
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
-        Self::from_unix_time(secs, 0)
+        if secs <= 1_833_029_933_770 {
+            u64::try_from(secs + 11_644_473_600)
+                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
+                .map(|t| t * FILE_TIMES_PER_SEC)
+                .map(Self::new)
+        } else {
+            Err(FileTimeRangeErrorKind::Overflow.into())
+        }
     }
 
     /// Creates a `FileTime` with the given [Unix time] in milliseconds.
@@ -264,6 +301,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::from_unix_time_millis(0).unwrap(),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(910_692_730_085_477).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(580_700)
     /// );
     /// assert_eq!(
     ///     FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
@@ -305,6 +346,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(910_692_730_085_477_580).unwrap(),
+    ///     FileTime::SIGNED_MAX - Duration::from_nanos(700)
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
     ///     FileTime::MAX - Duration::from_nanos(500)
     /// );
@@ -342,6 +387,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(910_692_730_085_477_580_700).unwrap(),
+    ///     FileTime::SIGNED_MAX
+    /// );
+    /// assert_eq!(
     ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
     ///     FileTime::MAX
     /// );
@@ -355,24 +404,23 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[inline]
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
-        (nanos <= 1_833_029_933_770_955_161_500)
-            .then_some(nanos)
-            .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
-            .and_then(|ts| {
-                (ts + 11_644_473_600_000_000_000)
-                    .div_euclid(100)
-                    .try_into()
-                    .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-            })
-            .map(Self::new)
+        if nanos <= 1_833_029_933_770_955_161_500 {
+            (nanos + 11_644_473_600_000_000_000)
+                .div_euclid(100)
+                .try_into()
+                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
+                .map(Self::new)
+        } else {
+            Err(FileTimeRangeErrorKind::Overflow.into())
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use core::time::Duration;
+    use super::*;
 
-    use super::{super::FILE_TIMES_PER_SEC, *};
+    const NANOS_PER_SEC: u32 = 1_000_000_000;
 
     #[test]
     fn to_unix_time() {
@@ -400,6 +448,10 @@ mod tests {
         assert_eq!(
             (FileTime::UNIX_EPOCH + Duration::from_nanos(100)).to_unix_time(),
             (i64::default(), 100)
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time(),
+            (910_692_730_085, 477_580_700)
         );
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(100)).to_unix_time(),
@@ -458,6 +510,7 @@ mod tests {
             (FileTime::UNIX_EPOCH + Duration::from_secs(1)).to_unix_time_secs(),
             i64::default() + 1
         );
+        assert_eq!(FileTime::SIGNED_MAX.to_unix_time_secs(), 910_692_730_085);
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(955_161_600)).to_unix_time_secs(),
             1_833_029_933_769
@@ -521,6 +574,10 @@ mod tests {
         assert_eq!(
             (FileTime::UNIX_EPOCH + Duration::from_millis(1)).to_unix_time_millis(),
             i64::default() + 1
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_millis(),
+            910_692_730_085_477
         );
         assert_eq!(
             (FileTime::MAX - Duration::from_nanos(161_600)).to_unix_time_millis(),
@@ -590,6 +647,10 @@ mod tests {
             i64::default() + 1
         );
         assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_micros(),
+            910_692_730_085_477_580
+        );
+        assert_eq!(
             (FileTime::MAX - Duration::from_nanos(600)).to_unix_time_micros(),
             1_833_029_933_770_955_160
         );
@@ -644,6 +705,10 @@ mod tests {
             i128::default() + 100
         );
         assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_time_nanos(),
+            910_692_730_085_477_580_700
+        );
+        assert_eq!(
             (FileTime::MAX - Duration::from_nanos(100)).to_unix_time_nanos(),
             1_833_029_933_770_955_161_400
         );
@@ -665,6 +730,14 @@ mod tests {
     #[test]
     fn from_unix_time_before_nt_time_epoch() {
         assert_eq!(
+            FileTime::from_unix_time(-11_644_473_601, u32::MAX).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(-11_644_473_601, NANOS_PER_SEC).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
             FileTime::from_unix_time(-11_644_473_601, NANOS_PER_SEC - 1).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
@@ -674,6 +747,18 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_time(-11_644_473_601, NANOS_PER_SEC - 100).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(-11_644_473_601, u32::MIN).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MIN, u32::MAX).unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MIN, NANOS_PER_SEC).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
         assert_eq!(
@@ -690,7 +775,7 @@ mod tests {
     #[test_strategy::proptest]
     fn from_unix_time_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_601_i64)] secs: i64,
-        #[strategy(..NANOS_PER_SEC)] nanos: u32,
+        nanos: u32,
     ) {
         use proptest::prop_assert_eq;
 
@@ -731,6 +816,10 @@ mod tests {
             FileTime::new(FILE_TIMES_PER_SEC - 1)
         );
         assert_eq!(
+            FileTime::from_unix_time(-11_644_473_600, NANOS_PER_SEC).unwrap(),
+            FileTime::new(FILE_TIMES_PER_SEC)
+        );
+        assert_eq!(
             FileTime::from_unix_time(-11_644_473_599, 0).unwrap(),
             FileTime::new(FILE_TIMES_PER_SEC)
         );
@@ -745,6 +834,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time(i64::default() - 1, NANOS_PER_SEC - 1).unwrap(),
             FileTime::UNIX_EPOCH - Duration::from_nanos(100)
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::default() - 1, NANOS_PER_SEC).unwrap(),
+            FileTime::UNIX_EPOCH
         );
         assert_eq!(
             FileTime::from_unix_time(i64::default(), u32::MIN).unwrap(),
@@ -763,7 +856,19 @@ mod tests {
             FileTime::UNIX_EPOCH + Duration::from_nanos(100)
         );
         assert_eq!(
+            FileTime::from_unix_time(910_692_730_085, 477_580_700).unwrap(),
+            FileTime::SIGNED_MAX
+        );
+        assert_eq!(
             FileTime::from_unix_time(1_833_029_933_770, 955_161_500).unwrap(),
+            FileTime::MAX
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770, 955_161_501).unwrap(),
+            FileTime::MAX
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770, 955_161_599).unwrap(),
             FileTime::MAX
         );
     }
@@ -777,7 +882,7 @@ mod tests {
         use proptest::{prop_assert, prop_assume};
 
         if secs == 1_833_029_933_770 {
-            prop_assume!(nanos <= 955_161_500);
+            prop_assume!(nanos < 955_161_600);
         }
 
         prop_assert!(FileTime::from_unix_time(secs, nanos).is_ok());
@@ -786,7 +891,19 @@ mod tests {
     #[test]
     fn from_unix_time_with_too_big_date_time() {
         assert_eq!(
-            FileTime::from_unix_time(1_833_029_933_770, 955_161_501).unwrap_err(),
+            FileTime::from_unix_time(1_833_029_933_770, 955_161_600).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770, NANOS_PER_SEC - 1).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770, NANOS_PER_SEC).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(1_833_029_933_770, u32::MAX).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
         );
         assert_eq!(
@@ -795,6 +912,14 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_time(i64::MAX, NANOS_PER_SEC - 1).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MAX, NANOS_PER_SEC).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_time(i64::MAX, u32::MAX).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
         );
     }
@@ -808,19 +933,13 @@ mod tests {
         use proptest::{prop_assert_eq, prop_assume};
 
         if secs == 1_833_029_933_770 {
-            prop_assume!(nanos > 955_161_500);
+            prop_assume!(nanos >= 955_161_600);
         }
 
         prop_assert_eq!(
             FileTime::from_unix_time(secs, nanos).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
         );
-    }
-
-    #[test]
-    #[should_panic]
-    fn from_unix_time_with_too_big_subsec_nanos() {
-        let _ = FileTime::from_unix_time(i64::default(), NANOS_PER_SEC).unwrap();
     }
 
     #[test]
@@ -869,6 +988,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_secs(i64::default() + 1).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_secs(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_secs(910_692_730_085).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700)
         );
         assert_eq!(
             FileTime::from_unix_time_secs(1_833_029_933_770).unwrap(),
@@ -957,6 +1080,10 @@ mod tests {
             FileTime::UNIX_EPOCH + Duration::from_millis(1)
         );
         assert_eq!(
+            FileTime::from_unix_time_millis(910_692_730_085_477).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(580_700)
+        );
+        assert_eq!(
             FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
             FileTime::MAX - Duration::from_nanos(161_500)
         );
@@ -1043,6 +1170,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_micros(i64::default() + 1).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_micros(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_micros(910_692_730_085_477_580).unwrap(),
+            FileTime::SIGNED_MAX - Duration::from_nanos(700)
         );
         assert_eq!(
             FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
@@ -1179,6 +1310,10 @@ mod tests {
         assert_eq!(
             FileTime::from_unix_time_nanos(i128::default() + 100).unwrap(),
             FileTime::UNIX_EPOCH + Duration::from_nanos(100)
+        );
+        assert_eq!(
+            FileTime::from_unix_time_nanos(910_692_730_085_477_580_700).unwrap(),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),

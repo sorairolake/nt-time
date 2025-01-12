@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.4"
+nt-time = "0.10.5"
 ```
 
 ### Crate features
@@ -83,7 +83,7 @@ Please see [CONTRIBUTING.adoc].
 
 ## License
 
-Copyright &copy; 2023&ndash;2024 Shun Sakai (see [AUTHORS.adoc])
+Copyright (C) 2023 Shun Sakai (see [AUTHORS.adoc])
 
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.

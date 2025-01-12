@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.10.4"
+version = "0.10.5"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2021"
 rust-version = "1.67.1"
@@ -23,13 +23,13 @@ all-features = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[example]]
-name = "date"
-path = "examples/date.rs"
+name = "dos2ft"
+path = "examples/dos2ft.rs"
 required-features = ["std"]
 
 [[example]]
-name = "dos2ft"
-path = "examples/dos2ft.rs"
+name = "format"
+path = "examples/format.rs"
 required-features = ["std"]
 
 [[example]]
@@ -43,6 +43,11 @@ path = "examples/ft2unix.rs"
 required-features = ["std"]
 
 [[example]]
+name = "parse"
+path = "examples/parse.rs"
+required-features = ["std"]
+
+[[example]]
 name = "unix2ft"
 path = "examples/unix2ft.rs"
 required-features = ["std"]
@@ -50,17 +55,18 @@ required-features = ["std"]
 [dependencies]
 chrono = { version = "0.4.39", default-features = false, optional = true }
 rand = { version = "0.8.5", default-features = false, optional = true }
-serde = { version = "1.0.216", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.217", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.95"
-clap = { version = "4.3.24", features = ["derive"] }
+clap = { version = "4.5.26", features = ["derive"] }
 proptest = "1.6.0"
 proptest-derive = "0.5.1"
-serde_json = "1.0.134"
+serde_json = "1.0.135"
 serde_test = "1.0.177"
-test-strategy = "0.3.1"
+test-strategy = "0.4.0"
+time = { version = "0.3.37", features = ["parsing"] }
 
 [features]
 default = ["std"]

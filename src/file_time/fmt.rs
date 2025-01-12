@@ -18,6 +18,7 @@ impl fmt::Display for FileTime {
     /// #
     /// assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
     /// assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
+    /// assert_eq!(format!("{}", FileTime::SIGNED_MAX), "9223372036854775807");
     /// assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     /// ```
     #[inline]
@@ -39,6 +40,10 @@ impl fmt::Octal for FileTime {
     ///     format!("{:022o}", FileTime::UNIX_EPOCH),
     ///     "0006355435732517500000"
     /// );
+    /// assert_eq!(
+    ///     format!("{:#024o}", FileTime::SIGNED_MAX),
+    ///     "0o0777777777777777777777"
+    /// );
     /// assert_eq!(format!("{:o}", FileTime::MAX), "1777777777777777777777");
     /// ```
     #[inline]
@@ -57,6 +62,10 @@ impl fmt::LowerHex for FileTime {
     /// #
     /// assert_eq!(format!("{:#x}", FileTime::NT_TIME_EPOCH), "0x0");
     /// assert_eq!(format!("{:016x}", FileTime::UNIX_EPOCH), "019db1ded53e8000");
+    /// assert_eq!(
+    ///     format!("{:#018x}", FileTime::SIGNED_MAX),
+    ///     "0x7fffffffffffffff"
+    /// );
     /// assert_eq!(format!("{:x}", FileTime::MAX), "ffffffffffffffff");
     /// ```
     #[inline]
@@ -75,6 +84,10 @@ impl fmt::UpperHex for FileTime {
     /// #
     /// assert_eq!(format!("{:#X}", FileTime::NT_TIME_EPOCH), "0x0");
     /// assert_eq!(format!("{:016X}", FileTime::UNIX_EPOCH), "019DB1DED53E8000");
+    /// assert_eq!(
+    ///     format!("{:#018X}", FileTime::SIGNED_MAX),
+    ///     "0x7FFFFFFFFFFFFFFF"
+    /// );
     /// assert_eq!(format!("{:X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
     /// ```
     #[inline]
@@ -95,6 +108,10 @@ impl fmt::Binary for FileTime {
     /// assert_eq!(
     ///     format!("{:064b}", FileTime::UNIX_EPOCH),
     ///     "0000000110011101101100011101111011010101001111101000000000000000"
+    /// );
+    /// assert_eq!(
+    ///     format!("{:#066b}", FileTime::SIGNED_MAX),
+    ///     "0b0111111111111111111111111111111111111111111111111111111111111111"
     /// );
     /// assert_eq!(
     ///     format!("{:b}", FileTime::MAX),
@@ -120,6 +137,10 @@ impl fmt::LowerExp for FileTime {
     ///     "0000000000000000000000e0"
     /// );
     /// assert_eq!(format!("{:e}", FileTime::UNIX_EPOCH), "1.16444736e17");
+    /// assert_eq!(
+    ///     format!("{:024e}", FileTime::SIGNED_MAX),
+    ///     "09.223372036854775807e18"
+    /// );
     /// assert_eq!(format!("{:e}", FileTime::MAX), "1.8446744073709551615e19");
     /// ```
     #[inline]
@@ -141,6 +162,10 @@ impl fmt::UpperExp for FileTime {
     ///     "0000000000000000000000E0"
     /// );
     /// assert_eq!(format!("{:E}", FileTime::UNIX_EPOCH), "1.16444736E17");
+    /// assert_eq!(
+    ///     format!("{:024E}", FileTime::SIGNED_MAX),
+    ///     "09.223372036854775807E18"
+    /// );
     /// assert_eq!(format!("{:E}", FileTime::MAX), "1.8446744073709551615E19");
     /// ```
     #[inline]
@@ -161,6 +186,10 @@ mod tests {
             "FileTime(116444736000000000)"
         );
         assert_eq!(
+            format!("{:?}", FileTime::SIGNED_MAX),
+            "FileTime(9223372036854775807)"
+        );
+        assert_eq!(
             format!("{:?}", FileTime::MAX),
             "FileTime(18446744073709551615)"
         );
@@ -170,6 +199,7 @@ mod tests {
     fn display() {
         assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
         assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
+        assert_eq!(format!("{}", FileTime::SIGNED_MAX), "9223372036854775807");
         assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     }
 
@@ -205,6 +235,22 @@ mod tests {
         assert_eq!(
             format!("{:#024o}", FileTime::UNIX_EPOCH),
             "0o0006355435732517500000"
+        );
+        assert_eq!(
+            format!("{:o}", FileTime::SIGNED_MAX),
+            "777777777777777777777"
+        );
+        assert_eq!(
+            format!("{:#o}", FileTime::SIGNED_MAX),
+            "0o777777777777777777777"
+        );
+        assert_eq!(
+            format!("{:022o}", FileTime::SIGNED_MAX),
+            "0777777777777777777777"
+        );
+        assert_eq!(
+            format!("{:#024o}", FileTime::SIGNED_MAX),
+            "0o0777777777777777777777"
         );
         assert_eq!(format!("{:o}", FileTime::MAX), "1777777777777777777777");
         assert_eq!(format!("{:#o}", FileTime::MAX), "0o1777777777777777777777");
@@ -245,6 +291,13 @@ mod tests {
             format!("{:#018x}", FileTime::UNIX_EPOCH),
             "0x019db1ded53e8000"
         );
+        assert_eq!(format!("{:x}", FileTime::SIGNED_MAX), "7fffffffffffffff");
+        assert_eq!(format!("{:#x}", FileTime::SIGNED_MAX), "0x7fffffffffffffff");
+        assert_eq!(format!("{:016x}", FileTime::SIGNED_MAX), "7fffffffffffffff");
+        assert_eq!(
+            format!("{:#018x}", FileTime::SIGNED_MAX),
+            "0x7fffffffffffffff"
+        );
         assert_eq!(format!("{:x}", FileTime::MAX), "ffffffffffffffff");
         assert_eq!(format!("{:#x}", FileTime::MAX), "0xffffffffffffffff");
         assert_eq!(format!("{:016x}", FileTime::MAX), "ffffffffffffffff");
@@ -280,6 +333,13 @@ mod tests {
         assert_eq!(
             format!("{:#018X}", FileTime::UNIX_EPOCH),
             "0x019DB1DED53E8000"
+        );
+        assert_eq!(format!("{:X}", FileTime::SIGNED_MAX), "7FFFFFFFFFFFFFFF");
+        assert_eq!(format!("{:#X}", FileTime::SIGNED_MAX), "0x7FFFFFFFFFFFFFFF");
+        assert_eq!(format!("{:016X}", FileTime::SIGNED_MAX), "7FFFFFFFFFFFFFFF");
+        assert_eq!(
+            format!("{:#018X}", FileTime::SIGNED_MAX),
+            "0x7FFFFFFFFFFFFFFF"
         );
         assert_eq!(format!("{:X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
         assert_eq!(format!("{:#X}", FileTime::MAX), "0xFFFFFFFFFFFFFFFF");
@@ -327,6 +387,22 @@ mod tests {
             "0b0000000110011101101100011101111011010101001111101000000000000000"
         );
         assert_eq!(
+            format!("{:b}", FileTime::SIGNED_MAX),
+            "111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:#b}", FileTime::SIGNED_MAX),
+            "0b111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:064b}", FileTime::SIGNED_MAX),
+            "0111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
+            format!("{:#066b}", FileTime::SIGNED_MAX),
+            "0b0111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert_eq!(
             format!("{:b}", FileTime::MAX),
             "1111111111111111111111111111111111111111111111111111111111111111"
         );
@@ -367,6 +443,14 @@ mod tests {
             format!("{:024e}", FileTime::UNIX_EPOCH),
             "000000000001.16444736e17"
         );
+        assert_eq!(
+            format!("{:e}", FileTime::SIGNED_MAX),
+            "9.223372036854775807e18"
+        );
+        assert_eq!(
+            format!("{:024e}", FileTime::SIGNED_MAX),
+            "09.223372036854775807e18"
+        );
         assert_eq!(format!("{:e}", FileTime::MAX), "1.8446744073709551615e19");
         assert_eq!(
             format!("{:024e}", FileTime::MAX),
@@ -394,6 +478,14 @@ mod tests {
         assert_eq!(
             format!("{:024E}", FileTime::UNIX_EPOCH),
             "000000000001.16444736E17"
+        );
+        assert_eq!(
+            format!("{:E}", FileTime::SIGNED_MAX),
+            "9.223372036854775807E18"
+        );
+        assert_eq!(
+            format!("{:024E}", FileTime::SIGNED_MAX),
+            "09.223372036854775807E18"
         );
         assert_eq!(format!("{:E}", FileTime::MAX), "1.8446744073709551615E19");
         assert_eq!(

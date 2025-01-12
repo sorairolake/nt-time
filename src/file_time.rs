@@ -80,6 +80,7 @@ impl FileTime {
     /// #
     /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
+    /// assert_eq!(FileTime::new(i64::MAX as u64), FileTime::SIGNED_MAX);
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     /// ```
     #[must_use]
@@ -97,6 +98,7 @@ impl FileTime {
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
+    /// assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
     /// assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     /// ```
     #[must_use]
@@ -118,6 +120,10 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH.to_be_bytes(),
     ///     [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
     /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_be_bytes(),
+    ///     [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+    /// );
     /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
@@ -138,6 +144,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_le_bytes(),
     ///     [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+    /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_le_bytes(),
+    ///     [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
     /// );
     /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
     /// ```
@@ -168,6 +178,14 @@ impl FileTime {
     ///         [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
     ///     }
     /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_ne_bytes(),
+    ///     if cfg!(target_endian = "big") {
+    ///         [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+    ///     } else {
+    ///         [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
+    ///     }
+    /// );
     /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
@@ -192,6 +210,10 @@ impl FileTime {
     ///     FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
     ///     FileTime::UNIX_EPOCH
     /// );
+    /// assert_eq!(
+    ///     FileTime::from_be_bytes([0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]),
+    ///     FileTime::SIGNED_MAX
+    /// );
     /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
@@ -215,6 +237,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_le_bytes([0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]),
+    ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
@@ -248,6 +274,14 @@ impl FileTime {
     ///     }),
     ///     FileTime::UNIX_EPOCH
     /// );
+    /// assert_eq!(
+    ///     FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
+    ///         [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+    ///     } else {
+    ///         [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
+    ///     }),
+    ///     FileTime::SIGNED_MAX
+    /// );
     /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
@@ -278,6 +312,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_high_low(),
     ///     (0x019d_b1de, 0xd53e_8000)
+    /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_high_low(),
+    ///     (u32::MAX >> 1, u32::MAX)
     /// );
     /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     /// ```
@@ -313,6 +351,10 @@ impl FileTime {
     /// assert_eq!(
     ///     FileTime::from_high_low(0x019d_b1de, 0xd53e_8000),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+    ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
     /// ```
@@ -371,6 +413,10 @@ impl FromStr for FileTime {
     /// assert_eq!(
     ///     FileTime::from_str("116444736000000000").unwrap(),
     ///     FileTime::UNIX_EPOCH
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_str("+9223372036854775807").unwrap(),
+    ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(
     ///     FileTime::from_str("+18446744073709551615").unwrap(),
@@ -448,6 +494,7 @@ mod tests {
     fn new() {
         assert_eq!(FileTime::new(u64::MIN), FileTime::NT_TIME_EPOCH);
         assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
+        assert_eq!(FileTime::new(i64::MAX as u64), FileTime::SIGNED_MAX);
         assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     }
 
@@ -460,6 +507,7 @@ mod tests {
     fn to_raw() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
+        assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     }
 
@@ -474,6 +522,10 @@ mod tests {
         assert_eq!(
             FileTime::UNIX_EPOCH.to_be_bytes(),
             [0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_be_bytes(),
+            [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
         );
         assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     }
@@ -497,6 +549,10 @@ mod tests {
         assert_eq!(
             FileTime::UNIX_EPOCH.to_le_bytes(),
             [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_le_bytes(),
+            [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
         );
         assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
     }
@@ -525,6 +581,14 @@ mod tests {
                 [0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]
             }
         );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_ne_bytes(),
+            if cfg!(target_endian = "big") {
+                [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+            } else {
+                [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
+            }
+        );
         assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
     }
 
@@ -550,6 +614,10 @@ mod tests {
         assert_eq!(
             FileTime::from_be_bytes([0x01, 0x9d, 0xb1, 0xde, 0xd5, 0x3e, 0x80, 0x00]),
             FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_be_bytes([0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     }
@@ -579,6 +647,10 @@ mod tests {
         assert_eq!(
             FileTime::from_le_bytes([0x00, 0x80, 0x3e, 0xd5, 0xde, 0xb1, 0x9d, 0x01]),
             FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_le_bytes([0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
     }
@@ -613,6 +685,14 @@ mod tests {
             }),
             FileTime::UNIX_EPOCH
         );
+        assert_eq!(
+            FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
+                [0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+            } else {
+                [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f]
+            }),
+            FileTime::SIGNED_MAX
+        );
         assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
     }
 
@@ -638,6 +718,10 @@ mod tests {
         assert_eq!(
             FileTime::UNIX_EPOCH.to_high_low(),
             (0x019d_b1de, 0xd53e_8000)
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_high_low(),
+            (u32::MAX >> 1, u32::MAX)
         );
         assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     }
@@ -665,6 +749,10 @@ mod tests {
         assert_eq!(
             FileTime::from_high_low(0x019d_b1de, 0xd53e_8000),
             FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
     }
@@ -699,6 +787,14 @@ mod tests {
         assert_eq!(
             FileTime::from_str("+116444736000000000").unwrap(),
             FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_str("9223372036854775807").unwrap(),
+            FileTime::SIGNED_MAX
+        );
+        assert_eq!(
+            FileTime::from_str("+9223372036854775807").unwrap(),
+            FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::from_str("18446744073709551615").unwrap(),
