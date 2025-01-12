@@ -33,6 +33,9 @@
 //! );
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
+//! // The practical largest file time.
+//! assert_eq!(FileTime::new(i64::MAX as u64), FileTime::SIGNED_MAX);
+//! // The theoretical largest file time.
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!

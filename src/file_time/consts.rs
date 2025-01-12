@@ -9,7 +9,9 @@ use super::{FileTime, FILE_TIMES_PER_SEC};
 impl FileTime {
     /// The [NT time epoch].
     ///
-    /// This is defined as "1601-01-01 00:00:00 UTC".
+    /// This is defined as "1601-01-01 00:00:00 UTC", which was the first year
+    /// of the 400-year Gregorian calendar cycle at the time Windows NT was
+    /// being designed.
     ///
     /// # Examples
     ///
@@ -24,7 +26,8 @@ impl FileTime {
 
     /// The [Unix epoch].
     ///
-    /// This is defined as "1970-01-01 00:00:00 UTC".
+    /// This is defined as "1970-01-01 00:00:00 UTC", which is 11,644,473,600
+    /// seconds after [`FileTime::NT_TIME_EPOCH`].
     ///
     /// # Examples
     ///
@@ -41,8 +44,8 @@ impl FileTime {
     /// of the [Win32 API].
     ///
     /// This is "+30828-09-14 02:48:05.477580700 UTC", which is equal to the
-    /// largest value of a 64-bit signed integer type or a 63-bit unsigned
-    /// integer type when represented as an underlying integer value.
+    /// largest value of a 64-bit signed integer type when represented as an
+    /// underlying integer value.
     ///
     /// The [`FILETIME`] structure of the Win32 API represents a 64-bit unsigned
     /// integer value, but the Win32 API may limit the largest value to
@@ -90,13 +93,15 @@ impl FileTime {
     /// This is "+60056-05-28 05:36:10.955161500 UTC".
     ///
     /// This is the theoretical largest value that the [`FILETIME`] structure of
-    /// the [Win32 API] can represent. The Win32 API may limit the largest file
-    /// time to [`i64::MAX`], and the file time is sometimes represented as an
-    /// [`i64`] value, such as the [`winrt::clock`] struct in [WinRT], or the
-    /// [`DateTime.FromFileTime`] method and the [`DateTime.ToFileTime`] method
-    /// in [.NET], so if you want the process to succeed in more environments,
-    /// it is generally recommended that you use [`FileTime::SIGNED_MAX`] as the
-    /// largest value instead of this constant.
+    /// the [Win32 API] can represent.
+    ///
+    /// The Win32 API may limit the largest file time to [`i64::MAX`], and the
+    /// file time is sometimes represented as an [`i64`] value, such as the
+    /// [`winrt::clock`] struct in [WinRT], or the [`DateTime.FromFileTime`]
+    /// method and the [`DateTime.ToFileTime`] method in [.NET], so if you want
+    /// the process to succeed in more environments, it is generally recommended
+    /// that you use [`FileTime::SIGNED_MAX`] as the largest value instead of
+    /// this constant.
     ///
     /// # Examples
     ///

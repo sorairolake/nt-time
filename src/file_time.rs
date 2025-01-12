@@ -31,10 +31,21 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// and is used as timestamps such as [NTFS] and [7z].
 ///
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
-/// API], which represents a 64-bit unsigned integer value. Note that the
-/// maximum value of the `FILETIME` structure that can be input to the
-/// [`FileTimeToSystemTime`] function of the Win32 API is limited to
-/// "+30828-09-14 02:48:05.477580700 UTC", which is equivalent to [`i64::MAX`].
+/// API], which represents a 64-bit unsigned integer value.
+///
+/// Note that the Win32 API may limit the largest value of the file time to
+/// "+30828-09-14 02:48:05.477580700 UTC", which is equal to [`i64::MAX`], the
+/// largest value of a 64-bit signed integer type when represented as an
+/// underlying integer value. This is the largest file time accepted by the
+/// [`FileTimeToSystemTime`] function of the Win32 API.
+///
+/// Also, the file time is sometimes represented as an [`i64`] value, such as
+/// the [`winrt::clock`] struct in [WinRT], or the [`DateTime.FromFileTime`]
+/// method and the [`DateTime.ToFileTime`] method in [.NET].
+///
+/// Therefore, if you want the process to succeed in more environments, it is
+/// generally recommended that you use [`FileTime::SIGNED_MAX`] as the largest
+/// value instead of [`FileTime::MAX`].
 ///
 /// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
@@ -42,6 +53,11 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
 /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
 /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
+/// [`winrt::clock`]: https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock
+/// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
+/// [`DateTime.FromFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime
+/// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
+/// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub struct FileTime(u64);

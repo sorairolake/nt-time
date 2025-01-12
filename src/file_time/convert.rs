@@ -502,7 +502,7 @@ mod tests {
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
             SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
         );
-        // Maximum `SystemTime` on Windows.
+        // Largest `SystemTime` on Windows.
         assert_eq!(
             SystemTime::from(FileTime::new(9_223_372_036_854_775_807)),
             SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
@@ -706,7 +706,7 @@ mod tests {
                 .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
-        // Maximum `SystemTime` on Windows.
+        // Largest `SystemTime` on Windows.
         assert_eq!(
             FileTime::try_from(
                 SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)

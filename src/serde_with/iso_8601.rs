@@ -7,7 +7,7 @@
 //!
 //! Use this module in combination with Serde's [`with`] attribute.
 //!
-//! If the `large-dates` feature is not enabled, the maximum date and time is
+//! If the `large-dates` feature is not enabled, the largest date and time is
 //! "9999-12-31 23:59:59.999999999 UTC".
 //!
 //! # Examples
