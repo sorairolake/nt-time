@@ -48,13 +48,13 @@ impl FileTime {
     /// underlying integer value.
     ///
     /// The [`FILETIME`] structure of the Win32 API represents a 64-bit unsigned
-    /// integer value, but the Win32 API may limit the largest value to
-    /// [`i64::MAX`], and the file time is sometimes represented as an [`i64`]
-    /// value, such as the [`winrt::clock`] struct in [WinRT], or the
-    /// [`DateTime.FromFileTime`] method and the [`DateTime.ToFileTime`] method
-    /// in [.NET], so if you want the process to succeed in more environments,
-    /// it is generally recommended that you use this constant as the largest
-    /// value instead of [`FileTime::MAX`].
+    /// integer value, but many environments, such as the Win32 API, may limit
+    /// the largest value to [`i64::MAX`], and the file time is sometimes
+    /// represented as an [`i64`] value, such as in the
+    /// [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+    /// method in [.NET], so if you want the process to succeed in more
+    /// environments, it is generally recommended that you use this constant as
+    /// the largest value instead of [`FileTime::MAX`].
     ///
     /// Note that the actual largest value of the [`SYSTEMTIME`] structure of
     /// the Win32 API is "+30827-12-31 23:59:59.999000000" (which is either in
@@ -80,10 +80,8 @@ impl FileTime {
     /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
     /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-    /// [`winrt::clock`]: https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock
-    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
-    /// [`DateTime.FromFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime
-    /// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
+    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
+    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
     /// [.NET]: https://dotnet.microsoft.com/
     /// [`SYSTEMTIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-systemtime
     pub const SIGNED_MAX: Self = Self::new(i64::MAX as u64);
@@ -95,11 +93,11 @@ impl FileTime {
     /// This is the theoretical largest value that the [`FILETIME`] structure of
     /// the [Win32 API] can represent.
     ///
-    /// The Win32 API may limit the largest file time to [`i64::MAX`], and the
-    /// file time is sometimes represented as an [`i64`] value, such as the
-    /// [`winrt::clock`] struct in [WinRT], or the [`DateTime.FromFileTime`]
-    /// method and the [`DateTime.ToFileTime`] method in [.NET], so if you want
-    /// the process to succeed in more environments, it is generally recommended
+    /// Many environments, such as the Win32 API, may limit the largest file
+    /// time to [`i64::MAX`], and the file time is sometimes represented as an
+    /// [`i64`] value, such as in the [`DateTime.FromFileTimeUtc`] method and
+    /// the [`DateTime.ToFileTimeUtc`] method in [.NET], so if you want the
+    /// process to succeed in more environments, it is generally recommended
     /// that you use [`FileTime::SIGNED_MAX`] as the largest value instead of
     /// this constant.
     ///
@@ -119,10 +117,8 @@ impl FileTime {
     ///
     /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
-    /// [`winrt::clock`]: https://learn.microsoft.com/en-us/uwp/cpp-ref-for-winrt/clock
-    /// [WinRT]: https://learn.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/
-    /// [`DateTime.FromFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletime
-    /// [`DateTime.ToFileTime`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletime
+    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
+    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
     /// [.NET]: https://dotnet.microsoft.com/
     pub const MAX: Self = Self::new(u64::MAX);
 }
