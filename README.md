@@ -14,13 +14,24 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 
 **nt-time** is a [Windows file time] library for [Rust].
 
+A Windows file time is a 64-bit unsigned integer value that represents the
+number of 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00
+UTC", and is used as timestamps such as [NTFS] and [7z]. Windows uses a file
+time to record when an application creates, accesses, or writes to a file.
+
+Note that many environments, such as the [Win32 API], may limit the largest
+value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is equal
+to the largest value of a 64-bit signed integer type when represented as an
+underlying integer value. This is the largest file time accepted by the
+[`FileTimeToSystemTime`] function of the Win32 API.
+
 ## Usage
 
 Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-nt-time = "0.10.5"
+nt-time = "0.10.6"
 ```
 
 ### Crate features
@@ -102,6 +113,10 @@ licensing information.
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
 [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [Rust]: https://www.rust-lang.org/
+[NTFS]: https://en.wikipedia.org/wiki/NTFS
+[7z]: https://www.7-zip.org/7z.html
+[Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
+[`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
 [`rand`]: https://crates.io/crates/rand

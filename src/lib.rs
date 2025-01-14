@@ -4,13 +4,24 @@
 
 //! The `nt-time` crate is a [Windows file time] library.
 //!
+//! The [`FileTime`] is a type that represents the file time, which is a 64-bit
+//! unsigned integer value that represents the number of 100-nanosecond
+//! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used as
+//! timestamps such as [NTFS] and [7z]. Windows uses a file time to record when
+//! an application creates, accesses, or writes to a file.
+//!
+//! Note that many environments, such as the [Win32 API], may limit the largest
+//! value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
+//! equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
+//! when represented as an underlying integer value. This is the largest file
+//! time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
+//!
 //! # Examples
 //!
 //! ## Basic usage
 //!
-//! The [`FileTime`] is a type that represents the file time. This type can be
-//! converted from and to a type which represents time such as
-//! [`time::OffsetDateTime`]. Addition and subtraction are also supported.
+//! [`FileTime`] can be converted from and to a type which represents time such
+//! as [`time::OffsetDateTime`]. Addition and subtraction are also supported.
 //!
 //! ```
 //! use core::time::Duration;
@@ -33,6 +44,9 @@
 //! );
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
+//! // The practical largest file time.
+//! assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
+//! // The theoretical largest file time.
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!
@@ -84,10 +98,14 @@
 //! ```
 //!
 //! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [NTFS]: https://en.wikipedia.org/wiki/NTFS
+//! [7z]: https://www.7-zip.org/7z.html
+//! [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
+//! [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.10.5/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.10.6/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.

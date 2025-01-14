@@ -28,13 +28,25 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as [NTFS] and [7z].
+/// and is used as timestamps such as [NTFS] and [7z]. Windows uses a file time
+/// to record when an application creates, accesses, or writes to a file.
 ///
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
-/// API], which represents a 64-bit unsigned integer value. Note that the
-/// maximum value of the `FILETIME` structure that can be input to the
-/// [`FileTimeToSystemTime`] function of the Win32 API is limited to
-/// "+30828-09-14 02:48:05.477580700 UTC", which is equivalent to [`i64::MAX`].
+/// API], which represents a 64-bit unsigned integer value.
+///
+/// Note that many environments, such as the Win32 API, may limit the largest
+/// value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
+/// equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
+/// when represented as an underlying integer value. This is the largest file
+/// time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
+///
+/// Also, the file time is sometimes represented as an [`i64`] value, such as in
+/// the [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+/// method in [.NET].
+///
+/// Therefore, if you want the process to succeed in more environments, it is
+/// generally recommended that you use [`FileTime::SIGNED_MAX`] as the largest
+/// value instead of [`FileTime::MAX`].
 ///
 /// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
@@ -42,6 +54,9 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
 /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
 /// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
+/// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
+/// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
+/// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(test, derive(proptest_derive::Arbitrary))]
 pub struct FileTime(u64);
@@ -315,7 +330,7 @@ impl FileTime {
     /// );
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX.to_high_low(),
-    ///     (u32::MAX >> 1, u32::MAX)
+    ///     (i32::MAX as u32, u32::MAX)
     /// );
     /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     /// ```
@@ -353,7 +368,7 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+    ///     FileTime::from_high_low(i32::MAX as u32, u32::MAX),
     ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
@@ -721,7 +736,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::SIGNED_MAX.to_high_low(),
-            (u32::MAX >> 1, u32::MAX)
+            (i32::MAX as u32, u32::MAX)
         );
         assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     }
@@ -751,7 +766,7 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
-            FileTime::from_high_low(u32::MAX >> 1, u32::MAX),
+            FileTime::from_high_low(i32::MAX as u32, u32::MAX),
             FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
