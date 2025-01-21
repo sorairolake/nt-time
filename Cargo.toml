@@ -71,11 +71,11 @@ time = { version = "0.3.37", features = ["parsing"] }
 [features]
 default = ["std"]
 chrono = ["dep:chrono"]
+large-dates = ["time/large-dates"]
 rand = ["dep:rand"]
 serde = ["dep:serde"]
-std = ["chrono?/std", "rand?/std", "time/std"]
-large-dates = ["time/large-dates"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
+std = ["chrono?/std", "rand?/std", "time/std"]
 
 [lints.clippy]
 cargo = "warn"

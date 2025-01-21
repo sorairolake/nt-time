@@ -36,18 +36,13 @@ nt-time = "0.10.6"
 
 ### Crate features
 
-#### `std`
+#### `chrono`
 
-Enables features that depend on the standard library. This is enabled by
-default.
+Enables the [`chrono`] crate.
 
 #### `large-dates`
 
 Enables the `large-dates` feature of the [`time`] crate.
-
-#### `chrono`
-
-Enables the [`chrono`] crate.
 
 #### `rand`
 
@@ -61,6 +56,11 @@ Enables the [`serde`] crate.
 
 Allows Serde representations to use a human-readable format. This implicitly
 enables the `serde` feature.
+
+#### `std`
+
+Enables features that depend on the standard library. This is enabled by
+default.
 
 ### `no_std` support
 
