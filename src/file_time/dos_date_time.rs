@@ -141,23 +141,18 @@ impl FileTime {
         match dt.year() {
             ..=1979 => Err(DosDateTimeRangeErrorKind::Negative.into()),
             2108.. => Err(DosDateTimeRangeErrorKind::Overflow.into()),
-            _ => {
-                let (date, time) = (dt.date(), dt.time());
-
+            year => {
                 let (year, month, day) = (
-                    date.year() - 1980,
-                    i32::from(u8::from(date.month())),
-                    i32::from(date.day()),
+                    u16::try_from(year - 1980).expect("year should be in the range of `u16`"),
+                    u16::from(u8::from(dt.month())),
+                    u16::from(dt.day()),
                 );
-                let dos_date = ((year << 9) + (month << 5) + day)
-                    .try_into()
-                    .expect("the MS-DOS date should be in the range of `u16`");
+                let date = (year << 9) | (month << 5) | day;
 
-                let (hour, minute, second) = (time.hour(), time.minute(), time.second() / 2);
-                let dos_time =
-                    (u16::from(hour) << 11) + (u16::from(minute) << 5) + u16::from(second);
+                let (hour, minute, second) = (dt.hour(), dt.minute(), dt.second() / 2);
+                let time = (u16::from(hour) << 11) | (u16::from(minute) << 5) | u16::from(second);
 
-                let resolution = ((time
+                let resolution = ((dt.time()
                     - Time::from_hms(hour, minute, second * 2)
                         .expect("the MS-DOS time should be in the range of `Time`"))
                 .whole_milliseconds()
@@ -166,7 +161,7 @@ impl FileTime {
                     .expect("resolution should be in the range of `u8`");
                 debug_assert!(resolution <= 199);
 
-                Ok((dos_date, dos_time, resolution, offset))
+                Ok((date, time, resolution, offset))
             }
         }
     }
@@ -289,7 +284,7 @@ impl FileTime {
         }
 
         let (year, month, day) = (
-            ((date >> 9) + 1980).into(),
+            (1980 + (date >> 9)).into(),
             u8::try_from((date >> 5) & 0x0f)
                 .expect("month should be in the range of `u8`")
                 .try_into()?,
