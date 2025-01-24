@@ -194,26 +194,23 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time(-11_644_473_600, 0).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::from_unix_time(-11_644_473_600, 0),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(FileTime::from_unix_time(0, 0), Ok(FileTime::UNIX_EPOCH));
+    /// assert_eq!(
+    ///     FileTime::from_unix_time(910_692_730_085, 477_580_700),
+    ///     Ok(FileTime::SIGNED_MAX)
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time(0, 0).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time(910_692_730_085, 477_580_700).unwrap(),
-    ///     FileTime::SIGNED_MAX
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time(1_833_029_933_770, 955_161_500).unwrap(),
-    ///     FileTime::MAX
+    ///     FileTime::from_unix_time(1_833_029_933_770, 955_161_500),
+    ///     Ok(FileTime::MAX)
     /// );
     ///
     /// // The number of nanoseconds is greater than 1 billion.
     /// assert_eq!(
-    ///     FileTime::from_unix_time(0, 1_000_000_000).unwrap(),
-    ///     FileTime::from_unix_time(1, 0).unwrap()
+    ///     FileTime::from_unix_time(0, 1_000_000_000),
+    ///     FileTime::from_unix_time(1, 0)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -246,20 +243,17 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(-11_644_473_600).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::from_unix_time_secs(-11_644_473_600),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(FileTime::from_unix_time_secs(0), Ok(FileTime::UNIX_EPOCH));
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_secs(910_692_730_085),
+    ///     Ok(FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700))
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(0).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(910_692_730_085).unwrap(),
-    ///     FileTime::SIGNED_MAX - Duration::from_nanos(477_580_700)
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(1_833_029_933_770).unwrap(),
-    ///     FileTime::MAX - Duration::from_nanos(955_161_500)
+    ///     FileTime::from_unix_time_secs(1_833_029_933_770),
+    ///     Ok(FileTime::MAX - Duration::from_nanos(955_161_500))
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -295,20 +289,17 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time_millis(-11_644_473_600_000).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::from_unix_time_millis(-11_644_473_600_000),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(FileTime::from_unix_time_millis(0), Ok(FileTime::UNIX_EPOCH));
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_millis(910_692_730_085_477),
+    ///     Ok(FileTime::SIGNED_MAX - Duration::from_nanos(580_700))
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time_millis(0).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_millis(910_692_730_085_477).unwrap(),
-    ///     FileTime::SIGNED_MAX - Duration::from_nanos(580_700)
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_millis(1_833_029_933_770_955).unwrap(),
-    ///     FileTime::MAX - Duration::from_nanos(161_500)
+    ///     FileTime::from_unix_time_millis(1_833_029_933_770_955),
+    ///     Ok(FileTime::MAX - Duration::from_nanos(161_500))
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -338,20 +329,17 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time_micros(-11_644_473_600_000_000).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::from_unix_time_micros(-11_644_473_600_000_000),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(FileTime::from_unix_time_micros(0), Ok(FileTime::UNIX_EPOCH));
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_micros(910_692_730_085_477_580),
+    ///     Ok(FileTime::SIGNED_MAX - Duration::from_nanos(700))
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time_micros(0).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_micros(910_692_730_085_477_580).unwrap(),
-    ///     FileTime::SIGNED_MAX - Duration::from_nanos(700)
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_micros(1_833_029_933_770_955_161).unwrap(),
-    ///     FileTime::MAX - Duration::from_nanos(500)
+    ///     FileTime::from_unix_time_micros(1_833_029_933_770_955_161),
+    ///     Ok(FileTime::MAX - Duration::from_nanos(500))
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -379,20 +367,17 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(FileTime::from_unix_time_nanos(0), Ok(FileTime::UNIX_EPOCH));
+    /// assert_eq!(
+    ///     FileTime::from_unix_time_nanos(910_692_730_085_477_580_700),
+    ///     Ok(FileTime::SIGNED_MAX)
     /// );
     /// assert_eq!(
-    ///     FileTime::from_unix_time_nanos(0).unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_nanos(910_692_730_085_477_580_700).unwrap(),
-    ///     FileTime::SIGNED_MAX
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500).unwrap(),
-    ///     FileTime::MAX
+    ///     FileTime::from_unix_time_nanos(1_833_029_933_770_955_161_500),
+    ///     Ok(FileTime::MAX)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.

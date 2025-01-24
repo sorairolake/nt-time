@@ -29,17 +29,11 @@ impl DosDateTimeRangeError {
     /// ```
     /// # use nt_time::{error::DosDateTimeRangeErrorKind, FileTime};
     /// #
-    /// assert_eq!(
-    ///     FileTime::NT_TIME_EPOCH
-    ///         .to_dos_date_time(None)
-    ///         .unwrap_err()
-    ///         .kind(),
-    ///     DosDateTimeRangeErrorKind::Negative
-    /// );
-    /// assert_eq!(
-    ///     FileTime::MAX.to_dos_date_time(None).unwrap_err().kind(),
-    ///     DosDateTimeRangeErrorKind::Overflow
-    /// );
+    /// let err = FileTime::NT_TIME_EPOCH.to_dos_date_time(None).unwrap_err();
+    /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Negative);
+    ///
+    /// let err = FileTime::MAX.to_dos_date_time(None).unwrap_err();
+    /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
     #[inline]
@@ -114,14 +108,11 @@ impl FileTimeRangeError {
     /// ```
     /// # use nt_time::{error::FileTimeRangeErrorKind, FileTime};
     /// #
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(i64::MIN).unwrap_err().kind(),
-    ///     FileTimeRangeErrorKind::Negative
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_unix_time_secs(i64::MAX).unwrap_err().kind(),
-    ///     FileTimeRangeErrorKind::Overflow
-    /// );
+    /// let err = FileTime::from_unix_time_secs(i64::MIN).unwrap_err();
+    /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Negative);
+    ///
+    /// let err = FileTime::from_unix_time_secs(i64::MAX).unwrap_err();
+    /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
     #[inline]

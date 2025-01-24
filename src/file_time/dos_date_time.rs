@@ -55,17 +55,13 @@ impl FileTime {
     /// #
     /// // `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::new(119_600_064_000_000_000)
-    ///         .to_dos_date_time(None)
-    ///         .unwrap(),
-    ///     (0x0021, u16::MIN, u8::MIN, None)
+    ///     FileTime::new(119_600_064_000_000_000).to_dos_date_time(None),
+    ///     Ok((0x0021, u16::MIN, u8::MIN, None))
     /// );
     /// // `2107-12-31 23:59:59 UTC`.
     /// assert_eq!(
-    ///     FileTime::new(159_992_927_990_000_000)
-    ///         .to_dos_date_time(None)
-    ///         .unwrap(),
-    ///     (0xff9f, 0xbf7d, 100, None)
+    ///     FileTime::new(159_992_927_990_000_000).to_dos_date_time(None),
+    ///     Ok((0xff9f, 0xbf7d, 100, None))
     /// );
     ///
     /// // Before `1980-01-01 00:00:00 UTC`.
@@ -79,10 +75,8 @@ impl FileTime {
     ///
     /// // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
     /// assert_eq!(
-    ///     FileTime::new(126_828_411_000_000_000)
-    ///         .to_dos_date_time(Some(offset!(-08:00)))
-    ///         .unwrap(),
-    ///     (0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00)))
+    ///     FileTime::new(126_828_411_000_000_000).to_dos_date_time(Some(offset!(-08:00))),
+    ///     Ok((0x2d7a, 0x9b20, u8::MIN, Some(offset!(-08:00))))
     /// );
     /// ```
     ///
@@ -94,25 +88,19 @@ impl FileTime {
     /// #
     /// // `2002-11-27 03:25:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::new(126_828_411_000_000_000)
-    ///         .to_dos_date_time(Some(offset!(-08:01)))
-    ///         .unwrap(),
-    ///     (0x2d7b, 0x1b20, u8::MIN, None)
+    ///     FileTime::new(126_828_411_000_000_000).to_dos_date_time(Some(offset!(-08:01))),
+    ///     Ok((0x2d7b, 0x1b20, u8::MIN, None))
     /// );
     /// // `2002-11-27 03:25:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::new(126_828_411_000_000_000)
-    ///         .to_dos_date_time(Some(offset!(-08:14)))
-    ///         .unwrap(),
-    ///     (0x2d7b, 0x1b20, u8::MIN, None)
+    ///     FileTime::new(126_828_411_000_000_000).to_dos_date_time(Some(offset!(-08:14))),
+    ///     Ok((0x2d7b, 0x1b20, u8::MIN, None))
     /// );
     ///
     /// // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:10:00 -08:15`.
     /// assert_eq!(
-    ///     FileTime::new(126_828_411_000_000_000)
-    ///         .to_dos_date_time(Some(offset!(-08:15)))
-    ///         .unwrap(),
-    ///     (0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15)))
+    ///     FileTime::new(126_828_411_000_000_000).to_dos_date_time(Some(offset!(-08:15))),
+    ///     Ok((0x2d7a, 0x9940, u8::MIN, Some(offset!(-08:15))))
     /// );
     /// ```
     ///
@@ -202,19 +190,19 @@ impl FileTime {
     /// #
     /// // `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x0021, u16::MIN, None, None).unwrap(),
-    ///     FileTime::new(119_600_064_000_000_000)
+    ///     FileTime::from_dos_date_time(0x0021, u16::MIN, None, None),
+    ///     Ok(FileTime::new(119_600_064_000_000_000))
     /// );
     /// // `2107-12-31 23:59:59 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0xff9f, 0xbf7d, Some(100), None).unwrap(),
-    ///     FileTime::new(159_992_927_990_000_000)
+    ///     FileTime::from_dos_date_time(0xff9f, 0xbf7d, Some(100), None),
+    ///     Ok(FileTime::new(159_992_927_990_000_000))
     /// );
     ///
     /// // From `2002-11-26 19:25:00 -08:00` to `2002-11-27 03:25:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))).unwrap(),
-    ///     FileTime::new(126_828_411_000_000_000)
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:00))),
+    ///     Ok(FileTime::new(126_828_411_000_000_000))
     /// );
     ///
     /// // The Day field is 0.
@@ -231,19 +219,19 @@ impl FileTime {
     /// #
     /// // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:01))).unwrap(),
-    ///     FileTime::new(126_828_123_000_000_000)
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:01))),
+    ///     Ok(FileTime::new(126_828_123_000_000_000))
     /// );
     /// // From `2002-11-26 19:25:00 -08:14` to `2002-11-26 19:25:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))).unwrap(),
-    ///     FileTime::new(126_828_123_000_000_000)
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:14))),
+    ///     Ok(FileTime::new(126_828_123_000_000_000))
     /// );
     ///
     /// // From `2002-11-26 19:25:00 -08:15` to `2002-11-27 03:40:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))).unwrap(),
-    ///     FileTime::new(126_828_420_000_000_000)
+    ///     FileTime::from_dos_date_time(0x2d7a, 0x9b20, None, Some(offset!(-08:15))),
+    ///     Ok(FileTime::new(126_828_420_000_000_000))
     /// );
     /// ```
     ///
@@ -252,7 +240,7 @@ impl FileTime {
     /// ```should_panic
     /// # use nt_time::FileTime;
     /// #
-    /// let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
+    /// let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None);
     /// ```
     ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
@@ -571,18 +559,14 @@ mod tests {
     #[should_panic]
     fn to_dos_date_time_with_invalid_positive_offset() {
         // From `1980-01-01 00:00:00 UTC` to `1980-01-01 16:00:00 +16:00`.
-        let _ = FileTime::new(119_600_064_000_000_000)
-            .to_dos_date_time(Some(offset!(+16:00)))
-            .unwrap();
+        let _ = FileTime::new(119_600_064_000_000_000).to_dos_date_time(Some(offset!(+16:00)));
     }
 
     #[test]
     #[should_panic]
     fn to_dos_date_time_with_invalid_negative_offset() {
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 07:44:58 -16:15`.
-        let _ = FileTime::new(159_992_927_980_000_000)
-            .to_dos_date_time(Some(offset!(-16:15)))
-            .unwrap();
+        let _ = FileTime::new(159_992_927_980_000_000).to_dos_date_time(Some(offset!(-16:15)));
     }
 
     #[test]
@@ -745,21 +729,20 @@ mod tests {
     #[test]
     #[should_panic]
     fn from_dos_date_time_with_invalid_resolution() {
-        let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None).unwrap();
+        let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, Some(200), None);
     }
 
     #[test]
     #[should_panic]
     fn from_dos_date_time_with_invalid_positive_offset() {
         // From `2107-12-31 23:59:58 +16:00` to `2107-12-31 07:59:58 UTC`.
-        let _ = FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00))).unwrap();
+        let _ = FileTime::from_dos_date_time(0xff9f, 0xbf7d, None, Some(offset!(+16:00)));
     }
 
     #[test]
     #[should_panic]
     fn from_dos_date_time_with_invalid_negative_offset() {
         // From `1980-01-01 00:00:00 -16:15` to `1980-01-01 16:15:00 UTC`.
-        let _ =
-            FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:15))).unwrap();
+        let _ = FileTime::from_dos_date_time(0x0021, u16::MIN, None, Some(offset!(-16:15)));
     }
 }

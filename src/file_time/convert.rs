@@ -51,12 +51,12 @@ impl TryFrom<FileTime> for i64 {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(), 0);
+    /// assert_eq!(i64::try_from(FileTime::NT_TIME_EPOCH), Ok(0));
     /// assert_eq!(
-    ///     i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
-    ///     116_444_736_000_000_000
+    ///     i64::try_from(FileTime::UNIX_EPOCH),
+    ///     Ok(116_444_736_000_000_000)
     /// );
-    /// assert_eq!(i64::try_from(FileTime::SIGNED_MAX).unwrap(), i64::MAX);
+    /// assert_eq!(i64::try_from(FileTime::SIGNED_MAX), Ok(i64::MAX));
     ///
     /// assert!(i64::try_from(FileTime::MAX).is_err());
     /// ```
@@ -128,12 +128,12 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-    ///     datetime!(1601-01-01 00:00 UTC)
+    ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH),
+    ///     Ok(datetime!(1601-01-01 00:00 UTC))
     /// );
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
-    ///     OffsetDateTime::UNIX_EPOCH
+    ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH),
+    ///     Ok(OffsetDateTime::UNIX_EPOCH)
     /// );
     /// ```
     ///
@@ -160,16 +160,16 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
-    ///     datetime!(+10000-01-01 00:00 UTC)
+    ///     OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)),
+    ///     Ok(datetime!(+10000-01-01 00:00 UTC))
     /// );
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::SIGNED_MAX).unwrap(),
-    ///     datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
+    ///     OffsetDateTime::try_from(FileTime::SIGNED_MAX),
+    ///     Ok(datetime!(+30828-09-14 02:48:05.477_580_700 UTC))
     /// );
     /// assert_eq!(
-    ///     OffsetDateTime::try_from(FileTime::MAX).unwrap(),
-    ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
+    ///     OffsetDateTime::try_from(FileTime::MAX),
+    ///     Ok(datetime!(+60056-05-28 05:36:10.955_161_500 UTC))
     /// );
     /// # }
     /// ```
@@ -251,12 +251,12 @@ impl TryFrom<i64> for FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::try_from(0_i64).unwrap(), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::try_from(0_i64), Ok(FileTime::NT_TIME_EPOCH));
     /// assert_eq!(
-    ///     FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
-    ///     FileTime::UNIX_EPOCH
+    ///     FileTime::try_from(116_444_736_000_000_000_i64),
+    ///     Ok(FileTime::UNIX_EPOCH)
     /// );
-    /// assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
+    /// assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
     ///
     /// assert!(FileTime::try_from(i64::MIN).is_err());
     /// ```
@@ -290,12 +290,12 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap(),
-    ///     FileTime::UNIX_EPOCH
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH),
+    ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -341,12 +341,12 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC)),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap(),
-    ///     FileTime::UNIX_EPOCH
+    ///     FileTime::try_from(OffsetDateTime::UNIX_EPOCH),
+    ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
@@ -398,12 +398,12 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()).unwrap(),
-    ///     FileTime::NT_TIME_EPOCH
+    ///     FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH).unwrap(),
-    ///     FileTime::UNIX_EPOCH
+    ///     FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH),
+    ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.

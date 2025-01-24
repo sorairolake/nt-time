@@ -424,18 +424,18 @@ impl FromStr for FileTime {
     /// #
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::from_str("0").unwrap(), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::from_str("0"), Ok(FileTime::NT_TIME_EPOCH));
     /// assert_eq!(
-    ///     FileTime::from_str("116444736000000000").unwrap(),
-    ///     FileTime::UNIX_EPOCH
+    ///     FileTime::from_str("116444736000000000"),
+    ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::from_str("+9223372036854775807").unwrap(),
-    ///     FileTime::SIGNED_MAX
+    ///     FileTime::from_str("+9223372036854775807"),
+    ///     Ok(FileTime::SIGNED_MAX)
     /// );
     /// assert_eq!(
-    ///     FileTime::from_str("+18446744073709551615").unwrap(),
-    ///     FileTime::MAX
+    ///     FileTime::from_str("+18446744073709551615"),
+    ///     Ok(FileTime::MAX)
     /// );
     ///
     /// assert!(FileTime::from_str("").is_err());
