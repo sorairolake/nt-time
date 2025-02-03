@@ -54,7 +54,7 @@ required-features = ["std"]
 
 [dependencies]
 chrono = { version = "0.4.39", default-features = false, optional = true }
-rand = { version = "0.8.5", default-features = false, optional = true }
+rand = { version = "0.9.0", default-features = false, optional = true }
 serde = { version = "1.0.217", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
@@ -78,9 +78,10 @@ serde-human-readable = ["serde", "time/serde-human-readable"]
 std = ["chrono?/std", "rand?/std", "time/std"]
 
 [lints.clippy]
-cargo = "warn"
-nursery = "warn"
-pedantic = "warn"
+cargo = { level = "warn", priority = -1 }
+multiple_crate_versions = "allow"
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
 
 [lints.rust]
 missing_debug_implementations = "deny"
