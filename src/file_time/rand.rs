@@ -5,16 +5,16 @@
 //! Implementations of [`rand`] for [`FileTime`].
 
 use rand::{
-    distributions::{Distribution, Standard},
+    distr::{Distribution, StandardUniform},
     Rng,
 };
 
 use super::FileTime;
 
-impl Distribution<FileTime> for Standard {
+impl Distribution<FileTime> for StandardUniform {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> FileTime {
-        FileTime::new(rng.gen())
+        FileTime::new(rng.random())
     }
 }
 
@@ -27,7 +27,7 @@ mod tests {
     #[test]
     fn sample() {
         let mut rng = StepRng::new(0, 1);
-        let buf: [FileTime; 4] = rng.gen();
+        let buf: [FileTime; 4] = rng.random();
         assert_eq!(
             buf,
             [
