@@ -79,6 +79,7 @@ std = ["chrono?/std", "rand?/std", "time/std"]
 
 [lints.clippy]
 cargo = "warn"
+multiple_crate_versions = "allow"
 nursery = "warn"
 pedantic = "warn"
 
