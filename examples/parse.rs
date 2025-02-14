@@ -38,7 +38,7 @@ struct Opt {
 }
 
 #[derive(Clone, Debug, Default, ValueEnum)]
-pub enum Format {
+enum Format {
     /// Underlying 64-bit unsigned integer value.
     #[default]
     Raw,
