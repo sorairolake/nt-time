@@ -16,5 +16,5 @@ use test::Bencher;
 #[bench]
 fn sample(b: &mut Bencher) {
     let mut rng = StepRng::new(0, 1);
-    b.iter(|| rng.gen::<FileTime>());
+    b.iter(|| rng.random::<FileTime>());
 }
