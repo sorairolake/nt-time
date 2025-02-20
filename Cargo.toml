@@ -20,8 +20,6 @@ include = ["/LICENSES", "/README.md", "/src"]
 [package.metadata.docs.rs]
 all-features = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [[example]]
 name = "dos2ft"
 path = "examples/dos2ft.rs"

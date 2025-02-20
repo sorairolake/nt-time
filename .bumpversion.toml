@@ -6,7 +6,4 @@
 current_version = "0.10.6"
 
 [[tool.bumpversion.files]]
-filename = "README.md"
-
-[[tool.bumpversion.files]]
 filename = "src/lib.rs"

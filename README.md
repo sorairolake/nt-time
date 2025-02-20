@@ -27,11 +27,10 @@ underlying integer value. This is the largest file time accepted by the
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Run the following command in your project directory:
 
-```toml
-[dependencies]
-nt-time = "0.10.6"
+```sh
+cargo add nt-time
 ```
 
 ### Crate features
