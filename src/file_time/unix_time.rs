@@ -8,7 +8,7 @@
 
 use core::time::Duration;
 
-use super::{FileTime, FILE_TIMES_PER_SEC};
+use super::{FILE_TIMES_PER_SEC, FileTime};
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {

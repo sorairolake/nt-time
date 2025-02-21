@@ -6,7 +6,7 @@
 
 use core::num::TryFromIntError;
 
-use time::{error::ComponentRange, OffsetDateTime};
+use time::{OffsetDateTime, error::ComponentRange};
 
 use super::FileTime;
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
@@ -123,8 +123,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     time::{macros::datetime, OffsetDateTime},
     /// #     FileTime,
+    /// #     time::{OffsetDateTime, macros::datetime},
     /// # };
     /// #
     /// assert_eq!(
@@ -143,7 +143,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// ```
     /// # #[cfg(not(feature = "large-dates"))]
     /// # {
-    /// # use nt_time::{time::OffsetDateTime, FileTime};
+    /// # use nt_time::{FileTime, time::OffsetDateTime};
     /// #
     /// assert!(OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
     /// # }
@@ -155,8 +155,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// # #[cfg(feature = "large-dates")]
     /// # {
     /// # use nt_time::{
-    /// #     time::{macros::datetime, OffsetDateTime},
     /// #     FileTime,
+    /// #     time::{OffsetDateTime, macros::datetime},
     /// # };
     /// #
     /// assert_eq!(
@@ -187,8 +187,8 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     chrono::{DateTime, Utc},
     /// #     FileTime,
+    /// #     chrono::{DateTime, Utc},
     /// # };
     /// #
     /// assert_eq!(
@@ -299,16 +299,18 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
-    /// assert!(FileTime::try_from(
-    ///     SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
-    /// )
-    /// .is_err());
+    /// assert!(
+    ///     FileTime::try_from(
+    ///         SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
+    ///     )
+    ///     .is_err()
+    /// );
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// #[cfg(not(windows))]
-    /// assert!(FileTime::try_from(
-    ///     SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600)
-    /// )
-    /// .is_err());
+    /// assert!(
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::new(1_833_029_933_770, 955_161_600))
+    ///         .is_err()
+    /// );
     /// ```
     #[inline]
     fn try_from(st: std::time::SystemTime) -> Result<Self, Self::Error> {
@@ -336,8 +338,8 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     time::{macros::datetime, Duration, OffsetDateTime},
     /// #     FileTime,
+    /// #     time::{Duration, OffsetDateTime, macros::datetime},
     /// # };
     /// #
     /// assert_eq!(
@@ -363,14 +365,16 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # #[cfg(feature = "large-dates")]
     /// # {
     /// # use nt_time::{
-    /// #     time::{macros::datetime, Duration},
     /// #     FileTime,
+    /// #     time::{Duration, macros::datetime},
     /// # };
     /// #
-    /// assert!(FileTime::try_from(
-    ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
-    /// )
-    /// .is_err());
+    /// assert!(
+    ///     FileTime::try_from(
+    ///         datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
+    ///     )
+    ///     .is_err()
+    /// );
     /// # }
     /// ```
     #[inline]
@@ -393,8 +397,8 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     ///
     /// ```
     /// # use nt_time::{
-    /// #     chrono::{DateTime, TimeDelta, Utc},
     /// #     FileTime,
+    /// #     chrono::{DateTime, TimeDelta, Utc},
     /// # };
     /// #
     /// assert_eq!(
@@ -407,18 +411,23 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
-    /// assert!(FileTime::try_from(
-    ///     "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap() - TimeDelta::nanoseconds(100)
-    /// )
-    /// .is_err());
+    /// assert!(
+    ///     FileTime::try_from(
+    ///         "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+    ///             - TimeDelta::nanoseconds(100)
+    ///     )
+    ///     .is_err()
+    /// );
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
-    /// assert!(FileTime::try_from(
-    ///     "+60056-05-28 05:36:10.955161500 UTC"
-    ///         .parse::<DateTime<Utc>>()
-    ///         .unwrap()
-    ///         + TimeDelta::nanoseconds(100)
-    /// )
-    /// .is_err());
+    /// assert!(
+    ///     FileTime::try_from(
+    ///         "+60056-05-28 05:36:10.955161500 UTC"
+    ///             .parse::<DateTime<Utc>>()
+    ///             .unwrap()
+    ///             + TimeDelta::nanoseconds(100)
+    ///     )
+    ///     .is_err()
+    /// );
     /// ```
     #[inline]
     fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
@@ -727,9 +736,11 @@ mod tests {
         use std::time::{Duration, SystemTime};
 
         if cfg!(windows) {
-            assert!(SystemTime::UNIX_EPOCH
-                .checked_add(Duration::new(910_692_730_085, 477_580_800))
-                .is_none());
+            assert!(
+                SystemTime::UNIX_EPOCH
+                    .checked_add(Duration::new(910_692_730_085, 477_580_800))
+                    .is_none()
+            );
         } else {
             assert_eq!(
                 FileTime::try_from(
@@ -743,7 +754,7 @@ mod tests {
 
     #[test]
     fn try_from_offset_date_time_to_file_time_before_nt_time_epoch() {
-        use time::{macros::datetime, Duration};
+        use time::{Duration, macros::datetime};
 
         assert_eq!(
             FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100))
@@ -792,7 +803,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
-        use time::{macros::datetime, Duration};
+        use time::{Duration, macros::datetime};
 
         assert_eq!(
             FileTime::try_from(

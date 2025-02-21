@@ -7,12 +7,12 @@
 use anyhow::Context;
 use clap::{Parser, ValueEnum};
 use nt_time::{
+    FileTime,
     time::{
+        OffsetDateTime,
         error::Parse,
         format_description::well_known::{Iso8601, Rfc2822, Rfc3339},
-        OffsetDateTime,
     },
-    FileTime,
 };
 
 #[derive(Debug, Parser)]

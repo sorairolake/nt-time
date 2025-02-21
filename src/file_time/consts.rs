@@ -4,7 +4,7 @@
 
 //! Constants for [`FileTime`].
 
-use super::{FileTime, FILE_TIMES_PER_SEC};
+use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
     /// The [NT time epoch].
@@ -16,7 +16,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
     /// ```
@@ -32,7 +32,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::OffsetDateTime, FileTime};
+    /// # use nt_time::{FileTime, time::OffsetDateTime};
     /// #
     /// assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
     /// ```
@@ -68,7 +68,7 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
@@ -106,7 +106,7 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::MAX,
@@ -125,7 +125,7 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
-    use time::{macros::datetime, OffsetDateTime};
+    use time::{OffsetDateTime, macros::datetime};
 
     use super::*;
 

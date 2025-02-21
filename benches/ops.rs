@@ -6,7 +6,7 @@
 
 extern crate test;
 
-use nt_time::{time::macros::datetime, FileTime};
+use nt_time::{FileTime, time::macros::datetime};
 use test::Bencher;
 
 #[bench]

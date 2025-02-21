@@ -11,9 +11,9 @@
 //!
 //! ```
 //! use nt_time::{
+//!     FileTime,
 //!     serde::{Deserialize, Serialize},
 //!     serde_with::unix_time,
-//!     FileTime,
 //! };
 //!
 //! #[derive(Deserialize, Serialize)]
@@ -37,7 +37,7 @@
 
 pub mod option;
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 use crate::FileTime;
 

@@ -8,8 +8,8 @@
 extern crate test;
 
 use nt_time::{
-    rand::{rngs::mock::StepRng, Rng},
     FileTime,
+    rand::{Rng, rngs::mock::StepRng},
 };
 use test::Bencher;
 

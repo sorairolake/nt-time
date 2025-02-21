@@ -14,9 +14,9 @@
 //!
 //! ```
 //! use nt_time::{
+//!     FileTime,
 //!     serde::{Deserialize, Serialize},
 //!     serde_with::iso_8601,
-//!     FileTime,
 //! };
 //!
 //! #[derive(Deserialize, Serialize)]
@@ -45,8 +45,8 @@
 //! [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
-use time::{serde::iso8601, OffsetDateTime};
+use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
+use time::{OffsetDateTime, serde::iso8601};
 
 use crate::FileTime;
 
@@ -86,7 +86,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{assert_de_tokens_error, assert_tokens, Token};
+    use serde_test::{Token, assert_de_tokens_error, assert_tokens};
 
     use super::*;
 

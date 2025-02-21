@@ -11,9 +11,9 @@
 //!
 //! ```
 //! use nt_time::{
+//!     FileTime,
 //!     serde::{Deserialize, Serialize},
 //!     serde_with::rfc_2822,
-//!     FileTime,
 //! };
 //!
 //! #[derive(Deserialize, Serialize)]
@@ -42,8 +42,8 @@
 //! [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
-use time::{serde::rfc2822, OffsetDateTime};
+use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
+use time::{OffsetDateTime, serde::rfc2822};
 
 use crate::FileTime;
 
@@ -83,7 +83,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{assert_ser_tokens_error, assert_tokens, Token};
+    use serde_test::{Token, assert_ser_tokens_error, assert_tokens};
 
     use super::*;
 

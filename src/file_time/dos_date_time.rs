@@ -7,7 +7,7 @@
 //!
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-use time::{error::ComponentRange, macros::offset, Date, OffsetDateTime, Time, UtcOffset};
+use time::{Date, OffsetDateTime, Time, UtcOffset, error::ComponentRange, macros::offset};
 
 use super::FileTime;
 use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
@@ -51,7 +51,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::macros::offset, FileTime};
+    /// # use nt_time::{FileTime, time::macros::offset};
     /// #
     /// // `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
@@ -65,13 +65,17 @@ impl FileTime {
     /// );
     ///
     /// // Before `1980-01-01 00:00:00 UTC`.
-    /// assert!(FileTime::new(119_600_063_990_000_000)
-    ///     .to_dos_date_time(None)
-    ///     .is_err());
+    /// assert!(
+    ///     FileTime::new(119_600_063_990_000_000)
+    ///         .to_dos_date_time(None)
+    ///         .is_err()
+    /// );
     /// // After `2107-12-31 23:59:59.990000000 UTC`.
-    /// assert!(FileTime::new(159_992_928_000_000_000)
-    ///     .to_dos_date_time(None)
-    ///     .is_err());
+    /// assert!(
+    ///     FileTime::new(159_992_928_000_000_000)
+    ///         .to_dos_date_time(None)
+    ///         .is_err()
+    /// );
     ///
     /// // From `2002-11-27 03:25:00 UTC` to `2002-11-26 19:25:00 -08:00`.
     /// assert_eq!(
@@ -84,7 +88,7 @@ impl FileTime {
     /// the UTC date and time:
     ///
     /// ```
-    /// # use nt_time::{time::macros::offset, FileTime};
+    /// # use nt_time::{FileTime, time::macros::offset};
     /// #
     /// // `2002-11-27 03:25:00 UTC`.
     /// assert_eq!(
@@ -186,7 +190,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::macros::offset, FileTime};
+    /// # use nt_time::{FileTime, time::macros::offset};
     /// #
     /// // `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
@@ -215,7 +219,7 @@ impl FileTime {
     /// the provided date and time is in UTC:
     ///
     /// ```
-    /// # use nt_time::{time::macros::offset, FileTime};
+    /// # use nt_time::{FileTime, time::macros::offset};
     /// #
     /// // From `2002-11-26 19:25:00 -08:01` to `2002-11-26 19:25:00 UTC`.
     /// assert_eq!(

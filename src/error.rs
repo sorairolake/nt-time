@@ -5,6 +5,7 @@
 //! Error types for this crate.
 
 use core::{
+    error::Error,
     fmt,
     num::{IntErrorKind, ParseIntError},
 };
@@ -27,7 +28,7 @@ impl DosDateTimeRangeError {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{error::DosDateTimeRangeErrorKind, FileTime};
+    /// # use nt_time::{FileTime, error::DosDateTimeRangeErrorKind};
     /// #
     /// let err = FileTime::NT_TIME_EPOCH.to_dos_date_time(None).unwrap_err();
     /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Negative);
@@ -49,8 +50,7 @@ impl fmt::Display for DosDateTimeRangeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for DosDateTimeRangeError {}
+impl Error for DosDateTimeRangeError {}
 
 impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
     #[inline]
@@ -106,7 +106,7 @@ impl FileTimeRangeError {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{error::FileTimeRangeErrorKind, FileTime};
+    /// # use nt_time::{FileTime, error::FileTimeRangeErrorKind};
     /// #
     /// let err = FileTime::from_unix_time_secs(i64::MIN).unwrap_err();
     /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Negative);
@@ -128,8 +128,7 @@ impl fmt::Display for FileTimeRangeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for FileTimeRangeError {}
+impl Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
     #[inline]
@@ -197,10 +196,9 @@ impl fmt::Display for ParseFileTimeError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ParseFileTimeError {
+impl Error for ParseFileTimeError {
     #[inline]
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.0)
     }
 }
@@ -312,11 +310,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_dos_date_time_range_error() {
-        use std::error::Error;
-
         assert!(
             DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
                 .source()
@@ -513,17 +508,18 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_file_time_range_error() {
-        use std::error::Error;
-
-        assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
-            .source()
-            .is_none());
-        assert!(FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
-            .source()
-            .is_none());
+        assert!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
+                .source()
+                .is_none()
+        );
+        assert!(
+            FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
+                .source()
+                .is_none()
+        );
     }
 
     #[test]
@@ -699,11 +695,8 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "std")]
     #[test]
     fn source_parse_file_time_error() {
-        use std::error::Error;
-
         assert_eq!(
             ParseFileTimeError::new(u64::from_str("").unwrap_err())
                 .source()

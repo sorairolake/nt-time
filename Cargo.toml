@@ -6,8 +6,8 @@
 name = "nt-time"
 version = "0.10.6"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
-edition = "2021"
-rust-version = "1.67.1"
+edition = "2024"
+rust-version = "1.85.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 readme = "README.md"
@@ -53,17 +53,17 @@ required-features = ["std"]
 [dependencies]
 chrono = { version = "0.4.39", default-features = false, optional = true }
 rand = { version = "0.9.0", default-features = false, optional = true }
-serde = { version = "1.0.217", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.218", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
-anyhow = "1.0.95"
-clap = { version = "4.3.24", features = ["derive"] }
+anyhow = "1.0.96"
+clap = { version = "4.5.30", features = ["derive"] }
 proptest = "1.6.0"
 proptest-derive = "0.5.1"
-serde_json = "1.0.138"
+serde_json = "1.0.139"
 serde_test = "1.0.177"
-test-strategy = "0.3.1"
+test-strategy = "0.4.0"
 time = { version = "0.3.37", features = ["parsing"] }
 
 [features]

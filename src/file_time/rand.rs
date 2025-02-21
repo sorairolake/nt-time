@@ -5,8 +5,8 @@
 //! Implementations of [`rand`] for [`FileTime`].
 
 use rand::{
-    distr::{Distribution, StandardUniform},
     Rng,
+    distr::{Distribution, StandardUniform},
 };
 
 use super::FileTime;

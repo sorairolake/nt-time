@@ -27,8 +27,8 @@
 //! use core::time::Duration;
 //!
 //! use nt_time::{
-//!     time::{macros::datetime, OffsetDateTime},
 //!     FileTime,
+//!     time::{OffsetDateTime, macros::datetime},
 //! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
@@ -56,8 +56,8 @@
 //! use core::time::Duration;
 //!
 //! use nt_time::{
-//!     time::{OffsetDateTime, UtcOffset},
 //!     FileTime,
+//!     time::{OffsetDateTime, UtcOffset},
 //! };
 //!
 //! // `1970-01-01 00:00:00 UTC`.
@@ -87,7 +87,7 @@
 //! [`time::OffsetDateTime`].
 //!
 //! ```
-//! use nt_time::{time::OffsetDateTime, FileTime};
+//! use nt_time::{FileTime, time::OffsetDateTime};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");

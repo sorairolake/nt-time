@@ -7,8 +7,8 @@
 extern crate test;
 
 use nt_time::{
-    time::{macros::datetime, OffsetDateTime},
     FileTime,
+    time::{OffsetDateTime, macros::datetime},
 };
 use test::Bencher;
 

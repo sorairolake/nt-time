@@ -11,9 +11,9 @@
 //!
 //! ```
 //! use nt_time::{
+//!     FileTime,
 //!     serde::{Deserialize, Serialize},
 //!     serde_with::unix_time,
-//!     FileTime,
 //! };
 //!
 //! #[derive(Deserialize, Serialize)]
@@ -42,7 +42,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 use crate::FileTime;
 
