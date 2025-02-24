@@ -19,11 +19,12 @@ number of 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00
 UTC", and is used as timestamps such as [NTFS] and [7z]. Windows uses a file
 time to record when an application creates, accesses, or writes to a file.
 
-Note that many environments, such as the [Win32 API], may limit the largest
-value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is equal
-to the largest value of a 64-bit signed integer type when represented as an
-underlying integer value. This is the largest file time accepted by the
-[`FileTimeToSystemTime`] function of the Win32 API.
+> [!IMPORTANT]
+> Note that many environments, such as the [Win32 API], may limit the largest
+> value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
+> equal to the largest value of a 64-bit signed integer type when represented
+> as an underlying integer value. This is the largest file time accepted by the
+> [`FileTimeToSystemTime`] function of the Win32 API.
 
 ## Usage
 

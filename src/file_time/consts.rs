@@ -56,12 +56,16 @@ impl FileTime {
     /// environments, it is generally recommended that you use this constant as
     /// the largest value instead of [`FileTime::MAX`].
     ///
+    /// <div class="warning">
+    ///
     /// Note that the actual largest value of the [`SYSTEMTIME`] structure of
     /// the Win32 API is "+30827-12-31 23:59:59.999000000" (which is either in
     /// UTC or local time, depending on the function that is being called),
     /// which is different from this constant. The `FileTimeToSystemTime`
     /// function accepts the value of this constant, but it is an invalid date
     /// and time for the `SYSTEMTIME` structure.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///

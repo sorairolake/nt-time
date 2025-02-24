@@ -34,11 +34,15 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
 /// API], which represents a 64-bit unsigned integer value.
 ///
+/// <div class="warning">
+///
 /// Note that many environments, such as the Win32 API, may limit the largest
 /// value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
 /// equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
 /// when represented as an underlying integer value. This is the largest file
 /// time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
+///
+/// </div>
 ///
 /// Also, the file time is sometimes represented as an [`i64`] value, such as in
 /// the [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
@@ -175,9 +179,13 @@ impl FileTime {
     /// Returns the memory representation of this `FileTime` as a byte array in
     /// native byte order.
     ///
+    /// <div class="warning">
+    ///
     /// As the target platform's native endianness is used, portable code should
     /// use [`FileTime::to_be_bytes`] or [`FileTime::to_le_bytes`], as
     /// appropriate, instead.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -268,9 +276,13 @@ impl FileTime {
     /// Creates a native endian `FileTime` value from its memory representation
     /// as a byte array in native endianness.
     ///
+    /// <div class="warning">
+    ///
     /// As the target platform's native endianness is used, portable code likely
     /// wants to use [`FileTime::from_be_bytes`] or [`FileTime::from_le_bytes`],
     /// as appropriate instead.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -409,9 +421,13 @@ impl FromStr for FileTime {
 
     /// Parses a string `s` to return a value of `FileTime`.
     ///
+    /// <div class="warning">
+    ///
     /// The string is expected to be a decimal non-negative integer. If the
     /// string is not a decimal integer, use [`u64::from_str_radix`] and
     /// [`FileTime::new`] instead.
+    ///
+    /// </div>
     ///
     /// # Errors
     ///
