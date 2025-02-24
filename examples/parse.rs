@@ -4,6 +4,8 @@
 
 //! An example of printing a human-readable date and time as the file time.
 
+use std::{ops::Deref, str::FromStr};
+
 use anyhow::Context;
 use clap::{Parser, ValueEnum};
 use nt_time::{
@@ -33,8 +35,8 @@ struct Opt {
     ///
     /// <DATE> is a string representing a date and time in either ISO 8601, RFC
     /// 2822, or RFC 3339 format.
-    #[arg(value_parser(parse_offset_date_time), value_name("DATE"))]
-    dt: OffsetDateTime,
+    #[arg(value_name("DATE"))]
+    dt: DateTime,
 }
 
 #[derive(Clone, Debug, Default, ValueEnum)]
@@ -56,16 +58,32 @@ enum Format {
     HighLow,
 }
 
-fn parse_offset_date_time(dt: &str) -> Result<OffsetDateTime, Parse> {
-    OffsetDateTime::parse(dt, &Iso8601::DEFAULT)
-        .or_else(|_| OffsetDateTime::parse(dt, &Rfc2822))
-        .or_else(|_| OffsetDateTime::parse(dt, &Rfc3339))
+#[derive(Clone, Debug)]
+struct DateTime(OffsetDateTime);
+
+impl Deref for DateTime {
+    type Target = OffsetDateTime;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl FromStr for DateTime {
+    type Err = Parse;
+
+    fn from_str(dt: &str) -> Result<Self, Parse> {
+        OffsetDateTime::parse(dt, &Iso8601::DEFAULT)
+            .or_else(|_| OffsetDateTime::parse(dt, &Rfc2822))
+            .or_else(|_| OffsetDateTime::parse(dt, &Rfc3339))
+            .map(Self)
+    }
 }
 
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = FileTime::try_from(opt.dt).context("could not convert time")?;
+    let ft = FileTime::try_from(*opt.dt).context("could not convert time")?;
     match opt.format {
         Format::Raw => println!("{}", ft.to_raw()),
         Format::BeBytes => println!("{:#04x?}", ft.to_be_bytes()),
