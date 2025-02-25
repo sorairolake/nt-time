@@ -16,6 +16,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.10.6\...HEAD[Unreleased]
 
+=== Added
+
+* Add `FileTime::from_str_radix` ({pull-request-url}/296[#296])
+
 === Changed
 
 * Change MSRV to 1.85.0 ({pull-request-url}/294[#294])
