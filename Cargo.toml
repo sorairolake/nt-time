@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.10.6"
+version = "0.11.0"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2024"
 rust-version = "1.85.0"
@@ -51,14 +51,14 @@ path = "examples/unix2ft.rs"
 required-features = ["std"]
 
 [dependencies]
-chrono = { version = "0.4.39", default-features = false, optional = true }
+chrono = { version = "0.4.40", default-features = false, optional = true }
 rand = { version = "0.9.0", default-features = false, optional = true }
 serde = { version = "1.0.218", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.37", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.96"
-clap = { version = "4.5.30", features = ["derive"] }
+clap = { version = "4.5.31", features = ["derive"] }
 proptest = "1.6.0"
 proptest-derive = "0.5.1"
 serde_json = "1.0.139"
