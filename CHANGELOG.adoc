@@ -14,6 +14,17 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.10.6\...v0.11.0[0.11.0] - 2025-02-26
+
+=== Added
+
+* Add `FileTime::from_str_radix` ({pull-request-url}/296[#296])
+
+=== Changed
+
+* Change MSRV to 1.85.0 ({pull-request-url}/294[#294])
+* Make `Error` trait available in `no_std` mode ({pull-request-url}/294[#294])
+
 == {compare-url}/v0.10.5\...v0.10.6[0.10.6] - 2025-01-14
 
 === Changed

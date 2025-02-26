@@ -6,7 +6,7 @@
 
 use anyhow::Context;
 use clap::Parser;
-use nt_time::{time::UtcOffset, FileTime};
+use nt_time::{FileTime, time::UtcOffset};
 
 #[derive(Debug, Parser)]
 #[command(version, about)]

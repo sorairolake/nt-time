@@ -8,13 +8,13 @@
 extern crate test;
 
 use nt_time::{
-    rand::{rngs::mock::StepRng, Rng},
     FileTime,
+    rand::{Rng, rngs::mock::StepRng},
 };
 use test::Bencher;
 
 #[bench]
 fn sample(b: &mut Bencher) {
     let mut rng = StepRng::new(0, 1);
-    b.iter(|| rng.gen::<FileTime>());
+    b.iter(|| rng.random::<FileTime>());
 }

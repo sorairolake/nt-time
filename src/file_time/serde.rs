@@ -8,7 +8,7 @@
 
 use core::fmt;
 
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 
 use super::FileTime;
 
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        use serde_test::{assert_tokens, Token};
+        use serde_test::{Token, assert_tokens};
 
         assert_tokens(
             &Test {
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        use serde_test::{assert_de_tokens_error, Token};
+        use serde_test::{Token, assert_de_tokens_error};
 
         assert_de_tokens_error::<Test>(
             &[
@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn serde_optional() {
-        use serde_test::{assert_tokens, Token};
+        use serde_test::{Token, assert_tokens};
 
         assert_tokens(
             &TestOption {
@@ -290,7 +290,7 @@ mod tests {
 
     #[test]
     fn deserialize_optional_error() {
-        use serde_test::{assert_de_tokens_error, Token};
+        use serde_test::{Token, assert_de_tokens_error};
 
         assert_de_tokens_error::<TestOption>(
             &[

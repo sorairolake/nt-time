@@ -8,7 +8,7 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 
 use time::OffsetDateTime;
 
-use super::{FileTime, FILE_TIMES_PER_SEC};
+use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
     /// Computes `self + rhs`, returning [`None`] if overflow occurred. The part

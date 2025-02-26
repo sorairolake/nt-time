@@ -19,35 +19,30 @@ number of 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00
 UTC", and is used as timestamps such as [NTFS] and [7z]. Windows uses a file
 time to record when an application creates, accesses, or writes to a file.
 
-Note that many environments, such as the [Win32 API], may limit the largest
-value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is equal
-to the largest value of a 64-bit signed integer type when represented as an
-underlying integer value. This is the largest file time accepted by the
-[`FileTimeToSystemTime`] function of the Win32 API.
+> [!IMPORTANT]
+> Note that many environments, such as the [Win32 API], may limit the largest
+> value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
+> equal to the largest value of a 64-bit signed integer type when represented
+> as an underlying integer value. This is the largest file time accepted by the
+> [`FileTimeToSystemTime`] function of the Win32 API.
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Run the following command in your project directory:
 
-```toml
-[dependencies]
-nt-time = "0.10.6"
+```sh
+cargo add nt-time
 ```
 
 ### Crate features
 
-#### `std`
+#### `chrono`
 
-Enables features that depend on the standard library. This is enabled by
-default.
+Enables the [`chrono`] crate.
 
 #### `large-dates`
 
 Enables the `large-dates` feature of the [`time`] crate.
-
-#### `chrono`
-
-Enables the [`chrono`] crate.
 
 #### `rand`
 
@@ -62,6 +57,11 @@ Enables the [`serde`] crate.
 Allows Serde representations to use a human-readable format. This implicitly
 enables the `serde` feature.
 
+#### `std`
+
+Enables features that depend on the standard library. This is enabled by
+default.
+
 ### `no_std` support
 
 This supports `no_std` mode. Disables the `default` feature to enable this.
@@ -72,7 +72,7 @@ See the [documentation][docs-url] for more details.
 
 ## Minimum supported Rust version
 
-The minimum supported Rust version (MSRV) of this library is v1.67.1.
+The minimum supported Rust version (MSRV) of this library is v1.85.0.
 
 ## Source code
 

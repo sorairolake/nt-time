@@ -10,11 +10,15 @@
 //! timestamps such as [NTFS] and [7z]. Windows uses a file time to record when
 //! an application creates, accesses, or writes to a file.
 //!
+//! <div class="warning">
+//!
 //! Note that many environments, such as the [Win32 API], may limit the largest
 //! value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
 //! equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
 //! when represented as an underlying integer value. This is the largest file
 //! time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
+//!
+//! </div>
 //!
 //! # Examples
 //!
@@ -27,25 +31,22 @@
 //! use core::time::Duration;
 //!
 //! use nt_time::{
-//!     time::{macros::datetime, OffsetDateTime},
 //!     FileTime,
+//!     time::{OffsetDateTime, macros::datetime},
 //! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
-//!     OffsetDateTime::try_from(ft).unwrap(),
-//!     datetime!(1601-01-01 00:00 UTC)
+//!     OffsetDateTime::try_from(ft),
+//!     Ok(datetime!(1601-01-01 00:00 UTC))
 //! );
 //!
 //! let ft = ft + Duration::from_secs(11_644_473_600);
-//! assert_eq!(
-//!     OffsetDateTime::try_from(ft).unwrap(),
-//!     OffsetDateTime::UNIX_EPOCH
-//! );
+//! assert_eq!(OffsetDateTime::try_from(ft), Ok(OffsetDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
 //! // The practical largest file time.
-//! assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
+//! assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
 //! // The theoretical largest file time.
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
@@ -59,15 +60,15 @@
 //! use core::time::Duration;
 //!
 //! use nt_time::{
-//!     time::{OffsetDateTime, UtcOffset},
 //!     FileTime,
+//!     time::{OffsetDateTime, UtcOffset},
 //! };
 //!
 //! // `1970-01-01 00:00:00 UTC`.
 //! let ut = i64::default();
 //! assert_eq!(
-//!     OffsetDateTime::from_unix_timestamp(ut).unwrap(),
-//!     OffsetDateTime::UNIX_EPOCH
+//!     OffsetDateTime::from_unix_timestamp(ut),
+//!     Ok(OffsetDateTime::UNIX_EPOCH)
 //! );
 //!
 //! let ft = FileTime::from_unix_time_secs(ut).unwrap();
@@ -75,8 +76,11 @@
 //!
 //! // `1980-01-01 00:00:00 UTC`.
 //! let ft = ft + Duration::from_secs(315_532_800);
-//! let dos_dt = ft.to_dos_date_time(Some(UtcOffset::UTC)).unwrap();
-//! assert_eq!(dos_dt, (0x0021, u16::MIN, u8::MIN, Some(UtcOffset::UTC)));
+//! let dos_dt = ft.to_dos_date_time(Some(UtcOffset::UTC));
+//! assert_eq!(
+//!     dos_dt,
+//!     Ok((0x0021, u16::MIN, u8::MIN, Some(UtcOffset::UTC)))
+//! );
 //! ```
 //!
 //! ## Formatting and printing the file time
@@ -87,14 +91,13 @@
 //! [`time::OffsetDateTime`].
 //!
 //! ```
-//! use nt_time::{time::OffsetDateTime, FileTime};
+//! use nt_time::{FileTime, time::OffsetDateTime};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");
-//! assert_eq!(
-//!     format!("{}", OffsetDateTime::try_from(ft).unwrap()),
-//!     "1601-01-01 0:00:00.0 +00:00:00"
-//! );
+//!
+//! let dt = OffsetDateTime::try_from(ft).unwrap();
+//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00:00:00");
 //! ```
 //!
 //! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
@@ -105,7 +108,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.10.6/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.11.0/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.

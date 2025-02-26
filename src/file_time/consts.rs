@@ -4,7 +4,7 @@
 
 //! Constants for [`FileTime`].
 
-use super::{FileTime, FILE_TIMES_PER_SEC};
+use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
     /// The [NT time epoch].
@@ -16,7 +16,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
     /// ```
@@ -32,7 +32,7 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{time::OffsetDateTime, FileTime};
+    /// # use nt_time::{FileTime, time::OffsetDateTime};
     /// #
     /// assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
     /// ```
@@ -56,6 +56,8 @@ impl FileTime {
     /// environments, it is generally recommended that you use this constant as
     /// the largest value instead of [`FileTime::MAX`].
     ///
+    /// <div class="warning">
+    ///
     /// Note that the actual largest value of the [`SYSTEMTIME`] structure of
     /// the Win32 API is "+30827-12-31 23:59:59.999000000" (which is either in
     /// UTC or local time, depending on the function that is being called),
@@ -63,12 +65,14 @@ impl FileTime {
     /// function accepts the value of this constant, but it is an invalid date
     /// and time for the `SYSTEMTIME` structure.
     ///
+    /// </div>
+    ///
     /// # Examples
     ///
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
@@ -106,7 +110,7 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{time::macros::datetime, FileTime};
+    /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::MAX,
@@ -125,7 +129,7 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
-    use time::{macros::datetime, OffsetDateTime};
+    use time::{OffsetDateTime, macros::datetime};
 
     use super::*;
 

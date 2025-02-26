@@ -6,7 +6,7 @@
 
 extern crate test;
 
-use nt_time::{time::OffsetDateTime, FileTime};
+use nt_time::{FileTime, time::OffsetDateTime};
 use test::Bencher;
 
 #[bench]

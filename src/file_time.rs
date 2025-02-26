@@ -16,11 +16,10 @@ mod ops;
 mod rand;
 #[cfg(feature = "serde")]
 mod serde;
+mod str;
 mod unix_time;
 
-use core::{mem, str::FromStr};
-
-use crate::error::ParseFileTimeError;
+use core::mem;
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
@@ -34,11 +33,15 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
 /// API], which represents a 64-bit unsigned integer value.
 ///
+/// <div class="warning">
+///
 /// Note that many environments, such as the Win32 API, may limit the largest
 /// value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
 /// equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
 /// when represented as an underlying integer value. This is the largest file
 /// time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
+///
+/// </div>
 ///
 /// Also, the file time is sometimes represented as an [`i64`] value, such as in
 /// the [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
@@ -175,9 +178,13 @@ impl FileTime {
     /// Returns the memory representation of this `FileTime` as a byte array in
     /// native byte order.
     ///
+    /// <div class="warning">
+    ///
     /// As the target platform's native endianness is used, portable code should
     /// use [`FileTime::to_be_bytes`] or [`FileTime::to_le_bytes`], as
     /// appropriate, instead.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -268,9 +275,13 @@ impl FileTime {
     /// Creates a native endian `FileTime` value from its memory representation
     /// as a byte array in native endianness.
     ///
+    /// <div class="warning">
+    ///
     /// As the target platform's native endianness is used, portable code likely
     /// wants to use [`FileTime::from_be_bytes`] or [`FileTime::from_le_bytes`],
     /// as appropriate instead.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -401,55 +412,6 @@ impl Default for FileTime {
     #[inline]
     fn default() -> Self {
         Self::NT_TIME_EPOCH
-    }
-}
-
-impl FromStr for FileTime {
-    type Err = ParseFileTimeError;
-
-    /// Parses a string `s` to return a value of `FileTime`.
-    ///
-    /// The string is expected to be a decimal non-negative integer. If the
-    /// string is not a decimal integer, use [`u64::from_str_radix`] and
-    /// [`FileTime::new`] instead.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if [`u64::from_str`] returns an error.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use core::str::FromStr;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::from_str("0").unwrap(), FileTime::NT_TIME_EPOCH);
-    /// assert_eq!(
-    ///     FileTime::from_str("116444736000000000").unwrap(),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_str("+9223372036854775807").unwrap(),
-    ///     FileTime::SIGNED_MAX
-    /// );
-    /// assert_eq!(
-    ///     FileTime::from_str("+18446744073709551615").unwrap(),
-    ///     FileTime::MAX
-    /// );
-    ///
-    /// assert!(FileTime::from_str("").is_err());
-    ///
-    /// assert!(FileTime::from_str("a").is_err());
-    /// assert!(FileTime::from_str("-1").is_err());
-    /// assert!(FileTime::from_str("+").is_err());
-    /// assert!(FileTime::from_str("0 ").is_err());
-    ///
-    /// assert!(FileTime::from_str("18446744073709551616").is_err());
-    /// ```
-    #[inline]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse().map_err(ParseFileTimeError::new).map(Self::new)
     }
 }
 
@@ -789,164 +751,5 @@ mod tests {
     #[test]
     fn default() {
         assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
-    }
-
-    #[test]
-    fn from_str() {
-        assert_eq!(FileTime::from_str("0").unwrap(), FileTime::NT_TIME_EPOCH);
-        assert_eq!(FileTime::from_str("+0").unwrap(), FileTime::NT_TIME_EPOCH);
-        assert_eq!(
-            FileTime::from_str("116444736000000000").unwrap(),
-            FileTime::UNIX_EPOCH
-        );
-        assert_eq!(
-            FileTime::from_str("+116444736000000000").unwrap(),
-            FileTime::UNIX_EPOCH
-        );
-        assert_eq!(
-            FileTime::from_str("9223372036854775807").unwrap(),
-            FileTime::SIGNED_MAX
-        );
-        assert_eq!(
-            FileTime::from_str("+9223372036854775807").unwrap(),
-            FileTime::SIGNED_MAX
-        );
-        assert_eq!(
-            FileTime::from_str("18446744073709551615").unwrap(),
-            FileTime::MAX
-        );
-        assert_eq!(
-            FileTime::from_str("+18446744073709551615").unwrap(),
-            FileTime::MAX
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test_strategy::proptest]
-    fn from_str_roundtrip(#[strategy(r"\+?[0-9]{1,19}")] s: std::string::String) {
-        use proptest::prop_assert_eq;
-
-        let ft = s.parse().unwrap();
-        prop_assert_eq!(FileTime::from_str(&s).unwrap(), FileTime::new(ft));
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn from_str_when_empty() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
-        assert_eq!(
-            FileTime::from_str("")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::Empty
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn from_str_with_invalid_digit() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
-        assert_eq!(
-            FileTime::from_str("a")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-        assert_eq!(
-            FileTime::from_str("-1")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-        assert_eq!(
-            FileTime::from_str("+")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-        assert_eq!(
-            FileTime::from_str("-")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-        assert_eq!(
-            FileTime::from_str(" 0")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-        assert_eq!(
-            FileTime::from_str("0 ")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::InvalidDigit
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test_strategy::proptest]
-    fn from_str_with_invalid_digit_roundtrip(
-        #[strategy(r"-[0-9]+|[^0-9]+")] s: std::string::String,
-    ) {
-        use proptest::prop_assert;
-
-        prop_assert!(FileTime::from_str(&s).is_err());
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    fn from_str_when_positive_overflow() {
-        use std::{
-            error::Error,
-            num::{IntErrorKind, ParseIntError},
-        };
-
-        assert_eq!(
-            FileTime::from_str("18446744073709551616")
-                .unwrap_err()
-                .source()
-                .unwrap()
-                .downcast_ref::<ParseIntError>()
-                .unwrap()
-                .kind(),
-            &IntErrorKind::PosOverflow
-        );
     }
 }

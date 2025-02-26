@@ -11,9 +11,9 @@
 //!
 //! ```
 //! use nt_time::{
+//!     FileTime,
 //!     serde::{Deserialize, Serialize},
 //!     serde_with::rfc_3339,
-//!     FileTime,
 //! };
 //!
 //! #[derive(Deserialize, Serialize)]
@@ -37,7 +37,7 @@
 
 pub mod option;
 
-use serde::{de::Error as _, ser::Error as _, Deserializer, Serializer};
+use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
 use time::serde::rfc3339;
 
 use crate::FileTime;
@@ -67,7 +67,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTim
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Token};
+    use serde_test::{Token, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens};
 
     use super::*;
 
