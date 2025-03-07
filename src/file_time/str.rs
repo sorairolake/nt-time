@@ -82,10 +82,11 @@ impl FileTime {
     /// let _ = FileTime::from_str_radix("0", 37);
     /// ```
     #[inline]
-    pub fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseFileTimeError> {
-        u64::from_str_radix(src, radix)
-            .map_err(ParseFileTimeError::new)
-            .map(Self::new)
+    pub const fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseFileTimeError> {
+        match u64::from_str_radix(src, radix) {
+            Ok(ft) => Ok(Self::new(ft)),
+            Err(err) => Err(ParseFileTimeError::new(err)),
+        }
     }
 }
 
@@ -617,6 +618,11 @@ mod tests {
     #[should_panic]
     fn from_str_radix_when_radix_is_greater_than_36() {
         let _ = FileTime::from_str_radix("0", 37);
+    }
+
+    #[test]
+    const fn from_str_radix_is_const_fn() {
+        const _: Result<FileTime, ParseFileTimeError> = FileTime::from_str_radix("0", 2);
     }
 
     #[test]
