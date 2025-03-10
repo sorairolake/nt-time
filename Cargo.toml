@@ -53,7 +53,7 @@ required-features = ["std"]
 [dependencies]
 chrono = { version = "0.4.40", default-features = false, optional = true }
 rand = { version = "0.9.0", default-features = false, optional = true }
-serde = { version = "1.0.218", default-features = false, features = ["derive"], optional = true }
+serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.39", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
