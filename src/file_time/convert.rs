@@ -208,6 +208,39 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl TryFrom<FileTime> for jiff::Timestamp {
+    type Error = jiff::Error;
+
+    /// Converts a `FileTime` to a [`Timestamp`](jiff::Timestamp).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is out of range for
+    /// [`Timestamp`](jiff::Timestamp).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{FileTime, jiff::Timestamp};
+    /// #
+    /// assert_eq!(
+    ///     Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+    ///     Timestamp::from_second(-11_644_473_600).unwrap()
+    /// );
+    /// assert_eq!(
+    ///     Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
+    ///     Timestamp::UNIX_EPOCH
+    /// );
+    ///
+    /// assert!(Timestamp::try_from(FileTime::MAX).is_err());
+    /// ```
+    #[inline]
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
+        Self::from_nanosecond(ft.to_unix_time_nanos())
+    }
+}
+
 impl From<u64> for FileTime {
     /// Converts the file time to a `FileTime`.
     ///
@@ -435,6 +468,42 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl TryFrom<jiff::Timestamp> for FileTime {
+    type Error = FileTimeRangeError;
+
+    /// Converts a [`Timestamp`](jiff::Timestamp) to a `FileTime`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ts` is out of range for the file time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{FileTime, jiff::Timestamp};
+    /// #
+    /// assert_eq!(
+    ///     FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()),
+    ///     Ok(FileTime::NT_TIME_EPOCH)
+    /// );
+    /// assert_eq!(
+    ///     FileTime::try_from(Timestamp::UNIX_EPOCH),
+    ///     Ok(FileTime::UNIX_EPOCH)
+    /// );
+    ///
+    /// // Before `1601-01-01 00:00:00 UTC`.
+    /// assert!(
+    ///     FileTime::try_from(Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
+    ///         .is_err()
+    /// );
+    /// ```
+    #[inline]
+    fn try_from(ts: jiff::Timestamp) -> Result<Self, Self::Error> {
+        Self::from_unix_time_nanos(ts.as_nanosecond())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -600,6 +669,33 @@ mod tests {
                 .parse::<DateTime<Utc>>()
                 .unwrap()
         );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn try_from_file_time_to_jiff_timestamp() {
+        use jiff::{Timestamp, ToSpan};
+
+        assert_eq!(
+            Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            Timestamp::from_second(-11_644_473_600).unwrap()
+        );
+        assert_eq!(
+            Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
+            Timestamp::UNIX_EPOCH
+        );
+        assert_eq!(
+            Timestamp::try_from(FileTime::new(2_650_466_808_009_999_999)).unwrap(),
+            Timestamp::MAX - 99.nanoseconds()
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
+        use jiff::Timestamp;
+
+        assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
     }
 
     #[test]
@@ -895,6 +991,37 @@ mod tests {
             )
             .unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn try_from_jiff_timestamp_to_file_time_before_nt_time_epoch() {
+        use jiff::Timestamp;
+
+        assert_eq!(
+            FileTime::try_from(Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
+                .unwrap_err(),
+            FileTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn try_from_jiff_timestamp_to_file_time() {
+        use jiff::Timestamp;
+
+        assert_eq!(
+            FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(Timestamp::UNIX_EPOCH).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::try_from(Timestamp::MAX).unwrap(),
+            FileTime::new(2_650_466_808_009_999_999)
         );
     }
 }

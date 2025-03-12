@@ -68,6 +68,22 @@ fn equality_file_time_and_chrono_date_time(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature = "jiff")]
+#[bench]
+fn equality_jiff_timestamp_and_file_time(b: &mut Bencher) {
+    use jiff::Timestamp;
+
+    b.iter(|| Timestamp::from_second(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn equality_file_time_and_jiff_timestamp(b: &mut Bencher) {
+    use jiff::Timestamp;
+
+    b.iter(|| FileTime::NT_TIME_EPOCH == Timestamp::from_second(-11_644_473_600).unwrap());
+}
+
 #[cfg(feature = "std")]
 #[bench]
 fn order_system_time_and_file_time(b: &mut Bencher) {
@@ -111,4 +127,20 @@ fn order_file_time_and_chrono_date_time(b: &mut Bencher) {
     use chrono::{DateTime, Utc};
 
     b.iter(|| FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn order_jiff_timestamp_and_file_time(b: &mut Bencher) {
+    use jiff::Timestamp;
+
+    b.iter(|| Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn order_file_time_and_jiff_timestamp(b: &mut Bencher) {
+    use jiff::Timestamp;
+
+    b.iter(|| FileTime::UNIX_EPOCH > Timestamp::from_second(-11_644_473_600).unwrap());
 }

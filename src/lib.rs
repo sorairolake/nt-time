@@ -127,6 +127,8 @@ pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "jiff")]
+pub use jiff;
 #[cfg(feature = "rand")]
 pub use rand;
 #[cfg(feature = "serde")]

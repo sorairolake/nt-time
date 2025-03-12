@@ -16,6 +16,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.11.0\...HEAD[Unreleased]
 
+=== Added
+
+* Supports `jiff` crate ({pull-request-url}/303[#303])
+
 === Changed
 
 * Change `FileTime::from_str_radix` to `const fn` ({pull-request-url}/300[#300])

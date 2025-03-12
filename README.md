@@ -40,6 +40,10 @@ cargo add nt-time
 
 Enables the [`chrono`] crate.
 
+#### `jiff`
+
+Enables the [`jiff`] crate.
+
 #### `large-dates`
 
 Enables the `large-dates` feature of the [`time`] crate.
@@ -119,6 +123,7 @@ licensing information.
 [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
+[`jiff`]: https://crates.io/crates/jiff
 [`rand`]: https://crates.io/crates/rand
 [`serde`]: https://serde.rs/
 [CHANGELOG.adoc]: CHANGELOG.adoc

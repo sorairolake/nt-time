@@ -52,13 +52,14 @@ required-features = ["std"]
 
 [dependencies]
 chrono = { version = "0.4.40", default-features = false, optional = true }
+jiff = { version = "0.2.4", default-features = false, optional = true }
 rand = { version = "0.9.0", default-features = false, optional = true }
 serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.39", default-features = false, features = ["macros"] }
 
 [dev-dependencies]
 anyhow = "1.0.97"
-clap = { version = "4.5.31", features = ["derive"] }
+clap = { version = "4.5.32", features = ["derive"] }
 proptest = "1.6.0"
 proptest-derive = "0.5.1"
 serde_json = "1.0.140"
@@ -69,11 +70,12 @@ time = { version = "0.3.39", features = ["parsing"] }
 [features]
 default = ["std"]
 chrono = ["dep:chrono"]
+jiff = ["dep:jiff"]
 large-dates = ["time/large-dates"]
 rand = ["dep:rand"]
 serde = ["dep:serde"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
-std = ["chrono?/std", "rand?/std", "time/std"]
+std = ["chrono?/std", "jiff?/std", "rand?/std", "time/std"]
 
 [lints.clippy]
 cargo = { level = "warn", priority = -1 }

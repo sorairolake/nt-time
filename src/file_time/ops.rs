@@ -172,6 +172,22 @@ impl Add<chrono::TimeDelta> for FileTime {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl Add<jiff::Span> for FileTime {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, rhs: jiff::Span) -> Self::Output {
+        use core::time::Duration;
+
+        if rhs.is_positive() {
+            self + Duration::try_from(rhs.abs()).expect("duration is less than zero")
+        } else {
+            self - Duration::try_from(rhs.abs()).expect("duration is less than zero")
+        }
+    }
+}
+
 impl AddAssign<core::time::Duration> for FileTime {
     #[inline]
     fn add_assign(&mut self, rhs: core::time::Duration) {
@@ -190,6 +206,14 @@ impl AddAssign<time::Duration> for FileTime {
 impl AddAssign<chrono::TimeDelta> for FileTime {
     #[inline]
     fn add_assign(&mut self, rhs: chrono::TimeDelta) {
+        *self = *self + rhs;
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl AddAssign<jiff::Span> for FileTime {
+    #[inline]
+    fn add_assign(&mut self, rhs: jiff::Span) {
         *self = *self + rhs;
     }
 }
@@ -243,6 +267,22 @@ impl Sub<chrono::TimeDelta> for FileTime {
             self - rhs.abs().to_std().expect("duration is less than zero")
         } else {
             self + rhs.abs().to_std().expect("duration is less than zero")
+        }
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl Sub<jiff::Span> for FileTime {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, rhs: jiff::Span) -> Self::Output {
+        use core::time::Duration;
+
+        if rhs.is_positive() {
+            self - Duration::try_from(rhs.abs()).expect("duration is less than zero")
+        } else {
+            self + Duration::try_from(rhs.abs()).expect("duration is less than zero")
         }
     }
 }
@@ -312,6 +352,28 @@ impl Sub<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl Sub<FileTime> for jiff::Timestamp {
+    type Output = jiff::Span;
+
+    #[inline]
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self - Self::try_from(rhs).expect("RHS is out of range for `Timestamp`")
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl Sub<jiff::Timestamp> for FileTime {
+    type Output = jiff::Span;
+
+    #[inline]
+    fn sub(self, rhs: jiff::Timestamp) -> Self::Output {
+        use jiff::Timestamp;
+
+        Timestamp::try_from(self).expect("LHS is out of range for `Timestamp`") - rhs
+    }
+}
+
 impl SubAssign<core::time::Duration> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: core::time::Duration) {
@@ -330,6 +392,14 @@ impl SubAssign<time::Duration> for FileTime {
 impl SubAssign<chrono::TimeDelta> for FileTime {
     #[inline]
     fn sub_assign(&mut self, rhs: chrono::TimeDelta) {
+        *self = *self - rhs;
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl SubAssign<jiff::Span> for FileTime {
+    #[inline]
+    fn sub_assign(&mut self, rhs: jiff::Span) {
         *self = *self - rhs;
     }
 }
@@ -717,6 +787,78 @@ mod tests {
         let _ = FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-100);
     }
 
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn add_positive_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + Span::new(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + 1.nanosecond(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + 99.nanoseconds(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + 100.nanoseconds(),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX + Span::new(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + 1.nanosecond(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + 99.nanoseconds(), FileTime::MAX);
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn add_positive_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let _ = FileTime::MAX + 100.nanoseconds();
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn add_negative_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        assert_eq!(FileTime::MAX + -Span::new(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + (-1).nanosecond(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + (-99).nanoseconds(), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX + (-100).nanoseconds(),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + -Span::new(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + (-1).nanosecond(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH + (-99).nanoseconds(),
+            FileTime::NT_TIME_EPOCH
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn add_negative_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let _ = FileTime::NT_TIME_EPOCH + (-100).nanoseconds();
+    }
+
     #[test]
     fn add_assign_std_duration() {
         use core::time::Duration;
@@ -976,6 +1118,112 @@ mod tests {
         ft += TimeDelta::nanoseconds(-100);
     }
 
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn add_assign_positive_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += Span::new();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += 1.nanosecond();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += 99.nanoseconds();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += 100.nanoseconds();
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += Span::new();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += 1.nanosecond();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += 99.nanoseconds();
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn add_assign_positive_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let mut ft = FileTime::MAX;
+        ft += 100.nanoseconds();
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn add_assign_negative_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        {
+            let mut ft = FileTime::MAX;
+            ft += -Span::new();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += (-1).nanosecond();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += (-99).nanoseconds();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft += (-100).nanoseconds();
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += -Span::new();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += (-1).nanosecond();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft += (-99).nanoseconds();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn add_assign_negative_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let mut ft = FileTime::NT_TIME_EPOCH;
+        ft += (-100).nanoseconds();
+    }
+
     #[test]
     fn sub_file_time() {
         use core::time::Duration;
@@ -1173,6 +1421,78 @@ mod tests {
         let _ = FileTime::MAX - TimeDelta::nanoseconds(-100);
     }
 
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_positive_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        assert_eq!(FileTime::MAX - Span::new(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - 1.nanosecond(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - 99.nanoseconds(), FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX - 100.nanoseconds(),
+            FileTime::new(u64::MAX - 1)
+        );
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - Span::new(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - 1.nanosecond(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - 99.nanoseconds(),
+            FileTime::NT_TIME_EPOCH
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn sub_positive_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let _ = FileTime::NT_TIME_EPOCH - 100.nanoseconds();
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_negative_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - -Span::new(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - (-1).nanosecond(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - (-99).nanoseconds(),
+            FileTime::NT_TIME_EPOCH
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH - (-100).nanoseconds(),
+            FileTime::new(1)
+        );
+
+        assert_eq!(FileTime::MAX - -Span::new(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - (-1).nanosecond(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - (-99).nanoseconds(), FileTime::MAX);
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn sub_negative_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let _ = FileTime::MAX - (-100).nanoseconds();
+    }
+
     #[cfg(feature = "std")]
     #[test]
     fn sub_file_time_from_system_time() {
@@ -1365,6 +1685,67 @@ mod tests {
         assert_eq!(
             FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_file_time_from_jiff_timestamp() {
+        use jiff::{Span, Timestamp, ToSpan};
+
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds()) - FileTime::new(2_650_466_808_009_999_999),
+            Span::new().fieldwise()
+        );
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds())
+                - (FileTime::new(2_650_466_808_009_999_999) - 100.nanoseconds()),
+            100.nanoseconds().fieldwise()
+        );
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH,
+            265_046_680_800_i64
+                .seconds()
+                .milliseconds(999)
+                .microseconds(999)
+                .nanoseconds(900)
+                .fieldwise()
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_jiff_timestamp_from_file_time() {
+        use jiff::{Span, Timestamp, ToSpan};
+
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999) - (Timestamp::MAX - 99.nanoseconds()),
+            Span::new().fieldwise()
+        );
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999)
+                - ((Timestamp::MAX - 99.nanoseconds()) - 1.nanosecond()),
+            1.nanosecond().fieldwise()
+        );
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999)
+                - ((Timestamp::MAX - 99.nanoseconds()) - 99.nanoseconds()),
+            99.nanoseconds().fieldwise()
+        );
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999)
+                - ((Timestamp::MAX - 99.nanoseconds()) - 100.nanoseconds()),
+            100.nanoseconds().fieldwise()
+        );
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999)
+                - Timestamp::from_second(-11_644_473_600).unwrap(),
+            265_046_680_800_i64
+                .seconds()
+                .milliseconds(999)
+                .microseconds(999)
+                .nanoseconds(900)
+                .fieldwise()
         );
     }
 
@@ -1625,5 +2006,111 @@ mod tests {
 
         let mut ft = FileTime::MAX;
         ft -= TimeDelta::nanoseconds(-100);
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_assign_positive_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= Span::new();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= 1.nanosecond();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= 99.nanoseconds();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= 100.nanoseconds();
+            assert_eq!(ft, FileTime::new(u64::MAX - 1));
+        }
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= Span::new();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= 1.nanosecond();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= 99.nanoseconds();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    fn sub_assign_positive_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let mut ft = FileTime::NT_TIME_EPOCH;
+        ft -= 100.nanoseconds();
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_assign_negative_jiff_span() {
+        use jiff::{Span, ToSpan};
+
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= -Span::new();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= (-1).nanosecond();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= (-99).nanoseconds();
+            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
+        }
+        {
+            let mut ft = FileTime::NT_TIME_EPOCH;
+            ft -= (-100).nanoseconds();
+            assert_eq!(ft, FileTime::new(1));
+        }
+
+        {
+            let mut ft = FileTime::MAX;
+            ft -= -Span::new();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= (-1).nanosecond();
+            assert_eq!(ft, FileTime::MAX);
+        }
+        {
+            let mut ft = FileTime::MAX;
+            ft -= (-99).nanoseconds();
+            assert_eq!(ft, FileTime::MAX);
+        }
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic(expected = "overflow when adding duration to date and time")]
+    fn sub_assign_negative_jiff_span_with_overflow() {
+        use jiff::ToSpan;
+
+        let mut ft = FileTime::MAX;
+        ft -= (-100).nanoseconds();
     }
 }
