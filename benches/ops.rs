@@ -74,6 +74,22 @@ fn add_negative_chrono_time_delta(b: &mut Bencher) {
     b.iter(|| FileTime::MAX + TimeDelta::nanoseconds(-100));
 }
 
+#[cfg(feature = "jiff")]
+#[bench]
+fn add_positive_jiff_span(b: &mut Bencher) {
+    use jiff::ToSpan;
+
+    b.iter(|| FileTime::NT_TIME_EPOCH + 100.nanoseconds());
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn add_negative_jiff_span(b: &mut Bencher) {
+    use jiff::ToSpan;
+
+    b.iter(|| FileTime::MAX + (-100).nanoseconds());
+}
+
 #[bench]
 fn sub_file_time(b: &mut Bencher) {
     b.iter(|| FileTime::MAX - FileTime::NT_TIME_EPOCH);
@@ -114,6 +130,22 @@ fn sub_negative_chrono_time_delta(b: &mut Bencher) {
     use chrono::TimeDelta;
 
     b.iter(|| FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-100));
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn sub_positive_jiff_span(b: &mut Bencher) {
+    use jiff::ToSpan;
+
+    b.iter(|| FileTime::MAX - 100.nanoseconds());
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn sub_negative_jiff_span(b: &mut Bencher) {
+    use jiff::ToSpan;
+
+    b.iter(|| FileTime::NT_TIME_EPOCH - (-100).nanoseconds());
 }
 
 #[cfg(feature = "std")]
@@ -167,4 +199,22 @@ fn sub_chrono_date_time_from_file_time(b: &mut Bencher) {
     use chrono::{DateTime, Utc};
 
     b.iter(|| FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
+    use jiff::{Timestamp, ToSpan};
+
+    b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
+    use jiff::Timestamp;
+
+    b.iter(|| {
+        FileTime::new(2_650_466_808_009_999_999) - Timestamp::from_second(-11_644_473_600).unwrap()
+    });
 }

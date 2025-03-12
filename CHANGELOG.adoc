@@ -14,6 +14,16 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.11.0\...v0.11.1[0.11.1] - 2025-03-12
+
+=== Added
+
+* Supports `jiff` crate ({pull-request-url}/303[#303])
+
+=== Changed
+
+* Change `FileTime::from_str_radix` to `const fn` ({pull-request-url}/300[#300])
+
 == {compare-url}/v0.10.6\...v0.11.0[0.11.0] - 2025-02-26
 
 === Added

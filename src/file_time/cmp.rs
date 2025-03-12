@@ -61,6 +61,24 @@ impl PartialEq<chrono::DateTime<chrono::Utc>> for FileTime {
     }
 }
 
+#[cfg(feature = "jiff")]
+impl PartialEq<FileTime> for jiff::Timestamp {
+    #[inline]
+    fn eq(&self, other: &FileTime) -> bool {
+        self == &Self::try_from(*other).expect("`other` is out of range for `Timestamp`")
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl PartialEq<jiff::Timestamp> for FileTime {
+    #[inline]
+    fn eq(&self, other: &jiff::Timestamp) -> bool {
+        use jiff::Timestamp;
+
+        &Timestamp::try_from(*self).expect("`self` is out of range for `Timestamp`") == other
+    }
+}
+
 #[cfg(feature = "std")]
 impl PartialOrd<FileTime> for std::time::SystemTime {
     #[inline]
@@ -112,6 +130,26 @@ impl PartialOrd<chrono::DateTime<chrono::Utc>> for FileTime {
         use chrono::{DateTime, Utc};
 
         DateTime::<Utc>::from(*self).partial_cmp(other)
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl PartialOrd<FileTime> for jiff::Timestamp {
+    #[inline]
+    fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
+        self.partial_cmp(&Self::try_from(*other).expect("`other` is out of range for `Timestamp`"))
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl PartialOrd<jiff::Timestamp> for FileTime {
+    #[inline]
+    fn partial_cmp(&self, other: &jiff::Timestamp) -> Option<Ordering> {
+        use jiff::Timestamp;
+
+        Timestamp::try_from(*self)
+            .expect("`self` is out of range for `Timestamp`")
+            .partial_cmp(other)
     }
 }
 
@@ -266,6 +304,46 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn equality_jiff_timestamp_and_file_time() {
+        use jiff::{Timestamp, ToSpan};
+
+        assert_eq!(
+            Timestamp::MAX - 99.nanoseconds(),
+            FileTime::new(2_650_466_808_009_999_999)
+        );
+        assert_ne!(Timestamp::MAX - 99.nanoseconds(), FileTime::NT_TIME_EPOCH);
+        assert_ne!(
+            Timestamp::from_second(-11_644_473_600).unwrap(),
+            FileTime::new(2_650_466_808_009_999_999)
+        );
+        assert_eq!(
+            Timestamp::from_second(-11_644_473_600).unwrap(),
+            FileTime::NT_TIME_EPOCH
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn equality_file_time_and_jiff_timestamp() {
+        use jiff::{Timestamp, ToSpan};
+
+        assert_eq!(
+            FileTime::new(2_650_466_808_009_999_999),
+            Timestamp::MAX - 99.nanoseconds()
+        );
+        assert_ne!(FileTime::NT_TIME_EPOCH, Timestamp::MAX - 99.nanoseconds());
+        assert_ne!(
+            FileTime::new(2_650_466_808_009_999_999),
+            Timestamp::from_second(-11_644_473_600).unwrap()
+        );
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH,
+            Timestamp::from_second(-11_644_473_600).unwrap()
+        );
+    }
+
     #[cfg(feature = "std")]
     #[test]
     fn order_system_time_and_file_time() {
@@ -347,5 +425,31 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert!(FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn order_jiff_timestamp_and_file_time() {
+        use jiff::Timestamp;
+
+        assert!(Timestamp::UNIX_EPOCH < FileTime::new(2_650_466_808_009_999_999));
+        assert_eq!(
+            Timestamp::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
+            Some(Ordering::Equal)
+        );
+        assert!(Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn order_file_time_and_jiff_timestamp() {
+        use jiff::Timestamp;
+
+        assert!(FileTime::UNIX_EPOCH < Timestamp::MAX);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.partial_cmp(&Timestamp::UNIX_EPOCH),
+            Some(Ordering::Equal)
+        );
+        assert!(FileTime::UNIX_EPOCH > Timestamp::from_second(-11_644_473_600).unwrap());
     }
 }
