@@ -117,7 +117,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range for [`OffsetDateTime`].
+    /// Returns [`Err`] if `ft` is out of range for [`OffsetDateTime`].
     ///
     /// # Examples
     ///
@@ -280,7 +280,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `time` is out of range for the file time.
+    /// Returns [`Err`] if `st` is out of range for the file time.
     ///
     /// # Examples
     ///
