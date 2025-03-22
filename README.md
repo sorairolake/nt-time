@@ -11,6 +11,7 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 ![MSRV][msrv-badge]
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
+[![REUSE status][reuse-badge]][reuse-url]
 
 **nt-time** is a [Windows file time] library for [Rust].
 
@@ -115,6 +116,8 @@ licensing information.
 [docs-badge]: https://img.shields.io/docsrs/nt-time?style=for-the-badge&logo=docsdotrs&label=Docs.rs
 [docs-url]: https://docs.rs/nt-time
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
+[reuse-badge]: https://img.shields.io/reuse/compliance/github.com%2Fsorairolake%2Fnt-time?style=for-the-badge
+[reuse-url]: https://api.reuse.software/info/github.com/sorairolake/nt-time
 [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [Rust]: https://www.rust-lang.org/
 [NTFS]: https://en.wikipedia.org/wiki/NTFS
