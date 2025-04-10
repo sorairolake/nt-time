@@ -15,7 +15,8 @@ repository = "https://github.com/sorairolake/nt-time"
 license = "Apache-2.0 OR MIT"
 keywords = ["date", "time", "windows"]
 categories = ["date-and-time", "no-std"]
-include = ["/LICENSES", "/README.md", "/src"]
+# CC-BY-4.0.txt is for CODE_OF_CONDUCT.md, which is not shipped in the crate.
+include = ["/LICENSES/", "!/LICENSES/CC-BY-4.0.txt", "/README.md", "/src"]
 
 [package.metadata.docs.rs]
 all-features = true
