@@ -51,7 +51,7 @@ path = "examples/unix2ft.rs"
 required-features = ["std"]
 
 [dependencies]
-chrono = { version = "0.4.40", default-features = false, optional = true }
+chrono = { version = "0.4.41", default-features = false, optional = true }
 jiff = { version = "0.2.9", default-features = false, optional = true }
 rand = { version = "0.9.1", default-features = false, optional = true }
 serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
