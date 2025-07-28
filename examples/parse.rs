@@ -21,14 +21,7 @@ use nt_time::{
 #[command(version, about)]
 struct Opt {
     /// The format of the output.
-    #[arg(
-        short,
-        long,
-        value_enum,
-        default_value_t,
-        value_name("FORMAT"),
-        ignore_case(true)
-    )]
+    #[arg(short, long, value_enum, default_value_t, ignore_case(true))]
     format: Format,
 
     /// Date and time to print.

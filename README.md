@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2023 Shun Sakai
 
-SPDX-License-Identifier: Apache-2.0 OR MIT
+SPDX-License-Identifier: CC-BY-4.0
 -->
 
 # nt-time
@@ -11,6 +11,7 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 ![MSRV][msrv-badge]
 [![Docs][docs-badge]][docs-url]
 ![License][license-badge]
+[![REUSE status][reuse-badge]][reuse-url]
 
 **nt-time** is a [Windows file time] library for [Rust].
 
@@ -83,11 +84,6 @@ The minimum supported Rust version (MSRV) of this library is v1.85.0.
 The upstream repository is available at
 <https://github.com/sorairolake/nt-time.git>.
 
-The source code is also available at:
-
-- <https://gitlab.com/sorairolake/nt-time.git>
-- <https://codeberg.org/sorairolake/nt-time.git>
-
 ## Changelog
 
 Please see [CHANGELOG.adoc].
@@ -103,7 +99,7 @@ Copyright (C) 2023 Shun Sakai (see [AUTHORS.adoc])
 This library is distributed under the terms of either the _Apache License 2.0_
 or the _MIT License_.
 
-This project is compliant with version 3.2 of the [_REUSE Specification_]. See
+This project is compliant with version 3.3 of the [_REUSE Specification_]. See
 copyright notices of individual files for more details on copyright and
 licensing information.
 
@@ -115,6 +111,8 @@ licensing information.
 [docs-badge]: https://img.shields.io/docsrs/nt-time?style=for-the-badge&logo=docsdotrs&label=Docs.rs
 [docs-url]: https://docs.rs/nt-time
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
+[reuse-badge]: https://img.shields.io/reuse/compliance/github.com%2Fsorairolake%2Fnt-time?style=for-the-badge
+[reuse-url]: https://api.reuse.software/info/github.com/sorairolake/nt-time
 [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [Rust]: https://www.rust-lang.org/
 [NTFS]: https://en.wikipedia.org/wiki/NTFS
@@ -129,4 +127,4 @@ licensing information.
 [CHANGELOG.adoc]: CHANGELOG.adoc
 [CONTRIBUTING.adoc]: CONTRIBUTING.adoc
 [AUTHORS.adoc]: AUTHORS.adoc
-[_REUSE Specification_]: https://reuse.software/spec/
+[_REUSE Specification_]: https://reuse.software/spec-3.3/
