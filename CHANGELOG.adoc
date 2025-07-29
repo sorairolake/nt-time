@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.11.2\...HEAD[Unreleased]
+
+=== Changed
+
+* Change MS-DOS date and time conversion methods to handle only the local date
+  and time with the resolution of 2 seconds ({pull-request-url}/338[#338])
+
 == {compare-url}/v0.11.1\...v0.11.2[0.11.2] - 2025-07-28
 
 === Changed

@@ -30,10 +30,10 @@ impl DosDateTimeRangeError {
     /// ```
     /// # use nt_time::{FileTime, error::DosDateTimeRangeErrorKind};
     /// #
-    /// let err = FileTime::NT_TIME_EPOCH.to_dos_date_time(None).unwrap_err();
+    /// let err = FileTime::NT_TIME_EPOCH.to_dos_date_time().unwrap_err();
     /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Negative);
     ///
-    /// let err = FileTime::MAX.to_dos_date_time(None).unwrap_err();
+    /// let err = FileTime::MAX.to_dos_date_time().unwrap_err();
     /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
@@ -69,7 +69,7 @@ pub enum DosDateTimeRangeErrorKind {
 
     /// Value was too big to be represented as [MS-DOS date and time].
     ///
-    /// This means the date and time was after "2107-12-31 23:59:59.990000000".
+    /// This means the date and time was after "2107-12-31 23:59:58".
     ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
     Overflow,
@@ -79,12 +79,8 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Negative => {
-                write!(f, "date and time is before `1980-01-01 00:00:00`")
-            }
-            Self::Overflow => {
-                write!(f, "date and time is after `2107-12-31 23:59:59.990000000`")
-            }
+            Self::Negative => write!(f, "date and time is before `1980-01-01 00:00:00`"),
+            Self::Overflow => write!(f, "date and time is after `2107-12-31 23:59:58`"),
         }
     }
 }
@@ -156,15 +152,11 @@ impl fmt::Display for FileTimeRangeErrorKind {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Negative => {
-                write!(f, "date and time is before `1601-01-01 00:00:00 UTC`")
-            }
-            Self::Overflow => {
-                write!(
-                    f,
-                    "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
-                )
-            }
+            Self::Negative => write!(f, "date and time is before `1601-01-01 00:00:00 UTC`"),
+            Self::Overflow => write!(
+                f,
+                "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            ),
         }
     }
 }
@@ -306,7 +298,7 @@ mod tests {
                 "{}",
                 DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
             ),
-            "date and time is after `2107-12-31 23:59:59.990000000`"
+            "date and time is after `2107-12-31 23:59:58`"
         );
     }
 
@@ -403,7 +395,7 @@ mod tests {
         );
         assert_eq!(
             format!("{}", DosDateTimeRangeErrorKind::Overflow),
-            "date and time is after `2107-12-31 23:59:59.990000000`"
+            "date and time is after `2107-12-31 23:59:58`"
         );
     }
 
