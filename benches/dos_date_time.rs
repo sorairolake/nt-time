@@ -13,12 +13,12 @@ use test::Bencher;
 fn to_dos_date_time(b: &mut Bencher) {
     b.iter(|| {
         FileTime::new(119_600_064_000_000_000)
-            .to_dos_date_time(None)
+            .to_dos_date_time()
             .unwrap()
     });
 }
 
 #[bench]
 fn from_dos_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::from_dos_date_time(0x0021, u16::MIN, None, None).unwrap());
+    b.iter(|| FileTime::from_dos_date_time(0x0021, u16::MIN).unwrap());
 }

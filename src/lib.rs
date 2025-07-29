@@ -59,10 +59,7 @@
 //! ```
 //! use core::time::Duration;
 //!
-//! use nt_time::{
-//!     FileTime,
-//!     time::{OffsetDateTime, UtcOffset},
-//! };
+//! use nt_time::{FileTime, time::OffsetDateTime};
 //!
 //! // `1970-01-01 00:00:00 UTC`.
 //! let ut = i64::default();
@@ -74,13 +71,10 @@
 //! let ft = FileTime::from_unix_time_secs(ut).unwrap();
 //! assert_eq!(ft, FileTime::UNIX_EPOCH);
 //!
-//! // `1980-01-01 00:00:00 UTC`.
+//! // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
 //! let ft = ft + Duration::from_secs(315_532_800);
-//! let dos_dt = ft.to_dos_date_time(Some(UtcOffset::UTC));
-//! assert_eq!(
-//!     dos_dt,
-//!     Ok((0x0021, u16::MIN, u8::MIN, Some(UtcOffset::UTC)))
-//! );
+//! let dos_dt = ft.to_dos_date_time();
+//! assert_eq!(dos_dt, Ok((0x0021, u16::MIN)));
 //! ```
 //!
 //! ## Formatting and printing the file time
@@ -108,7 +102,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.11.2/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.12.0/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 // Lint levels of rustc.
