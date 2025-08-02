@@ -7,14 +7,12 @@
 
 extern crate test;
 
-use nt_time::{
-    FileTime,
-    rand::{Rng, rngs::mock::StepRng},
-};
+use nt_time::{FileTime, rand::Rng};
+use rand_pcg::{Pcg64Mcg, rand_core::SeedableRng};
 use test::Bencher;
 
 #[bench]
 fn sample(b: &mut Bencher) {
-    let mut rng = StepRng::new(0, 1);
+    let mut rng = Pcg64Mcg::from_seed(Default::default());
     b.iter(|| rng.random::<FileTime>());
 }
