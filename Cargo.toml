@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.12.0"
+version = "0.12.1"
 authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2024"
 rust-version = "1.85.0"
@@ -54,18 +54,20 @@ required-features = ["std"]
 chrono = { version = "0.4.41", default-features = false, optional = true }
 jiff = { version = "0.2.15", default-features = false, optional = true }
 rand = { version = "0.9.2", default-features = false, optional = true }
-serde = { version = "1.0.219", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.41", default-features = false, features = ["macros"] }
+serde = { version = "1.0.219", default-features = false, optional = true }
+time = { version = "0.3.41", default-features = false }
 
 [dev-dependencies]
 anyhow = "1.0.98"
-clap = { version = "4.5.41", features = ["derive"] }
+clap = { version = "4.5.42", features = ["derive"] }
 proptest = "1.7.0"
 proptest-derive = "0.6.0"
-serde_json = "1.0.141"
+rand_pcg = "0.9.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.142"
 serde_test = "1.0.177"
 test-strategy = "0.4.3"
-time = { version = "0.3.41", features = ["parsing"] }
+time = { version = "0.3.41", features = ["macros", "parsing"] }
 
 [features]
 default = ["std"]
