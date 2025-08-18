@@ -59,7 +59,7 @@ time = { version = "0.3.41", default-features = false }
 
 [dev-dependencies]
 anyhow = "1.0.98"
-clap = { version = "4.5.43", features = ["derive"] }
+clap = { version = "4.5.45", features = ["derive"] }
 proptest = "1.7.0"
 proptest-derive = "0.6.0"
 rand_pcg = "0.9.0"
