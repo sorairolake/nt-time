@@ -21,3 +21,5 @@ jobs:
         uses: actions/checkout@v5
       - name: Check Semantic Versioning
         uses: obi1kenobi/cargo-semver-checks-action@v2.8
+        with:
+          feature-group: all-features
