@@ -22,32 +22,26 @@ all-features = true
 
 [[example]]
 name = "dos2ft"
-path = "examples/dos2ft.rs"
 required-features = ["std"]
 
 [[example]]
 name = "format"
-path = "examples/format.rs"
 required-features = ["std"]
 
 [[example]]
 name = "ft2dos"
-path = "examples/ft2dos.rs"
 required-features = ["std"]
 
 [[example]]
 name = "ft2unix"
-path = "examples/ft2unix.rs"
 required-features = ["std"]
 
 [[example]]
 name = "parse"
-path = "examples/parse.rs"
 required-features = ["std"]
 
 [[example]]
 name = "unix2ft"
-path = "examples/unix2ft.rs"
 required-features = ["std"]
 
 [dependencies]
