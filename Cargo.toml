@@ -5,12 +5,10 @@
 [package]
 name = "nt-time"
 version = "0.12.1"
-authors = ["Shun Sakai <sorairolake@protonmail.ch>"]
 edition = "2024"
 rust-version = "1.85.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
-readme = "README.md"
 repository = "https://github.com/sorairolake/nt-time"
 license = "Apache-2.0 OR MIT"
 keywords = ["date", "time", "windows"]
