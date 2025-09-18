@@ -133,7 +133,7 @@ jobs:
           components: rustfmt
       - name: Cache build artifacts
         uses: Swatinem/rust-cache@v2.8.0
-      - name: Check code formatted
+      - name: Run formatter in check mode
         run: cargo fmt -- --check
 
   clippy:
@@ -149,11 +149,11 @@ jobs:
           components: clippy
       - name: Cache build artifacts
         uses: Swatinem/rust-cache@v2.8.0
-      - name: Check no lint warnings
+      - name: Run linter
         run: cargo clippy -- -D warnings
-      - name: Check no lint warnings (all features)
+      - name: Run linter (all features)
         run: cargo clippy --all-features -- -D warnings
-      - name: Check no lint warnings (no default features)
+      - name: Run linter (no default features)
         run: cargo clippy --no-default-features -- -D warnings
 
   doc:
@@ -168,7 +168,7 @@ jobs:
           toolchain: stable
       - name: Cache build artifacts
         uses: Swatinem/rust-cache@v2.8.0
-      - name: Check no `rustdoc` lint warnings
+      - name: Run linter
         run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --document-private-items --all-features
 
   benchmark:
@@ -196,5 +196,5 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Check files formatted
+      - name: Run formatter in check mode
         run: npx prettier -c "**.{md,yaml,yml}"
