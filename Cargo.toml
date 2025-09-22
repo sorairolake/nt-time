@@ -50,7 +50,7 @@ serde = { version = "1.0.223", default-features = false, optional = true }
 time = { version = "0.3.44", default-features = false }
 
 [dev-dependencies]
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 clap = { version = "4.5.47", features = ["derive"] }
 proptest = "1.8.0"
 proptest-derive = "0.6.0"
