@@ -5,9 +5,17 @@
 //! Implementations of conversions between [`FileTime`] and other types.
 
 use core::num::TryFromIntError;
+#[cfg(feature = "std")]
+use std::time::{Duration, SystemTime};
 
+#[cfg(feature = "chrono")]
+use chrono::{DateTime, Utc};
+#[cfg(feature = "jiff")]
+use jiff::Timestamp;
 use time::{OffsetDateTime, error::ComponentRange};
 
+#[cfg(feature = "std")]
+use super::FILE_TIMES_PER_SEC;
 use super::FileTime;
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
@@ -71,13 +79,12 @@ impl TryFrom<FileTime> for i64 {
 }
 
 #[cfg(feature = "std")]
-impl From<FileTime> for std::time::SystemTime {
-    /// Converts a `FileTime` to a [`SystemTime`](std::time::SystemTime).
+impl From<FileTime> for SystemTime {
+    /// Converts a `FileTime` to a [`SystemTime`].
     ///
     /// # Panics
     ///
-    /// Panics if the resulting time cannot be represented by a
-    /// [`SystemTime`](std::time::SystemTime).
+    /// Panics if the resulting time cannot be represented by a [`SystemTime`].
     ///
     /// # Examples
     ///
@@ -97,10 +104,6 @@ impl From<FileTime> for std::time::SystemTime {
     /// ```
     #[inline]
     fn from(ft: FileTime) -> Self {
-        use std::time::Duration;
-
-        use super::FILE_TIMES_PER_SEC;
-
         let duration = Duration::new(
             ft.to_raw() / FILE_TIMES_PER_SEC,
             u32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
@@ -180,8 +183,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl From<FileTime> for chrono::DateTime<chrono::Utc> {
-    /// Converts a `FileTime` to a [`DateTime<Utc>`](chrono::DateTime).
+impl From<FileTime> for DateTime<Utc> {
+    /// Converts a `FileTime` to a [`DateTime<Utc>`].
     ///
     /// # Examples
     ///
@@ -209,15 +212,14 @@ impl From<FileTime> for chrono::DateTime<chrono::Utc> {
 }
 
 #[cfg(feature = "jiff")]
-impl TryFrom<FileTime> for jiff::Timestamp {
+impl TryFrom<FileTime> for Timestamp {
     type Error = jiff::Error;
 
-    /// Converts a `FileTime` to a [`Timestamp`](jiff::Timestamp).
+    /// Converts a `FileTime` to a [`Timestamp`].
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `ft` is out of range for
-    /// [`Timestamp`](jiff::Timestamp).
+    /// Returns [`Err`] if `ft` is out of range for [`Timestamp`].
     ///
     /// # Examples
     ///
@@ -306,10 +308,10 @@ impl TryFrom<i64> for FileTime {
 }
 
 #[cfg(feature = "std")]
-impl TryFrom<std::time::SystemTime> for FileTime {
+impl TryFrom<SystemTime> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts a [`SystemTime`](std::time::SystemTime) to a `FileTime`.
+    /// Converts a [`SystemTime`] to a `FileTime`.
     ///
     /// # Errors
     ///
@@ -346,9 +348,7 @@ impl TryFrom<std::time::SystemTime> for FileTime {
     /// );
     /// ```
     #[inline]
-    fn try_from(st: std::time::SystemTime) -> Result<Self, Self::Error> {
-        use std::time::SystemTime;
-
+    fn try_from(st: SystemTime) -> Result<Self, Self::Error> {
         let elapsed = st
             .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
             .map(|d| d.as_nanos())
@@ -417,10 +417,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
+impl TryFrom<DateTime<Utc>> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts a [`DateTime<Utc>`](chrono::DateTime) to a `FileTime`.
+    /// Converts a [`DateTime<Utc>`] to a `FileTime`.
     ///
     /// # Errors
     ///
@@ -463,16 +463,16 @@ impl TryFrom<chrono::DateTime<chrono::Utc>> for FileTime {
     /// );
     /// ```
     #[inline]
-    fn try_from(dt: chrono::DateTime<chrono::Utc>) -> Result<Self, Self::Error> {
+    fn try_from(dt: DateTime<Utc>) -> Result<Self, Self::Error> {
         Self::from_unix_time(dt.timestamp(), dt.timestamp_subsec_nanos())
     }
 }
 
 #[cfg(feature = "jiff")]
-impl TryFrom<jiff::Timestamp> for FileTime {
+impl TryFrom<Timestamp> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts a [`Timestamp`](jiff::Timestamp) to a `FileTime`.
+    /// Converts a [`Timestamp`] to a `FileTime`.
     ///
     /// # Errors
     ///
@@ -499,13 +499,23 @@ impl TryFrom<jiff::Timestamp> for FileTime {
     /// );
     /// ```
     #[inline]
-    fn try_from(ts: jiff::Timestamp) -> Result<Self, Self::Error> {
+    fn try_from(ts: Timestamp) -> Result<Self, Self::Error> {
         Self::from_unix_time_nanos(ts.as_nanosecond())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "chrono")]
+    use chrono::TimeDelta;
+    #[cfg(feature = "jiff")]
+    use jiff::ToSpan;
+    #[cfg(feature = "std")]
+    use proptest::{prop_assert, prop_assert_eq};
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+    use time::macros::datetime;
+
     use super::*;
 
     #[test]
@@ -517,10 +527,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_file_time_to_u64_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(u64::from(ft), ft.to_raw());
     }
 
@@ -538,10 +546,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn try_from_file_time_to_i64_roundtrip(ft: FileTime) {
-        use proptest::prop_assert;
-
         if ft <= FileTime::SIGNED_MAX {
             prop_assert!(i64::try_from(ft).is_ok());
         } else {
@@ -558,8 +564,6 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn from_file_time_to_system_time() {
-        use std::time::{Duration, SystemTime};
-
         assert_eq!(
             SystemTime::from(FileTime::NT_TIME_EPOCH),
             SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
@@ -591,8 +595,6 @@ mod tests {
 
     #[test]
     fn try_from_file_time_to_offset_date_time() {
-        use time::macros::datetime;
-
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
             datetime!(1601-01-01 00:00 UTC)
@@ -616,8 +618,6 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_file_time_to_offset_date_time_with_large_dates() {
-        use time::macros::datetime;
-
         assert_eq!(
             OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
             datetime!(+10000-01-01 00:00 UTC)
@@ -635,8 +635,6 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn from_file_time_to_chrono_date_time() {
-        use chrono::{DateTime, Utc};
-
         assert_eq!(
             DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
             "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
@@ -674,8 +672,6 @@ mod tests {
     #[cfg(feature = "jiff")]
     #[test]
     fn try_from_file_time_to_jiff_timestamp() {
-        use jiff::{Timestamp, ToSpan};
-
         assert_eq!(
             Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
             Timestamp::from_second(-11_644_473_600).unwrap()
@@ -693,8 +689,6 @@ mod tests {
     #[cfg(feature = "jiff")]
     #[test]
     fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
-        use jiff::Timestamp;
-
         assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
     }
 
@@ -710,10 +704,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_u64_to_file_time_roundtrip(ft: u64) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(FileTime::from(ft), FileTime::new(ft));
     }
 
@@ -730,12 +722,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn try_from_i64_to_file_time_before_nt_time_epoch_roundtrip(
         #[strategy(..i64::default())] ft: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::try_from(ft).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -756,18 +746,14 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn try_from_i64_to_file_time_roundtrip(#[strategy(i64::default()..)] ft: i64) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::try_from(ft).is_ok());
     }
 
     #[cfg(feature = "std")]
     #[test]
     fn try_from_system_time_to_file_time_before_nt_time_epoch() {
-        use std::time::{Duration, SystemTime};
-
         assert_eq!(
             FileTime::try_from(if cfg!(windows) {
                 SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
@@ -782,8 +768,6 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn try_from_system_time_to_file_time() {
-        use std::time::{Duration, SystemTime};
-
         assert_eq!(
             FileTime::try_from(
                 SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
@@ -829,8 +813,6 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn try_from_system_time_to_file_time_with_too_big_system_time() {
-        use std::time::{Duration, SystemTime};
-
         if cfg!(windows) {
             assert!(
                 SystemTime::UNIX_EPOCH
@@ -850,10 +832,8 @@ mod tests {
 
     #[test]
     fn try_from_offset_date_time_to_file_time_before_nt_time_epoch() {
-        use time::{Duration, macros::datetime};
-
         assert_eq!(
-            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100))
+            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - time::Duration::nanoseconds(100))
                 .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
@@ -861,8 +841,6 @@ mod tests {
 
     #[test]
     fn try_from_offset_date_time_to_file_time() {
-        use time::macros::datetime;
-
         assert_eq!(
             FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
             FileTime::NT_TIME_EPOCH
@@ -880,8 +858,6 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_offset_date_time_to_file_time_with_large_dates() {
-        use time::macros::datetime;
-
         assert_eq!(
             FileTime::try_from(datetime!(+10000-01-01 00:00 UTC)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
@@ -899,11 +875,9 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn try_from_offset_date_time_to_file_time_with_too_big_date_time() {
-        use time::{Duration, macros::datetime};
-
         assert_eq!(
             FileTime::try_from(
-                datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + Duration::nanoseconds(100)
+                datetime!(+60056-05-28 05:36:10.955_161_500 UTC) + time::Duration::nanoseconds(100)
             )
             .unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
@@ -913,8 +887,6 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
-        use chrono::{DateTime, TimeDelta, Utc};
-
         assert_eq!(
             FileTime::try_from(
                 "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
@@ -928,8 +900,6 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time() {
-        use chrono::{DateTime, Utc};
-
         assert_eq!(
             FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap())
                 .unwrap(),
@@ -980,8 +950,6 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
-        use chrono::{DateTime, TimeDelta, Utc};
-
         assert_eq!(
             FileTime::try_from(
                 "+60056-05-28 05:36:10.955161500 UTC"
@@ -997,8 +965,6 @@ mod tests {
     #[cfg(feature = "jiff")]
     #[test]
     fn try_from_jiff_timestamp_to_file_time_before_nt_time_epoch() {
-        use jiff::Timestamp;
-
         assert_eq!(
             FileTime::try_from(Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
                 .unwrap_err(),
@@ -1009,8 +975,6 @@ mod tests {
     #[cfg(feature = "jiff")]
     #[test]
     fn try_from_jiff_timestamp_to_file_time() {
-        use jiff::Timestamp;
-
         assert_eq!(
             FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()).unwrap(),
             FileTime::NT_TIME_EPOCH

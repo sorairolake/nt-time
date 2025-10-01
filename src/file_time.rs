@@ -20,6 +20,11 @@ mod str;
 mod unix_time;
 
 use core::mem;
+#[cfg(feature = "std")]
+use std::time::SystemTime;
+
+#[cfg(test)]
+use proptest_derive::Arbitrary;
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
@@ -61,7 +66,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
 /// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(test, derive(proptest_derive::Arbitrary))]
+#[cfg_attr(test, derive(Arbitrary))]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -82,8 +87,6 @@ impl FileTime {
     #[must_use]
     #[inline]
     pub fn now() -> Self {
-        use std::time::SystemTime;
-
         SystemTime::now()
             .try_into()
             .expect("the current date and time should be in the range of the file time")
@@ -417,6 +420,17 @@ impl Default for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use std::{
+        collections::hash_map::DefaultHasher,
+        hash::{Hash, Hasher},
+    };
+
+    #[cfg(feature = "std")]
+    use proptest::prop_assert_eq;
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     #[test]
@@ -440,11 +454,6 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn hash() {
-        use std::{
-            collections::hash_map::DefaultHasher,
-            hash::{Hash, Hasher},
-        };
-
         assert_ne!(
             {
                 let mut hasher = DefaultHasher::new();
@@ -508,10 +517,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_be_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_be_bytes(), ft.to_raw().to_be_bytes());
     }
 
@@ -535,10 +542,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_le_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
     }
 
@@ -570,10 +575,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_ne_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_ne_bytes(), ft.to_raw().to_ne_bytes());
     }
 
@@ -600,10 +603,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_be_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_be_bytes(bytes),
             FileTime::new(u64::from_be_bytes(bytes))
@@ -633,10 +634,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_le_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_le_bytes(bytes),
             FileTime::new(u64::from_le_bytes(bytes))
@@ -674,10 +673,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_ne_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_ne_bytes(bytes),
             FileTime::new(u64::from_ne_bytes(bytes))
@@ -704,10 +701,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_high_low_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         let raw = ft.to_raw();
         prop_assert_eq!(ft.to_high_low(), ((raw >> u32::BITS) as u32, raw as u32));
     }
@@ -735,10 +730,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_high_low_roundtrip(high: u32, low: u32) {
-        use proptest::prop_assert_eq;
-
         let raw = (u64::from(high) << u32::BITS) | u64::from(low);
         prop_assert_eq!(FileTime::from_high_low(high, low), FileTime::new(raw));
     }

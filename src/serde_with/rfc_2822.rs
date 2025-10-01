@@ -67,7 +67,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTim
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_ser_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::UNIX_EPOCH,
             },
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn serialize_error() {
-        assert_ser_tokens_error::<Test>(
+        serde_test::assert_ser_tokens_error::<Test>(
             &Test {
                 time: FileTime::NT_TIME_EPOCH,
             },

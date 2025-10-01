@@ -76,10 +76,14 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use core::time::Duration;
+    #[cfg(feature = "std")]
+    use std::string::String;
 
-    use serde_test::{
-        Token, assert_de_tokens, assert_de_tokens_error, assert_ser_tokens, assert_tokens,
-    };
+    #[cfg(feature = "std")]
+    use proptest::{prop_assert_eq, prop_assume};
+    use serde_test::Token;
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
 
     use super::*;
 
@@ -91,7 +95,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::NT_TIME_EPOCH),
             },
@@ -106,7 +110,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::UNIX_EPOCH),
             },
@@ -121,7 +125,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test { time: None },
             &[
                 Token::Struct {
@@ -137,7 +141,7 @@ mod tests {
 
     #[test]
     fn serialize() {
-        assert_ser_tokens(
+        serde_test::assert_ser_tokens(
             &Test {
                 time: Some(FileTime::MAX),
             },
@@ -156,7 +160,7 @@ mod tests {
 
     #[test]
     fn deserialize() {
-        assert_de_tokens(
+        serde_test::assert_de_tokens(
             &Test {
                 time: Some(FileTime::MAX - Duration::from_nanos(500)),
             },
@@ -175,7 +179,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -188,7 +192,7 @@ mod tests {
             ],
             "date and time is before `1601-01-01 00:00:00 UTC`",
         );
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -233,10 +237,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn serialize_json_roundtrip(timestamp: Option<i64>) {
-        use proptest::{prop_assert_eq, prop_assume};
-
         if let Some(ts) = timestamp {
             prop_assume!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
         }
@@ -282,12 +284,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn deserialize_json_roundtrip(timestamp: Option<i64>) {
-        use std::string::String;
-
-        use proptest::{prop_assert_eq, prop_assume};
-
         if let Some(ts) = timestamp {
             prop_assume!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
         }

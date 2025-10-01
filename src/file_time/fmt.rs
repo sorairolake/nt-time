@@ -176,6 +176,11 @@ impl fmt::UpperExp for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use proptest::prop_assert_eq;
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     #[test]
@@ -204,10 +209,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn display_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft}"), format!("{}", ft.to_raw()));
     }
 
@@ -262,10 +265,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn octal_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:o}"), format!("{:o}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:#o}"), format!("{:#o}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:022o}"), format!("{:022o}", ft.to_raw()));
@@ -305,10 +306,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn lower_hex_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:x}"), format!("{:x}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:#x}"), format!("{:#x}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:016x}"), format!("{:016x}", ft.to_raw()));
@@ -348,10 +347,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn upper_hex_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:X}"), format!("{:X}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:#X}"), format!("{:#X}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:016X}"), format!("{:016X}", ft.to_raw()));
@@ -421,10 +418,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn binary_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:b}"), format!("{:b}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:#b}"), format!("{:#b}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:064b}"), format!("{:064b}", ft.to_raw()));
@@ -459,10 +454,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn lower_exp_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:e}"), format!("{:e}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:024e}"), format!("{:024e}", ft.to_raw()));
     }
@@ -495,10 +488,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn upper_exp_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(format!("{ft:E}"), format!("{:E}", ft.to_raw()));
         prop_assert_eq!(format!("{ft:024E}"), format!("{:024E}", ft.to_raw()));
     }

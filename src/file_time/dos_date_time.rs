@@ -164,6 +164,11 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use proptest::{prop_assert, prop_assert_eq, prop_assume};
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     #[test]
@@ -185,12 +190,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_dos_date_time_before_dos_date_time_epoch_roundtrip(
         #[strategy(..=119_600_063_980_000_000_u64)] ft: u64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time().unwrap_err(),
             DosDateTimeRangeErrorKind::Negative.into()
@@ -248,12 +251,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_dos_date_time_roundtrip(
         #[strategy(119_600_064_000_000_000..=159_992_927_980_000_000_u64)] ft: u64,
     ) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::new(ft).to_dos_date_time().is_ok());
     }
 
@@ -269,12 +270,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_dos_date_time_with_too_big_date_time_roundtrip(
         #[strategy(159_992_928_000_000_000_u64..)] ft: u64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::new(ft).to_dos_date_time().unwrap_err(),
             DosDateTimeRangeErrorKind::Overflow.into()
@@ -310,7 +309,7 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_dos_date_time_roundtrip(
         #[strategy(1980..=2107_u16)] year: u16,
         #[strategy(1..=12_u8)] month: u8,
@@ -319,8 +318,6 @@ mod tests {
         #[strategy(..=59_u8)] minute: u8,
         #[strategy(..=58_u8)] second: u8,
     ) {
-        use proptest::{prop_assert, prop_assume};
-
         prop_assume!(Date::from_calendar_date(year.into(), month.try_into().unwrap(), day).is_ok());
         prop_assume!(Time::from_hms(hour, minute, second).is_ok());
 

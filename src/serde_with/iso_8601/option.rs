@@ -90,7 +90,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_de_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::NT_TIME_EPOCH),
             },
@@ -117,7 +117,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::UNIX_EPOCH),
             },
@@ -132,7 +132,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test { time: None },
             &[
                 Token::Struct {
@@ -149,7 +149,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn serde_with_large_dates() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::MAX),
             },
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -186,7 +186,7 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn deserialize_error_without_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -204,7 +204,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn deserialize_error_with_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",

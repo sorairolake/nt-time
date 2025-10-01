@@ -118,6 +118,15 @@ impl<'de> Deserialize<'de> for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use std::string::String;
+
+    #[cfg(feature = "std")]
+    use proptest::prop_assert_eq;
+    use serde_test::Token;
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -132,9 +141,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        use serde_test::{Token, assert_tokens};
-
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::NT_TIME_EPOCH,
             },
@@ -149,7 +156,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::UNIX_EPOCH,
             },
@@ -164,7 +171,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::MAX,
             },
@@ -183,9 +190,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        use serde_test::{Token, assert_de_tokens_error};
-
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -196,7 +201,7 @@ mod tests {
             ],
             r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
         );
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -208,7 +213,7 @@ mod tests {
             ],
             "invalid type: boolean `false`, expected u64",
         );
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -224,9 +229,7 @@ mod tests {
 
     #[test]
     fn serde_optional() {
-        use serde_test::{Token, assert_tokens};
-
-        assert_tokens(
+        serde_test::assert_tokens(
             &TestOption {
                 time: Some(FileTime::NT_TIME_EPOCH),
             },
@@ -242,7 +245,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &TestOption {
                 time: Some(FileTime::UNIX_EPOCH),
             },
@@ -258,7 +261,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &TestOption {
                 time: Some(FileTime::MAX),
             },
@@ -274,7 +277,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &TestOption { time: None },
             &[
                 Token::Struct {
@@ -290,9 +293,7 @@ mod tests {
 
     #[test]
     fn deserialize_optional_error() {
-        use serde_test::{Token, assert_de_tokens_error};
-
-        assert_de_tokens_error::<TestOption>(
+        serde_test::assert_de_tokens_error::<TestOption>(
             &[
                 Token::Struct {
                     name: "TestOption",
@@ -303,7 +304,7 @@ mod tests {
             ],
             r#"invalid type: string "FileTime", expected option"#,
         );
-        assert_de_tokens_error::<TestOption>(
+        serde_test::assert_de_tokens_error::<TestOption>(
             &[
                 Token::Struct {
                     name: "TestOption",
@@ -315,7 +316,7 @@ mod tests {
             ],
             r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
         );
-        assert_de_tokens_error::<TestOption>(
+        serde_test::assert_de_tokens_error::<TestOption>(
             &[
                 Token::Struct {
                     name: "TestOption",
@@ -328,7 +329,7 @@ mod tests {
             ],
             "invalid type: boolean `false`, expected u64",
         );
-        assert_de_tokens_error::<TestOption>(
+        serde_test::assert_de_tokens_error::<TestOption>(
             &[
                 Token::Struct {
                     name: "TestOption",
@@ -369,10 +370,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn serialize_json_roundtrip(raw: u64) {
-        use proptest::prop_assert_eq;
-
         let ft = Test {
             time: FileTime::new(raw),
         };
@@ -410,10 +409,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn serialize_optional_json_roundtrip(raw: Option<u64>) {
-        use proptest::prop_assert_eq;
-
         let ft = TestOption {
             time: raw.map(FileTime::new),
         };
@@ -448,10 +445,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn deserialize_json_roundtrip(raw: u64) {
-        use proptest::prop_assert_eq;
-
         let json = format!(r#"{{"time":{raw}}}"#);
         let ft = serde_json::from_str::<Test>(&json).unwrap();
         prop_assert_eq!(ft.time, FileTime::new(raw));
@@ -484,12 +479,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn deserialize_optional_json_roundtrip(raw: Option<u64>) {
-        use std::string::String;
-
-        use proptest::prop_assert_eq;
-
         let json = if let Some(r) = raw {
             format!(r#"{{"time":{r}}}"#)
         } else {

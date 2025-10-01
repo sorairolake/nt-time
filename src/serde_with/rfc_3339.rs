@@ -67,7 +67,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTim
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::NT_TIME_EPOCH,
             },
@@ -93,7 +93,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::UNIX_EPOCH,
             },
@@ -112,7 +112,7 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn serialize_error_without_large_dates() {
-        assert_ser_tokens_error::<Test>(
+        serde_test::assert_ser_tokens_error::<Test>(
             &Test {
                 time: FileTime::MAX,
             },
@@ -130,7 +130,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn serialize_error_with_large_dates() {
-        assert_ser_tokens_error::<Test>(
+        serde_test::assert_ser_tokens_error::<Test>(
             &Test {
                 time: FileTime::MAX,
             },
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
