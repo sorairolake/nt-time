@@ -65,7 +65,7 @@ impl Deref for DateTime {
 impl FromStr for DateTime {
     type Err = Parse;
 
-    fn from_str(dt: &str) -> Result<Self, Parse> {
+    fn from_str(dt: &str) -> Result<Self, Self::Err> {
         OffsetDateTime::parse(dt, &Iso8601::DEFAULT)
             .or_else(|_| OffsetDateTime::parse(dt, &Rfc2822))
             .or_else(|_| OffsetDateTime::parse(dt, &Rfc3339))
