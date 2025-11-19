@@ -67,6 +67,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(test, derive(Arbitrary))]
+#[repr(transparent)]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -435,8 +436,12 @@ mod tests {
 
     #[test]
     fn size_of() {
-        assert_eq!(mem::size_of::<FileTime>(), 8);
         assert_eq!(mem::size_of::<FileTime>(), mem::size_of::<u64>());
+    }
+
+    #[test]
+    fn align_of() {
+        assert_eq!(mem::align_of::<FileTime>(), mem::align_of::<u64>());
     }
 
     #[test]
