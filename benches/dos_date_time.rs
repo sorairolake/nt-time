@@ -20,5 +20,5 @@ fn to_dos_date_time(b: &mut Bencher) {
 
 #[bench]
 fn from_dos_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::from_dos_date_time(0x0021, u16::MIN).unwrap());
+    b.iter(|| FileTime::from_dos_date_time(0b0000_0000_0010_0001, u16::MIN).unwrap());
 }

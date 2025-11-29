@@ -44,12 +44,12 @@ impl FileTime {
     /// // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
     /// assert_eq!(
     ///     FileTime::new(119_600_064_000_000_000).to_dos_date_time(),
-    ///     Ok((0x0021, u16::MIN))
+    ///     Ok((0b0000_0000_0010_0001, u16::MIN))
     /// );
     /// // From `2107-12-31 23:59:59 UTC` to `2107-12-31 23:59:58`.
     /// assert_eq!(
     ///     FileTime::new(159_992_927_990_000_000).to_dos_date_time(),
-    ///     Ok((0xff9f, 0xbf7d))
+    ///     Ok((0b1111_1111_1001_1111, 0b1011_1111_0111_1101))
     /// );
     ///
     /// // Before `1980-01-01 00:00:00 UTC`.
@@ -112,19 +112,19 @@ impl FileTime {
     /// #
     /// // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0x0021, u16::MIN),
+    ///     FileTime::from_dos_date_time(0b0000_0000_0010_0001, u16::MIN),
     ///     Ok(FileTime::new(119_600_064_000_000_000))
     /// );
     /// // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
     /// assert_eq!(
-    ///     FileTime::from_dos_date_time(0xff9f, 0xbf7d),
+    ///     FileTime::from_dos_date_time(0b1111_1111_1001_1111, 0b1011_1111_0111_1101),
     ///     Ok(FileTime::new(159_992_927_980_000_000))
     /// );
     ///
     /// // The Day field is 0.
-    /// assert!(FileTime::from_dos_date_time(0x0020, u16::MIN).is_err());
+    /// assert!(FileTime::from_dos_date_time(0b0000_0000_0010_0000, u16::MIN).is_err());
     /// // The DoubleSeconds field is 30.
-    /// assert!(FileTime::from_dos_date_time(0x0021, 0x001e).is_err());
+    /// assert!(FileTime::from_dos_date_time(0b0000_0000_0010_0001, 0b0000_0000_0001_1110).is_err());
     /// ```
     ///
     /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
@@ -207,14 +207,14 @@ mod tests {
             FileTime::new(119_600_064_000_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0x0021, u16::MIN)
+            (0b0000_0000_0010_0001, u16::MIN)
         );
         // From `1980-01-01 00:00:01 UTC` to `1980-01-01 00:00:00`.
         assert_eq!(
             FileTime::new(119_600_064_010_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0x0021, u16::MIN)
+            (0b0000_0000_0010_0001, u16::MIN)
         );
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
         //
@@ -223,7 +223,7 @@ mod tests {
             FileTime::new(126_828_411_000_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0x2d7b, 0x1b20)
+            (0b0010_1101_0111_1011, 0b0001_1011_0010_0000)
         );
         // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
         //
@@ -232,21 +232,21 @@ mod tests {
             FileTime::new(131_869_247_100_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0x4d71, 0x54cf)
+            (0b0100_1101_0111_0001, 0b0101_0100_1100_1111)
         );
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 23:59:58`.
         assert_eq!(
             FileTime::new(159_992_927_980_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0xff9f, 0xbf7d)
+            (0b1111_1111_1001_1111, 0b1011_1111_0111_1101)
         );
         // From `2107-12-31 23:59:59 UTC` to `2107-12-31 23:59:58`.
         assert_eq!(
             FileTime::new(159_992_927_990_000_000)
                 .to_dos_date_time()
                 .unwrap(),
-            (0xff9f, 0xbf7d)
+            (0b1111_1111_1001_1111, 0b1011_1111_0111_1101)
         );
     }
 
@@ -284,26 +284,26 @@ mod tests {
     fn from_dos_date_time() {
         // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
         assert_eq!(
-            FileTime::from_dos_date_time(0x0021, u16::MIN).unwrap(),
+            FileTime::from_dos_date_time(0b0000_0000_0010_0001, u16::MIN).unwrap(),
             FileTime::new(119_600_064_000_000_000)
         );
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
         //
         // From `2002-11-26 19:25:00` to `2002-11-26 19:25:00 UTC`.
         assert_eq!(
-            FileTime::from_dos_date_time(0x2d7a, 0x9b20).unwrap(),
+            FileTime::from_dos_date_time(0b0010_1101_0111_1010, 0b1001_1011_0010_0000).unwrap(),
             FileTime::new(126_828_123_000_000_000)
         );
         // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
         //
         // From `2018-11-17 10:38:30` to `2018-11-17 10:38:30 UTC`.
         assert_eq!(
-            FileTime::from_dos_date_time(0x4d71, 0x54cf).unwrap(),
+            FileTime::from_dos_date_time(0b0100_1101_0111_0001, 0b0101_0100_1100_1111).unwrap(),
             FileTime::new(131_869_247_100_000_000)
         );
         // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
         assert_eq!(
-            FileTime::from_dos_date_time(0xff9f, 0xbf7d).unwrap(),
+            FileTime::from_dos_date_time(0b1111_1111_1001_1111, 0b1011_1111_0111_1101).unwrap(),
             FileTime::new(159_992_927_980_000_000)
         );
     }
@@ -329,19 +329,25 @@ mod tests {
     #[test]
     fn from_dos_date_time_with_invalid_date_time() {
         // The Day field is 0.
-        assert!(FileTime::from_dos_date_time(0x0020, u16::MIN).is_err());
+        assert!(FileTime::from_dos_date_time(0b0000_0000_0010_0000, u16::MIN).is_err());
         // The Day field is 30, which is after the last day of February.
-        assert!(FileTime::from_dos_date_time(0x005e, u16::MIN).is_err());
+        assert!(FileTime::from_dos_date_time(0b0000_0000_0101_1110, u16::MIN).is_err());
         // The Month field is 0.
-        assert!(FileTime::from_dos_date_time(0x0001, u16::MIN).is_err());
+        assert!(FileTime::from_dos_date_time(0b0000_0000_0000_0001, u16::MIN).is_err());
         // The Month field is 13.
-        assert!(FileTime::from_dos_date_time(0x01a1, u16::MIN).is_err());
+        assert!(FileTime::from_dos_date_time(0b0000_0001_1010_0001, u16::MIN).is_err());
 
         // The DoubleSeconds field is 30.
-        assert!(FileTime::from_dos_date_time(0x0021, 0x001e).is_err());
+        assert!(
+            FileTime::from_dos_date_time(0b0000_0000_0010_0001, 0b0000_0000_0001_1110).is_err()
+        );
         // The Minute field is 60.
-        assert!(FileTime::from_dos_date_time(0x0021, 0x0780).is_err());
+        assert!(
+            FileTime::from_dos_date_time(0b0000_0000_0010_0001, 0b0000_0111_1000_0000).is_err()
+        );
         // The Hour field is 24.
-        assert!(FileTime::from_dos_date_time(0x0021, 0xc000).is_err());
+        assert!(
+            FileTime::from_dos_date_time(0b0000_0000_0010_0001, 0b1100_0000_0000_0000).is_err()
+        );
     }
 }

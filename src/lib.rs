@@ -74,7 +74,7 @@
 //! // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
 //! let ft = ft + Duration::from_secs(315_532_800);
 //! let dos_dt = ft.to_dos_date_time();
-//! assert_eq!(dos_dt, Ok((0x0021, u16::MIN)));
+//! assert_eq!(dos_dt, Ok((0b0000_0000_0010_0001, u16::MIN)));
 //! ```
 //!
 //! ## Formatting and printing the file time
