@@ -13,11 +13,9 @@ use std::time::SystemTime;
 use chrono::{DateTime, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
-use nt_time::{
-    FileTime,
-    time::{OffsetDateTime, macros::datetime},
-};
+use nt_time::FileTime;
 use test::Bencher;
+use time::{OffsetDateTime, macros::datetime};
 
 #[bench]
 fn equality(b: &mut Bencher) {

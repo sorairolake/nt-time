@@ -13,8 +13,9 @@ use std::time::SystemTime;
 use chrono::{DateTime, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
-use nt_time::{FileTime, time::OffsetDateTime};
+use nt_time::FileTime;
 use test::Bencher;
+use time::OffsetDateTime;
 
 #[bench]
 fn from_file_time_to_u64(b: &mut Bencher) {

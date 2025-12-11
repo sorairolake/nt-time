@@ -14,8 +14,9 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::{Timestamp, ToSpan};
-use nt_time::{FileTime, time::macros::datetime};
+use nt_time::FileTime;
 use test::Bencher;
+use time::macros::datetime;
 
 #[bench]
 fn checked_add(b: &mut Bencher) {
@@ -49,7 +50,7 @@ fn add_positive_time_duration(b: &mut Bencher) {
 
 #[bench]
 fn add_negative_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX + time::Duration::nanoseconds(-100));
+    b.iter(|| FileTime::MAX + -time::Duration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
@@ -61,7 +62,7 @@ fn add_positive_chrono_time_delta(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn add_negative_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX + TimeDelta::nanoseconds(-100));
+    b.iter(|| FileTime::MAX + -TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "jiff")]
@@ -73,7 +74,7 @@ fn add_positive_jiff_span(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn add_negative_jiff_span(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX + (-100).nanoseconds());
+    b.iter(|| FileTime::MAX + -(100.nanoseconds()));
 }
 
 #[bench]
@@ -93,7 +94,7 @@ fn sub_positive_time_duration(b: &mut Bencher) {
 
 #[bench]
 fn sub_negative_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH - time::Duration::nanoseconds(-100));
+    b.iter(|| FileTime::NT_TIME_EPOCH - -time::Duration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
@@ -105,7 +106,7 @@ fn sub_positive_chrono_time_delta(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_negative_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-100));
+    b.iter(|| FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "jiff")]
@@ -117,7 +118,7 @@ fn sub_positive_jiff_span(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_negative_jiff_span(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH - (-100).nanoseconds());
+    b.iter(|| FileTime::NT_TIME_EPOCH - -(100.nanoseconds()));
 }
 
 #[cfg(feature = "std")]

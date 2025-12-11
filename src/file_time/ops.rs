@@ -496,9 +496,9 @@ mod tests {
     #[proptest]
     fn checked_sub_roundtrip(dur: Duration) {
         if dur <= Duration::new(1_844_674_407_370, 955_161_500) {
-            prop_assert!(FileTime::MAX.checked_add(dur).is_some());
+            prop_assert!(FileTime::MAX.checked_sub(dur).is_some());
         } else {
-            prop_assert!(FileTime::MAX.checked_add(dur).is_none());
+            prop_assert!(FileTime::MAX.checked_sub(dur).is_none());
         }
     }
 
@@ -658,11 +658,11 @@ mod tests {
         assert_eq!(FileTime::MAX + -time::Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX + -time::Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX + time::Duration::nanoseconds(-99),
+            FileTime::MAX + -time::Duration::nanoseconds(99),
             FileTime::MAX
         );
         assert_eq!(
-            FileTime::MAX + time::Duration::nanoseconds(-100),
+            FileTime::MAX + -time::Duration::nanoseconds(100),
             FileTime::new(u64::MAX - 1)
         );
 
@@ -675,7 +675,7 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + time::Duration::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH + -time::Duration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -683,7 +683,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_negative_time_duration_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH + time::Duration::nanoseconds(-100);
+        let _ = FileTime::NT_TIME_EPOCH + -time::Duration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -723,9 +723,9 @@ mod tests {
     fn add_negative_chrono_time_delta() {
         assert_eq!(FileTime::MAX + -TimeDelta::zero(), FileTime::MAX);
         assert_eq!(FileTime::MAX + -TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(-99), FileTime::MAX);
+        assert_eq!(FileTime::MAX + -TimeDelta::nanoseconds(99), FileTime::MAX);
         assert_eq!(
-            FileTime::MAX + TimeDelta::nanoseconds(-100),
+            FileTime::MAX + -TimeDelta::nanoseconds(100),
             FileTime::new(u64::MAX - 1)
         );
 
@@ -738,7 +738,7 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -747,7 +747,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_negative_chrono_time_delta_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(-100);
+        let _ = FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
@@ -786,10 +786,10 @@ mod tests {
     #[test]
     fn add_negative_jiff_span() {
         assert_eq!(FileTime::MAX + -Span::new(), FileTime::MAX);
-        assert_eq!(FileTime::MAX + (-1).nanosecond(), FileTime::MAX);
-        assert_eq!(FileTime::MAX + (-99).nanoseconds(), FileTime::MAX);
+        assert_eq!(FileTime::MAX + -(1.nanosecond()), FileTime::MAX);
+        assert_eq!(FileTime::MAX + -(99.nanoseconds()), FileTime::MAX);
         assert_eq!(
-            FileTime::MAX + (-100).nanoseconds(),
+            FileTime::MAX + -(100.nanoseconds()),
             FileTime::new(u64::MAX - 1)
         );
 
@@ -798,11 +798,11 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + (-1).nanosecond(),
+            FileTime::NT_TIME_EPOCH + -(1.nanosecond()),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + (-99).nanoseconds(),
+            FileTime::NT_TIME_EPOCH + -(99.nanoseconds()),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -811,7 +811,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_negative_jiff_span_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH + (-100).nanoseconds();
+        let _ = FileTime::NT_TIME_EPOCH + -(100.nanoseconds());
     }
 
     #[test]
@@ -922,12 +922,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft += time::Duration::nanoseconds(-99);
+            ft += -time::Duration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += time::Duration::nanoseconds(-100);
+            ft += -time::Duration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
@@ -943,7 +943,7 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += time::Duration::nanoseconds(-99);
+            ft += -time::Duration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
@@ -952,7 +952,7 @@ mod tests {
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_assign_negative_time_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
-        ft += time::Duration::nanoseconds(-100);
+        ft += -time::Duration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1019,12 +1019,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft += TimeDelta::nanoseconds(-99);
+            ft += -TimeDelta::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += TimeDelta::nanoseconds(-100);
+            ft += -TimeDelta::nanoseconds(100);
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
@@ -1040,7 +1040,7 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += TimeDelta::nanoseconds(-99);
+            ft += -TimeDelta::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
@@ -1050,7 +1050,7 @@ mod tests {
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_assign_negative_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
-        ft += TimeDelta::nanoseconds(-100);
+        ft += -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
@@ -1112,17 +1112,17 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft += (-1).nanosecond();
+            ft += -(1.nanosecond());
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += (-99).nanoseconds();
+            ft += -(99.nanoseconds());
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += (-100).nanoseconds();
+            ft += -(100.nanoseconds());
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
@@ -1133,12 +1133,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += (-1).nanosecond();
+            ft += -(1.nanosecond());
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += (-99).nanoseconds();
+            ft += -(99.nanoseconds());
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
@@ -1148,7 +1148,7 @@ mod tests {
     #[should_panic(expected = "overflow when subtracting duration from date and time")]
     fn add_assign_negative_jiff_span_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
-        ft += (-100).nanoseconds();
+        ft += -(100.nanoseconds());
     }
 
     #[test]
@@ -1244,18 +1244,18 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - time::Duration::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH - -time::Duration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - time::Duration::nanoseconds(-100),
+            FileTime::NT_TIME_EPOCH - -time::Duration::nanoseconds(100),
             FileTime::new(1)
         );
 
         assert_eq!(FileTime::MAX - -time::Duration::ZERO, FileTime::MAX);
         assert_eq!(FileTime::MAX - -time::Duration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX - time::Duration::nanoseconds(-99),
+            FileTime::MAX - -time::Duration::nanoseconds(99),
             FileTime::MAX
         );
     }
@@ -1263,7 +1263,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_negative_time_duration_with_overflow() {
-        let _ = FileTime::MAX - time::Duration::nanoseconds(-100);
+        let _ = FileTime::MAX - -time::Duration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1310,24 +1310,24 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-99),
+            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-100),
+            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(100),
             FileTime::new(1)
         );
 
         assert_eq!(FileTime::MAX - -TimeDelta::zero(), FileTime::MAX);
         assert_eq!(FileTime::MAX - -TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(-99), FileTime::MAX);
+        assert_eq!(FileTime::MAX - -TimeDelta::nanoseconds(99), FileTime::MAX);
     }
 
     #[cfg(feature = "chrono")]
     #[test]
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_negative_chrono_time_delta_with_overflow() {
-        let _ = FileTime::MAX - TimeDelta::nanoseconds(-100);
+        let _ = FileTime::MAX - -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
@@ -1370,28 +1370,28 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - (-1).nanosecond(),
+            FileTime::NT_TIME_EPOCH - -(1.nanosecond()),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - (-99).nanoseconds(),
+            FileTime::NT_TIME_EPOCH - -(99.nanoseconds()),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - (-100).nanoseconds(),
+            FileTime::NT_TIME_EPOCH - -(100.nanoseconds()),
             FileTime::new(1)
         );
 
         assert_eq!(FileTime::MAX - -Span::new(), FileTime::MAX);
-        assert_eq!(FileTime::MAX - (-1).nanosecond(), FileTime::MAX);
-        assert_eq!(FileTime::MAX - (-99).nanoseconds(), FileTime::MAX);
+        assert_eq!(FileTime::MAX - -(1.nanosecond()), FileTime::MAX);
+        assert_eq!(FileTime::MAX - -(99.nanoseconds()), FileTime::MAX);
     }
 
     #[cfg(feature = "jiff")]
     #[test]
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_negative_jiff_span_with_overflow() {
-        let _ = FileTime::MAX - (-100).nanoseconds();
+        let _ = FileTime::MAX - -(100.nanoseconds());
     }
 
     #[cfg(feature = "std")]
@@ -1738,12 +1738,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= time::Duration::nanoseconds(-99);
+            ft -= -time::Duration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= time::Duration::nanoseconds(-100);
+            ft -= -time::Duration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(1));
         }
 
@@ -1759,7 +1759,7 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= time::Duration::nanoseconds(-99);
+            ft -= -time::Duration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
     }
@@ -1768,7 +1768,7 @@ mod tests {
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_assign_negative_time_duration_with_overflow() {
         let mut ft = FileTime::MAX;
-        ft -= time::Duration::nanoseconds(-100);
+        ft -= -time::Duration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1835,12 +1835,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= TimeDelta::nanoseconds(-99);
+            ft -= -TimeDelta::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= TimeDelta::nanoseconds(-100);
+            ft -= -TimeDelta::nanoseconds(100);
             assert_eq!(ft, FileTime::new(1));
         }
 
@@ -1856,7 +1856,7 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= TimeDelta::nanoseconds(-99);
+            ft -= -TimeDelta::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
     }
@@ -1866,7 +1866,7 @@ mod tests {
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_assign_negative_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::MAX;
-        ft -= TimeDelta::nanoseconds(-100);
+        ft -= -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
@@ -1928,17 +1928,17 @@ mod tests {
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= (-1).nanosecond();
+            ft -= -(1.nanosecond());
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= (-99).nanoseconds();
+            ft -= -(99.nanoseconds());
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= (-100).nanoseconds();
+            ft -= -(100.nanoseconds());
             assert_eq!(ft, FileTime::new(1));
         }
 
@@ -1949,12 +1949,12 @@ mod tests {
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= (-1).nanosecond();
+            ft -= -(1.nanosecond());
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= (-99).nanoseconds();
+            ft -= -(99.nanoseconds());
             assert_eq!(ft, FileTime::MAX);
         }
     }
@@ -1964,6 +1964,6 @@ mod tests {
     #[should_panic(expected = "overflow when adding duration to date and time")]
     fn sub_assign_negative_jiff_span_with_overflow() {
         let mut ft = FileTime::MAX;
-        ft -= (-100).nanoseconds();
+        ft -= -(100.nanoseconds());
     }
 }
