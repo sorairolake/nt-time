@@ -189,7 +189,7 @@ mod tests {
                 Token::I64(-11_644_473_601),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
         serde_test::assert_de_tokens_error::<Test>(
             &[
@@ -202,7 +202,7 @@ mod tests {
                 Token::I64(1_833_029_933_771),
                 Token::StructEnd,
             ],
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
     }
 

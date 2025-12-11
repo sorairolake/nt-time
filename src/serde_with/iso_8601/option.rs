@@ -179,7 +179,7 @@ mod tests {
                 Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
     }
 
@@ -215,7 +215,7 @@ mod tests {
                 Token::BorrowedStr("+060056-05-28T05:36:10.955161600Z"),
                 Token::StructEnd,
             ],
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
     }
 

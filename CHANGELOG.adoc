@@ -25,6 +25,10 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Add `From<dos_date_time::DateTime>` for `FileTime`
   ({pull-request-url}/390[#390])
 
+=== Changed
+
+* Change the error message ({pull-request-url}/391[#391])
+
 == {compare-url}/v0.12.0\...v0.12.1[0.12.1] - 2025-08-02
 
 === Removed

@@ -188,7 +188,7 @@ mod tests {
                 Token::BorrowedStr("1600-12-31T23:59:59.999999900Z"),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
     }
 
