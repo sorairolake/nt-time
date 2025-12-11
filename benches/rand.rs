@@ -7,8 +7,7 @@
 
 extern crate test;
 
-use nt_time::FileTime;
-use rand::Rng;
+use nt_time::{FileTime, rand::Rng};
 use rand_pcg::{Pcg64Mcg, rand_core::SeedableRng};
 use test::Bencher;
 

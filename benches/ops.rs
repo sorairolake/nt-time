@@ -14,9 +14,8 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::{Timestamp, ToSpan};
-use nt_time::FileTime;
+use nt_time::{FileTime, time::macros::datetime};
 use test::Bencher;
-use time::macros::datetime;
 
 #[bench]
 fn checked_add(b: &mut Bencher) {
