@@ -1502,7 +1502,7 @@ mod tests {
             time::Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00 UTC),
+            FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00:00 UTC),
             time::Duration::new(265_046_774_399, 999_999_900)
         );
     }

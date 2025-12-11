@@ -18,7 +18,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::{FileTime, time::macros::datetime};
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
+    /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00:00 UTC));
     /// ```
     ///
     /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn nt_time_epoch() {
-        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
+        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00:00 UTC));
     }
 
     #[test]

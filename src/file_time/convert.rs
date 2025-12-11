@@ -132,7 +132,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH),
-    ///     Ok(datetime!(1601-01-01 00:00 UTC))
+    ///     Ok(datetime!(1601-01-01 00:00:00 UTC))
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::UNIX_EPOCH),
@@ -164,7 +164,7 @@ impl TryFrom<FileTime> for OffsetDateTime {
     /// #
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)),
-    ///     Ok(datetime!(+10000-01-01 00:00 UTC))
+    ///     Ok(datetime!(+10000-01-01 00:00:00 UTC))
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::try_from(FileTime::SIGNED_MAX),
@@ -376,7 +376,7 @@ impl TryFrom<OffsetDateTime> for FileTime {
     /// # };
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC)),
+    ///     FileTime::try_from(datetime!(1601-01-01 00:00:00 UTC)),
     ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
@@ -386,7 +386,8 @@ impl TryFrom<OffsetDateTime> for FileTime {
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(
-    ///     FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - Duration::nanoseconds(100)).is_err()
+    ///     FileTime::try_from(datetime!(1601-01-01 00:00:00 UTC) - Duration::nanoseconds(100))
+    ///         .is_err()
     /// );
     /// ```
     ///
@@ -597,7 +598,7 @@ mod tests {
     fn try_from_file_time_to_offset_date_time() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            datetime!(1601-01-01 00:00 UTC)
+            datetime!(1601-01-01 00:00:00 UTC)
         );
         assert_eq!(
             OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap(),
@@ -620,7 +621,7 @@ mod tests {
     fn try_from_file_time_to_offset_date_time_with_large_dates() {
         assert_eq!(
             OffsetDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).unwrap(),
-            datetime!(+10000-01-01 00:00 UTC)
+            datetime!(+10000-01-01 00:00:00 UTC)
         );
         assert_eq!(
             OffsetDateTime::try_from(FileTime::SIGNED_MAX).unwrap(),
@@ -833,8 +834,10 @@ mod tests {
     #[test]
     fn try_from_offset_date_time_to_file_time_before_nt_time_epoch() {
         assert_eq!(
-            FileTime::try_from(datetime!(1601-01-01 00:00 UTC) - time::Duration::nanoseconds(100))
-                .unwrap_err(),
+            FileTime::try_from(
+                datetime!(1601-01-01 00:00:00 UTC) - time::Duration::nanoseconds(100)
+            )
+            .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
     }
@@ -842,7 +845,7 @@ mod tests {
     #[test]
     fn try_from_offset_date_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(datetime!(1601-01-01 00:00 UTC)).unwrap(),
+            FileTime::try_from(datetime!(1601-01-01 00:00:00 UTC)).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
@@ -859,7 +862,7 @@ mod tests {
     #[test]
     fn try_from_offset_date_time_to_file_time_with_large_dates() {
         assert_eq!(
-            FileTime::try_from(datetime!(+10000-01-01 00:00 UTC)).unwrap(),
+            FileTime::try_from(datetime!(+10000-01-01 00:00:00 UTC)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
         assert_eq!(

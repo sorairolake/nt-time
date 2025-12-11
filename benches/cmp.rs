@@ -43,12 +43,12 @@ fn equality_file_time_and_system_time(b: &mut Bencher) {
 
 #[bench]
 fn equality_offset_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| datetime!(1601-01-01 00:00 UTC) == FileTime::NT_TIME_EPOCH);
+    b.iter(|| datetime!(1601-01-01 00:00:00 UTC) == FileTime::NT_TIME_EPOCH);
 }
 
 #[bench]
 fn equality_file_time_and_offset_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == datetime!(1601-01-01 00:00 UTC));
+    b.iter(|| FileTime::NT_TIME_EPOCH == datetime!(1601-01-01 00:00:00 UTC));
 }
 
 #[cfg(feature = "chrono")]
@@ -101,7 +101,7 @@ fn order_offset_date_time_and_file_time(b: &mut Bencher) {
 
 #[bench]
 fn order_file_time_and_offset_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00 UTC));
+    b.iter(|| FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00:00 UTC));
 }
 
 #[cfg(feature = "chrono")]

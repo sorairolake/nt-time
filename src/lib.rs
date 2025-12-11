@@ -38,7 +38,7 @@
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
 //!     OffsetDateTime::try_from(ft),
-//!     Ok(datetime!(1601-01-01 00:00 UTC))
+//!     Ok(datetime!(1601-01-01 00:00:00 UTC))
 //! );
 //!
 //! let ft = ft + Duration::from_secs(11_644_473_600);

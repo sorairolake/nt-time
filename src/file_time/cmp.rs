@@ -222,10 +222,10 @@ mod tests {
             FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            datetime!(1601-01-01 00:00 UTC),
+            datetime!(1601-01-01 00:00:00 UTC),
             FileTime::new(2_650_467_743_999_999_999)
         );
-        assert_eq!(datetime!(1601-01-01 00:00 UTC), FileTime::NT_TIME_EPOCH);
+        assert_eq!(datetime!(1601-01-01 00:00:00 UTC), FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
@@ -240,9 +240,9 @@ mod tests {
         );
         assert_ne!(
             FileTime::new(2_650_467_743_999_999_999),
-            datetime!(1601-01-01 00:00 UTC)
+            datetime!(1601-01-01 00:00:00 UTC)
         );
-        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
+        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00:00 UTC));
     }
 
     #[cfg(feature = "chrono")]
@@ -376,7 +376,7 @@ mod tests {
             FileTime::UNIX_EPOCH.partial_cmp(&OffsetDateTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00 UTC));
+        assert!(FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00:00 UTC));
     }
 
     #[cfg(feature = "chrono")]

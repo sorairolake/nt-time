@@ -145,7 +145,7 @@ fn sub_file_time_from_offset_date_time(b: &mut Bencher) {
 
 #[bench]
 fn sub_offset_date_time_from_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00 UTC));
+    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00:00 UTC));
 }
 
 #[cfg(feature = "chrono")]
