@@ -11,10 +11,10 @@ use nt_time::FileTime;
 #[derive(Debug, Parser)]
 #[command(version, about)]
 struct Opt {
-    /// The MS-DOS date to convert.
+    /// MS-DOS date to convert.
     date: u16,
 
-    /// The MS-DOS time to convert.
+    /// MS-DOS time to convert.
     time: u16,
 }
 

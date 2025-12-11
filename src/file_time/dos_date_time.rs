@@ -83,8 +83,14 @@ impl FileTime {
                 );
                 let date = (year << 9) | (month << 5) | day;
 
-                let (hour, minute, second) = (dt.hour(), dt.minute(), dt.second() / 2);
-                let time = (u16::from(hour) << 11) | (u16::from(minute) << 5) | u16::from(second);
+                let (hour, minute, second) = (
+                    u16::from(dt.hour()),
+                    u16::from(dt.minute()),
+                    u16::from(dt.second() / 2),
+                );
+                // <https://learn.microsoft.com/en-us/windows/win32/fileio/exfat-specification#7481-doubleseconds-field>.
+                let second = second.min(29);
+                let time = (hour << 11) | (minute << 5) | second;
 
                 Ok((date, time))
             }
@@ -321,8 +327,12 @@ mod tests {
         prop_assume!(Date::from_calendar_date(year.into(), month.try_into().unwrap(), day).is_ok());
         prop_assume!(Time::from_hms(hour, minute, second).is_ok());
 
-        let date = u16::from(day) + (u16::from(month) << 5) + ((year - 1980) << 9);
-        let time = u16::from(second / 2) + (u16::from(minute) << 5) + (u16::from(hour) << 11);
+        let (year, month, day) = (year - 1980, u16::from(month), u16::from(day));
+        let date = (year << 9) | (month << 5) | day;
+
+        let (hour, minute, second) = (u16::from(hour), u16::from(minute), u16::from(second / 2));
+        let time = (hour << 11) | (minute << 5) | second;
+
         prop_assert!(FileTime::from_dos_date_time(date, time).is_ok());
     }
 
