@@ -20,8 +20,13 @@ use time::OffsetDateTime;
 use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
-    /// Computes `self + rhs`, returning [`None`] if overflow occurred. The part
-    /// of `rhs` less than 100-nanosecond is truncated.
+    /// Computes `self + rhs`, returning [`None`] if overflow occurred.
+    ///
+    /// <div class="warning">
+    ///
+    /// The part of `rhs` less than 100-nanosecond is truncated.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -49,8 +54,13 @@ impl FileTime {
     }
 
     /// Computes `self - rhs`, returning [`None`] if the result would be
-    /// negative or if overflow occurred. The part of `rhs` less than
-    /// 100-nanosecond is truncated.
+    /// negative or if overflow occurred.
+    ///
+    /// <div class="warning">
+    ///
+    /// The part of `rhs` less than 100-nanosecond is truncated.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -81,7 +91,12 @@ impl FileTime {
     }
 
     /// Computes `self + rhs`, returning [`FileTime::MAX`] if overflow occurred.
+    ///
+    /// <div class="warning">
+    ///
     /// The part of `rhs` less than 100-nanosecond is truncated.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
@@ -111,8 +126,13 @@ impl FileTime {
     }
 
     /// Computes `self - rhs`, returning [`FileTime::NT_TIME_EPOCH`] if the
-    /// result would be negative or if overflow occurred. The part of `rhs` less
-    /// than 100-nanosecond is truncated.
+    /// result would be negative or if overflow occurred.
+    ///
+    /// <div class="warning">
+    ///
+    /// The part of `rhs` less than 100-nanosecond is truncated.
+    ///
+    /// </div>
     ///
     /// # Examples
     ///
