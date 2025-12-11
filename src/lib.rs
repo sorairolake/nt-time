@@ -94,7 +94,7 @@
 //! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00:00:00");
 //! ```
 //!
-//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [NTFS]: https://en.wikipedia.org/wiki/NTFS
 //! [7z]: https://www.7-zip.org/7z.html
 //! [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/

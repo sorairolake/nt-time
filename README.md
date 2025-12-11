@@ -113,7 +113,7 @@ licensing information.
 [license-badge]: https://img.shields.io/crates/l/nt-time?style=for-the-badge
 [reuse-badge]: https://img.shields.io/reuse/compliance/github.com%2Fsorairolake%2Fnt-time?style=for-the-badge
 [reuse-url]: https://api.reuse.software/info/github.com/sorairolake/nt-time
-[Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+[Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [Rust]: https://www.rust-lang.org/
 [NTFS]: https://en.wikipedia.org/wiki/NTFS
 [7z]: https://www.7-zip.org/7z.html

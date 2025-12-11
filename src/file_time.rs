@@ -4,7 +4,7 @@
 
 //! A [Windows file time].
 //!
-//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
 mod cmp;
 mod consts;
@@ -56,7 +56,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// generally recommended that you use [`FileTime::SIGNED_MAX`] as the largest
 /// value instead of [`FileTime::MAX`].
 ///
-/// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
