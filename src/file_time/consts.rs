@@ -51,7 +51,7 @@ impl FileTime {
     /// integer value, but many environments, such as the Win32 API, may limit
     /// the largest value to [`i64::MAX`], and the file time is sometimes
     /// represented as an [`i64`] value, such as in the
-    /// [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+    /// [`DateTime.FromFileTimeUtc`] method or the [`DateTime.ToFileTimeUtc`]
     /// method in [.NET], so if you want the process to succeed in more
     /// environments, it is generally recommended that you use this constant as
     /// the largest value instead of [`FileTime::MAX`].
@@ -99,11 +99,11 @@ impl FileTime {
     ///
     /// Many environments, such as the Win32 API, may limit the largest file
     /// time to [`i64::MAX`], and the file time is sometimes represented as an
-    /// [`i64`] value, such as in the [`DateTime.FromFileTimeUtc`] method and
-    /// the [`DateTime.ToFileTimeUtc`] method in [.NET], so if you want the
-    /// process to succeed in more environments, it is generally recommended
-    /// that you use [`FileTime::SIGNED_MAX`] as the largest value instead of
-    /// this constant.
+    /// [`i64`] value, such as in the [`DateTime.FromFileTimeUtc`] method or the
+    /// [`DateTime.ToFileTimeUtc`] method in [.NET], so if you want the process
+    /// to succeed in more environments, it is generally recommended that you
+    /// use [`FileTime::SIGNED_MAX`] as the largest value instead of this
+    /// constant.
     ///
     /// # Examples
     ///

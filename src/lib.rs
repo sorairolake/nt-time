@@ -7,7 +7,7 @@
 //! The [`FileTime`] is a type that represents the file time, which is a 64-bit
 //! unsigned integer value that represents the number of 100-nanosecond
 //! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used as
-//! timestamps such as [NTFS] and [7z]. Windows uses a file time to record when
+//! timestamps such as [NTFS] or [7z]. Windows uses a file time to record when
 //! an application creates, accesses, or writes to a file.
 //!
 //! <div class="warning">
@@ -121,6 +121,8 @@ pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "dos-date-time")]
+pub use dos_date_time;
 #[cfg(feature = "jiff")]
 pub use jiff;
 #[cfg(feature = "rand")]

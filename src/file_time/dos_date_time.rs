@@ -33,7 +33,7 @@ impl FileTime {
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if the resulting date and time is out of range for
+    /// Returns [`Err`] if the resulting date and time are out of range for
     /// MS-DOS date and time.
     ///
     /// # Examples
@@ -103,13 +103,13 @@ impl FileTime {
     ///
     /// <div class="warning">
     ///
-    /// The time zone for the local date and time is assumed to be UTC.
+    /// The time zone for the local date and time are assumed to be UTC.
     ///
     /// </div>
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `date` or `time` is an invalid date and time.
+    /// Returns [`Err`] if `date` or `time` is invalid date and time.
     ///
     /// # Examples
     ///

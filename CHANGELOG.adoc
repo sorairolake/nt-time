@@ -19,6 +19,11 @@ project adheres to https://semver.org/[Semantic Versioning].
 === Added
 
 * Add `#[repr(transparent)]` to `FileTime` ({pull-request-url}/378[#378])
+* Add support for `dos-date-time` crate ({pull-request-url}/390[#390])
+* Add `TryFrom<FileTime>` for `dos_date_time::DateTime`
+  ({pull-request-url}/390[#390])
+* Add `From<dos_date_time::DateTime>` for `FileTime`
+  ({pull-request-url}/390[#390])
 
 == {compare-url}/v0.12.0\...v0.12.1[0.12.1] - 2025-08-02
 

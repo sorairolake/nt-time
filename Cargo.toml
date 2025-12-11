@@ -20,6 +20,7 @@ all-features = true
 
 [dependencies]
 chrono = { version = "0.4.42", default-features = false, optional = true }
+dos-date-time = { version = "0.1.0", default-features = false, optional = true }
 jiff = { version = "0.2.16", default-features = false, optional = true }
 rand = { version = "0.9.2", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, optional = true }
@@ -40,12 +41,19 @@ time = { version = "0.3.44", features = ["macros", "parsing"] }
 [features]
 default = ["std"]
 chrono = ["dep:chrono"]
+dos-date-time = ["dep:dos-date-time"]
 jiff = ["dep:jiff"]
 large-dates = ["time/large-dates"]
 rand = ["dep:rand"]
 serde = ["dep:serde"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
-std = ["chrono?/std", "jiff?/std", "rand?/std", "time/std"]
+std = [
+  "chrono?/std",
+  "dos-date-time?/std",
+  "jiff?/std",
+  "rand?/std",
+  "time/std"
+]
 
 [lints.clippy]
 cargo = { level = "warn", priority = -1 }

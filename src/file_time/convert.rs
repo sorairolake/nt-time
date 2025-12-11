@@ -9,7 +9,7 @@ use core::num::TryFromIntError;
 use std::time::{Duration, SystemTime};
 
 #[cfg(feature = "chrono")]
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
 use time::{OffsetDateTime, error::ComponentRange};
@@ -17,6 +17,8 @@ use time::{OffsetDateTime, error::ComponentRange};
 #[cfg(feature = "std")]
 use super::FILE_TIMES_PER_SEC;
 use super::FileTime;
+#[cfg(feature = "dos-date-time")]
+use crate::error::DosDateTimeRangeError;
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl From<FileTime> for u64 {
@@ -47,7 +49,7 @@ impl TryFrom<FileTime> for i64 {
     /// Converts a `FileTime` to the file time.
     ///
     /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method and the
+    /// the [`DateTime.FromFileTimeUtc`] method or the
     /// [`DateTime.ToFileTimeUtc`] method in [.NET].
     ///
     /// # Errors
@@ -183,8 +185,8 @@ impl TryFrom<FileTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "chrono")]
-impl From<FileTime> for DateTime<Utc> {
-    /// Converts a `FileTime` to a [`DateTime<Utc>`].
+impl From<FileTime> for chrono::DateTime<Utc> {
+    /// Converts a `FileTime` to a [`chrono::DateTime<Utc>`].
     ///
     /// # Examples
     ///
@@ -243,6 +245,45 @@ impl TryFrom<FileTime> for Timestamp {
     }
 }
 
+#[cfg(feature = "dos-date-time")]
+impl TryFrom<FileTime> for dos_date_time::DateTime {
+    type Error = DosDateTimeRangeError;
+
+    /// Converts a `FileTime` to a [`dos_date_time::DateTime`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `ft` is out of range for [`dos_date_time::DateTime`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{FileTime, dos_date_time::DateTime};
+    /// #
+    /// // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
+    /// assert_eq!(
+    ///     DateTime::try_from(FileTime::new(119_600_064_000_000_000)),
+    ///     Ok(DateTime::MIN)
+    /// );
+    /// // From `2107-12-31 23:59:59 UTC` to `2107-12-31 23:59:58`.
+    /// assert_eq!(
+    ///     DateTime::try_from(FileTime::new(159_992_927_990_000_000)),
+    ///     Ok(DateTime::MAX)
+    /// );
+    ///
+    /// // Before `1980-01-01 00:00:00 UTC`.
+    /// assert!(DateTime::try_from(FileTime::new(119_600_063_990_000_000)).is_err());
+    /// // After `2107-12-31 23:59:59.999999900 UTC`.
+    /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
+    /// ```
+    #[inline]
+    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
+        let dt = ft.to_dos_date_time()?;
+        let dt = Self::new(dt.0, dt.1).expect("MS-DOS date and time should be valid");
+        Ok(dt)
+    }
+}
+
 impl From<u64> for FileTime {
     /// Converts the file time to a `FileTime`.
     ///
@@ -274,7 +315,7 @@ impl TryFrom<i64> for FileTime {
     /// Converts the file time to a `FileTime`.
     ///
     /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method and the
+    /// the [`DateTime.FromFileTimeUtc`] method or the
     /// [`DateTime.ToFileTimeUtc`] method in [.NET].
     ///
     /// # Errors
@@ -418,10 +459,10 @@ impl TryFrom<OffsetDateTime> for FileTime {
 }
 
 #[cfg(feature = "chrono")]
-impl TryFrom<DateTime<Utc>> for FileTime {
+impl TryFrom<chrono::DateTime<Utc>> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts a [`DateTime<Utc>`] to a `FileTime`.
+    /// Converts a [`chrono::DateTime<Utc>`] to a `FileTime`.
     ///
     /// # Errors
     ///
@@ -464,7 +505,7 @@ impl TryFrom<DateTime<Utc>> for FileTime {
     /// );
     /// ```
     #[inline]
-    fn try_from(dt: DateTime<Utc>) -> Result<Self, Self::Error> {
+    fn try_from(dt: chrono::DateTime<Utc>) -> Result<Self, Self::Error> {
         Self::from_unix_time(dt.timestamp(), dt.timestamp_subsec_nanos())
     }
 }
@@ -505,6 +546,33 @@ impl TryFrom<Timestamp> for FileTime {
     }
 }
 
+#[cfg(feature = "dos-date-time")]
+impl From<dos_date_time::DateTime> for FileTime {
+    /// Converts a [`dos_date_time::DateTime`] to a `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nt_time::{FileTime, dos_date_time::DateTime};
+    /// #
+    /// // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from(DateTime::MIN),
+    ///     FileTime::new(119_600_064_000_000_000)
+    /// );
+    /// // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
+    /// assert_eq!(
+    ///     FileTime::from(DateTime::MAX),
+    ///     FileTime::new(159_992_927_980_000_000)
+    /// );
+    /// ```
+    #[inline]
+    fn from(dt: dos_date_time::DateTime) -> Self {
+        Self::from_dos_date_time(dt.date(), dt.time())
+            .expect("MS-DOS date and time should be valid")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "chrono")]
@@ -518,6 +586,8 @@ mod tests {
     use time::macros::datetime;
 
     use super::*;
+    #[cfg(feature = "dos-date-time")]
+    use crate::error::DosDateTimeRangeErrorKind;
 
     #[test]
     fn from_file_time_to_u64() {
@@ -637,35 +707,37 @@ mod tests {
     #[test]
     fn from_file_time_to_chrono_date_time() {
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
-            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+            chrono::DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
+            "1601-01-01 00:00:00 UTC"
+                .parse::<chrono::DateTime<Utc>>()
+                .unwrap()
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-            DateTime::<Utc>::UNIX_EPOCH
+            chrono::DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
+            chrono::DateTime::<Utc>::UNIX_EPOCH
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::new(2_650_467_743_999_999_999)),
+            chrono::DateTime::<Utc>::from(FileTime::new(2_650_467_743_999_999_999)),
             "9999-12-31 23:59:59.999999900 UTC"
-                .parse::<DateTime<Utc>>()
+                .parse::<chrono::DateTime<Utc>>()
                 .unwrap()
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::new(2_650_467_744_000_000_000)),
+            chrono::DateTime::<Utc>::from(FileTime::new(2_650_467_744_000_000_000)),
             "+10000-01-01 00:00:00 UTC"
-                .parse::<DateTime<Utc>>()
+                .parse::<chrono::DateTime<Utc>>()
                 .unwrap()
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::SIGNED_MAX),
+            chrono::DateTime::<Utc>::from(FileTime::SIGNED_MAX),
             "+30828-09-14 02:48:05.477580700 UTC"
-                .parse::<DateTime<Utc>>()
+                .parse::<chrono::DateTime<Utc>>()
                 .unwrap()
         );
         assert_eq!(
-            DateTime::<Utc>::from(FileTime::MAX),
+            chrono::DateTime::<Utc>::from(FileTime::MAX),
             "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
+                .parse::<chrono::DateTime<Utc>>()
                 .unwrap()
         );
     }
@@ -691,6 +763,70 @@ mod tests {
     #[test]
     fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
         assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
+    }
+
+    #[cfg(feature = "dos-date-time")]
+    #[test]
+    fn try_from_file_time_to_dos_date_time_before_dos_date_time_epoch() {
+        // `1979-12-31 23:59:58 UTC`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(119_600_063_980_000_000)).unwrap_err(),
+            DosDateTimeRangeErrorKind::Negative.into()
+        );
+        // `1979-12-31 23:59:59 UTC`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(119_600_063_990_000_000)).unwrap_err(),
+            DosDateTimeRangeErrorKind::Negative.into()
+        );
+    }
+
+    #[cfg(feature = "dos-date-time")]
+    #[test]
+    fn try_from_file_time_to_dos_date_time() {
+        // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap(),
+            dos_date_time::DateTime::MIN
+        );
+        // From `1980-01-01 00:00:01 UTC` to `1980-01-01 00:00:00`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(119_600_064_010_000_000)).unwrap(),
+            dos_date_time::DateTime::MIN
+        );
+        // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+        //
+        // From `2002-11-27 03:25:00 UTC` to `2002-11-27 03:25:00`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(126_828_411_000_000_000)).unwrap(),
+            dos_date_time::DateTime::new(0b0010_1101_0111_1011, 0b0001_1011_0010_0000).unwrap()
+        );
+        // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
+        //
+        // From `2018-11-17 10:38:30 UTC` to `2018-11-17 10:38:30`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(131_869_247_100_000_000)).unwrap(),
+            dos_date_time::DateTime::new(0b0100_1101_0111_0001, 0b0101_0100_1100_1111).unwrap()
+        );
+        // From `2107-12-31 23:59:58 UTC` to `2107-12-31 23:59:58`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(159_992_927_980_000_000)).unwrap(),
+            dos_date_time::DateTime::MAX
+        );
+        // From `2107-12-31 23:59:59 UTC` to `2107-12-31 23:59:58`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(159_992_927_990_000_000)).unwrap(),
+            dos_date_time::DateTime::MAX
+        );
+    }
+
+    #[cfg(feature = "dos-date-time")]
+    #[test]
+    fn try_from_file_time_to_dos_date_time_with_too_big_date_time() {
+        // `2108-01-01 00:00:00 UTC`.
+        assert_eq!(
+            dos_date_time::DateTime::try_from(FileTime::new(159_992_928_000_000_000)).unwrap_err(),
+            DosDateTimeRangeErrorKind::Overflow.into()
+        );
     }
 
     #[test]
@@ -892,7 +1028,9 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
         assert_eq!(
             FileTime::try_from(
-                "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+                "1601-01-01 00:00:00 UTC"
+                    .parse::<chrono::DateTime<Utc>>()
+                    .unwrap()
                     - TimeDelta::nanoseconds(100)
             )
             .unwrap_err(),
@@ -904,18 +1042,22 @@ mod tests {
     #[test]
     fn try_from_chrono_date_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap())
-                .unwrap(),
+            FileTime::try_from(
+                "1601-01-01 00:00:00 UTC"
+                    .parse::<chrono::DateTime<Utc>>()
+                    .unwrap()
+            )
+            .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH).unwrap(),
+            FileTime::try_from(chrono::DateTime::<Utc>::UNIX_EPOCH).unwrap(),
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
             FileTime::try_from(
                 "9999-12-31 23:59:59.999999999 UTC"
-                    .parse::<DateTime<Utc>>()
+                    .parse::<chrono::DateTime<Utc>>()
                     .unwrap()
             )
             .unwrap(),
@@ -924,7 +1066,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(
                 "+10000-01-01 00:00:00 UTC"
-                    .parse::<DateTime<Utc>>()
+                    .parse::<chrono::DateTime<Utc>>()
                     .unwrap()
             )
             .unwrap(),
@@ -933,7 +1075,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(
                 "+30828-09-14 02:48:05.477580700 UTC"
-                    .parse::<DateTime<Utc>>()
+                    .parse::<chrono::DateTime<Utc>>()
                     .unwrap()
             )
             .unwrap(),
@@ -942,7 +1084,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(
                 "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
+                    .parse::<chrono::DateTime<Utc>>()
                     .unwrap()
             )
             .unwrap(),
@@ -956,7 +1098,7 @@ mod tests {
         assert_eq!(
             FileTime::try_from(
                 "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
+                    .parse::<chrono::DateTime<Utc>>()
                     .unwrap()
                     + TimeDelta::nanoseconds(100)
             )
@@ -989,6 +1131,39 @@ mod tests {
         assert_eq!(
             FileTime::try_from(Timestamp::MAX).unwrap(),
             FileTime::new(2_650_466_808_009_999_999)
+        );
+    }
+
+    #[cfg(feature = "dos-date-time")]
+    #[test]
+    fn from_dos_date_time_to_file_time() {
+        // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
+        assert_eq!(
+            FileTime::from(dos_date_time::DateTime::MIN),
+            FileTime::new(119_600_064_000_000_000)
+        );
+        // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
+        //
+        // From `2002-11-26 19:25:00` to `2002-11-26 19:25:00 UTC`.
+        assert_eq!(
+            FileTime::from(
+                dos_date_time::DateTime::new(0b0010_1101_0111_1010, 0b1001_1011_0010_0000).unwrap()
+            ),
+            FileTime::new(126_828_123_000_000_000)
+        );
+        // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
+        //
+        // From `2018-11-17 10:38:30` to `2018-11-17 10:38:30 UTC`.
+        assert_eq!(
+            FileTime::from(
+                dos_date_time::DateTime::new(0b0100_1101_0111_0001, 0b0101_0100_1100_1111).unwrap()
+            ),
+            FileTime::new(131_869_247_100_000_000)
+        );
+        // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
+        assert_eq!(
+            FileTime::from(dos_date_time::DateTime::MAX),
+            FileTime::new(159_992_927_980_000_000)
         );
     }
 }

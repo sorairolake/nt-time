@@ -169,6 +169,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dos-date-time"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "578d2ad48e60d8f76b20c6abce350ca49ea2db30bd5eba9b1e9b010874dfaa45"
+dependencies = [
+ "chrono",
+ "jiff",
+ "time",
+]
+
+[[package]]
 name = "errno"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -275,6 +286,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap",
+ "dos-date-time",
  "jiff",
  "proptest",
  "proptest-derive",

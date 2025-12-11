@@ -32,7 +32,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as [NTFS] and [7z]. Windows uses a file time
+/// and is used as timestamps such as [NTFS] or [7z]. Windows uses a file time
 /// to record when an application creates, accesses, or writes to a file.
 ///
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
@@ -49,7 +49,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// </div>
 ///
 /// Also, the file time is sometimes represented as an [`i64`] value, such as in
-/// the [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+/// the [`DateTime.FromFileTimeUtc`] method or the [`DateTime.ToFileTimeUtc`]
 /// method in [.NET].
 ///
 /// Therefore, if you want the process to succeed in more environments, it is
