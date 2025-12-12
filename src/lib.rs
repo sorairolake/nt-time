@@ -25,24 +25,24 @@
 //! ## Basic usage
 //!
 //! [`FileTime`] can be converted from and to a type which represents time such
-//! as [`time::OffsetDateTime`]. Addition and subtraction are also supported.
+//! as [`time::UtcDateTime`]. Addition and subtraction are also supported.
 //!
 //! ```
 //! use core::time::Duration;
 //!
 //! use nt_time::{
 //!     FileTime,
-//!     time::{OffsetDateTime, macros::datetime},
+//!     time::{UtcDateTime, macros::utc_datetime},
 //! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
-//!     OffsetDateTime::try_from(ft),
-//!     Ok(datetime!(1601-01-01 00:00:00 UTC))
+//!     UtcDateTime::try_from(ft),
+//!     Ok(utc_datetime!(1601-01-01 00:00:00))
 //! );
 //!
 //! let ft = ft + Duration::from_secs(11_644_473_600);
-//! assert_eq!(OffsetDateTime::try_from(ft), Ok(OffsetDateTime::UNIX_EPOCH));
+//! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
 //! // The practical largest file time.
@@ -59,13 +59,13 @@
 //! ```
 //! use core::time::Duration;
 //!
-//! use nt_time::{FileTime, time::OffsetDateTime};
+//! use nt_time::{FileTime, time::UtcDateTime};
 //!
 //! // `1970-01-01 00:00:00 UTC`.
 //! let ut = i64::default();
 //! assert_eq!(
-//!     OffsetDateTime::from_unix_timestamp(ut),
-//!     Ok(OffsetDateTime::UNIX_EPOCH)
+//!     UtcDateTime::from_unix_timestamp(ut),
+//!     Ok(UtcDateTime::UNIX_EPOCH)
 //! );
 //!
 //! let ft = FileTime::from_unix_time_secs(ut).unwrap();
@@ -82,16 +82,16 @@
 //! The formatting traits for [`FileTime`] are implemented to show the
 //! underlying [`u64`] value. If you need a human-readable date and time,
 //! convert [`FileTime`] to a type which represents time such as
-//! [`time::OffsetDateTime`].
+//! [`time::UtcDateTime`].
 //!
 //! ```
-//! use nt_time::{FileTime, time::OffsetDateTime};
+//! use nt_time::{FileTime, time::UtcDateTime};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");
 //!
-//! let dt = OffsetDateTime::try_from(ft).unwrap();
-//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00:00:00");
+//! let dt = UtcDateTime::try_from(ft).unwrap();
+//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00");
 //! ```
 //!
 //! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times

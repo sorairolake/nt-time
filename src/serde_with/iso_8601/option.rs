@@ -50,7 +50,7 @@
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::{OffsetDateTime, serde::iso8601};
+use time::{OffsetDateTime, UtcDateTime, serde::iso8601};
 
 use crate::FileTime;
 
@@ -64,9 +64,10 @@ use crate::FileTime;
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::option::serialize(
         &(*ft)
-            .map(OffsetDateTime::try_from)
+            .map(UtcDateTime::try_from)
             .transpose()
-            .map_err(S::Error::custom)?,
+            .map_err(S::Error::custom)?
+            .map(OffsetDateTime::from),
         serializer,
     )
 }
@@ -82,6 +83,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     iso8601::option::deserialize(deserializer)?
+        .map(UtcDateTime::from)
         .map(FileTime::try_from)
         .transpose()
         .map_err(D::Error::custom)

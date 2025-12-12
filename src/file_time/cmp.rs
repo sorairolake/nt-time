@@ -12,7 +12,7 @@ use std::time::SystemTime;
 use chrono::{DateTime, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
-use time::OffsetDateTime;
+use time::UtcDateTime;
 
 use super::FileTime;
 
@@ -32,18 +32,17 @@ impl PartialEq<SystemTime> for FileTime {
     }
 }
 
-impl PartialEq<FileTime> for OffsetDateTime {
+impl PartialEq<FileTime> for UtcDateTime {
     #[inline]
     fn eq(&self, other: &FileTime) -> bool {
-        self == &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`")
+        self == &Self::try_from(*other).expect("`other` is out of range for `UtcDateTime`")
     }
 }
 
-impl PartialEq<OffsetDateTime> for FileTime {
+impl PartialEq<UtcDateTime> for FileTime {
     #[inline]
-    fn eq(&self, other: &OffsetDateTime) -> bool {
-        &OffsetDateTime::try_from(*self).expect("`self` is out of range for `OffsetDateTime`")
-            == other
+    fn eq(&self, other: &UtcDateTime) -> bool {
+        &UtcDateTime::try_from(*self).expect("`self` is out of range for `UtcDateTime`") == other
     }
 }
 
@@ -95,20 +94,20 @@ impl PartialOrd<SystemTime> for FileTime {
     }
 }
 
-impl PartialOrd<FileTime> for OffsetDateTime {
+impl PartialOrd<FileTime> for UtcDateTime {
     #[inline]
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
         self.partial_cmp(
-            &Self::try_from(*other).expect("`other` is out of range for `OffsetDateTime`"),
+            &Self::try_from(*other).expect("`other` is out of range for `UtcDateTime`"),
         )
     }
 }
 
-impl PartialOrd<OffsetDateTime> for FileTime {
+impl PartialOrd<UtcDateTime> for FileTime {
     #[inline]
-    fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
-        OffsetDateTime::try_from(*self)
-            .expect("`self` is out of range for `OffsetDateTime`")
+    fn partial_cmp(&self, other: &UtcDateTime) -> Option<Ordering> {
+        UtcDateTime::try_from(*self)
+            .expect("`self` is out of range for `UtcDateTime`")
             .partial_cmp(other)
     }
 }
@@ -154,7 +153,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
-    use time::macros::datetime;
+    use time::macros::utc_datetime;
 
     use super::*;
 
@@ -212,37 +211,37 @@ mod tests {
     }
 
     #[test]
-    fn equality_offset_date_time_and_file_time() {
+    fn equality_utc_date_time_and_file_time() {
         assert_eq!(
-            datetime!(9999-12-31 23:59:59.999_999_900 UTC),
+            utc_datetime!(9999-12-31 23:59:59.999_999_900),
             FileTime::new(2_650_467_743_999_999_999)
         );
         assert_ne!(
-            datetime!(9999-12-31 23:59:59.999_999_900 UTC),
+            utc_datetime!(9999-12-31 23:59:59.999_999_900),
             FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            datetime!(1601-01-01 00:00:00 UTC),
+            utc_datetime!(1601-01-01 00:00:00),
             FileTime::new(2_650_467_743_999_999_999)
         );
-        assert_eq!(datetime!(1601-01-01 00:00:00 UTC), FileTime::NT_TIME_EPOCH);
+        assert_eq!(utc_datetime!(1601-01-01 00:00:00), FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
-    fn equality_file_time_and_offset_date_time() {
+    fn equality_file_time_and_utc_date_time() {
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999),
-            datetime!(9999-12-31 23:59:59.999_999_900 UTC)
+            utc_datetime!(9999-12-31 23:59:59.999_999_900)
         );
         assert_ne!(
             FileTime::NT_TIME_EPOCH,
-            datetime!(9999-12-31 23:59:59.999_999_900 UTC)
+            utc_datetime!(9999-12-31 23:59:59.999_999_900)
         );
         assert_ne!(
             FileTime::new(2_650_467_743_999_999_999),
-            datetime!(1601-01-01 00:00:00 UTC)
+            utc_datetime!(1601-01-01 00:00:00)
         );
-        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00:00 UTC));
+        assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
     }
 
     #[cfg(feature = "chrono")]
@@ -360,23 +359,23 @@ mod tests {
     }
 
     #[test]
-    fn order_offset_date_time_and_file_time() {
-        assert!(OffsetDateTime::UNIX_EPOCH < FileTime::new(2_650_467_743_999_999_999));
+    fn order_utc_date_time_and_file_time() {
+        assert!(UtcDateTime::UNIX_EPOCH < FileTime::new(2_650_467_743_999_999_999));
         assert_eq!(
-            OffsetDateTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
+            UtcDateTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(OffsetDateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+        assert!(UtcDateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[test]
-    fn order_file_time_and_offset_date_time() {
-        assert!(FileTime::UNIX_EPOCH < datetime!(9999-12-31 23:59:59.999_999_900 UTC));
+    fn order_file_time_and_utc_date_time() {
+        assert!(FileTime::UNIX_EPOCH < utc_datetime!(9999-12-31 23:59:59.999_999_900));
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&OffsetDateTime::UNIX_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&UtcDateTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(FileTime::UNIX_EPOCH > datetime!(1601-01-01 00:00:00 UTC));
+        assert!(FileTime::UNIX_EPOCH > utc_datetime!(1601-01-01 00:00:00));
     }
 
     #[cfg(feature = "chrono")]

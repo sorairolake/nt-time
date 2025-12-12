@@ -7,7 +7,7 @@
 //!
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-use time::{Date, OffsetDateTime, Time, error::ComponentRange};
+use time::{Date, Time, UtcDateTime, error::ComponentRange};
 
 use super::FileTime;
 use crate::error::{DosDateTimeRangeError, DosDateTimeRangeErrorKind};
@@ -70,7 +70,7 @@ impl FileTime {
     /// [FAT]: https://en.wikipedia.org/wiki/File_Allocation_Table
     /// [ZIP]: https://en.wikipedia.org/wiki/ZIP_(file_format)
     pub fn to_dos_date_time(self) -> Result<(u16, u16), DosDateTimeRangeError> {
-        let dt = OffsetDateTime::try_from(self).map_err(|_| DosDateTimeRangeErrorKind::Overflow)?;
+        let dt = UtcDateTime::try_from(self).map_err(|_| DosDateTimeRangeErrorKind::Overflow)?;
 
         match dt.year() {
             ..=1979 => Err(DosDateTimeRangeErrorKind::Negative.into()),
@@ -161,7 +161,7 @@ impl FileTime {
         );
         let time = Time::from_hms(hour, minute, second)?;
 
-        let ft = OffsetDateTime::new_utc(date, time)
+        let ft = UtcDateTime::new(date, time)
             .try_into()
             .expect("MS-DOS date and time should be in the range of `FileTime`");
         Ok(ft)

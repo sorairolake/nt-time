@@ -28,6 +28,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 === Changed
 
 * Change the error message ({pull-request-url}/391[#391])
+* Replace `time::OffsetDateTime` with `time::UtcDateTime`
+  ({pull-request-url}/394[#394])
 
 == {compare-url}/v0.12.0\...v0.12.1[0.12.1] - 2025-08-02
 

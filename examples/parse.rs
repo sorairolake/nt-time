@@ -11,7 +11,7 @@ use clap::{Parser, ValueEnum};
 use nt_time::{
     FileTime,
     time::{
-        OffsetDateTime,
+        UtcDateTime,
         error::Parse,
         format_description::well_known::{Iso8601, Rfc2822, Rfc3339},
     },
@@ -52,10 +52,10 @@ enum Format {
 }
 
 #[derive(Clone, Debug)]
-struct DateTime(OffsetDateTime);
+struct DateTime(UtcDateTime);
 
 impl Deref for DateTime {
-    type Target = OffsetDateTime;
+    type Target = UtcDateTime;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -66,9 +66,9 @@ impl FromStr for DateTime {
     type Err = Parse;
 
     fn from_str(dt: &str) -> Result<Self, Self::Err> {
-        OffsetDateTime::parse(dt, &Iso8601::DEFAULT)
-            .or_else(|_| OffsetDateTime::parse(dt, &Rfc2822))
-            .or_else(|_| OffsetDateTime::parse(dt, &Rfc3339))
+        UtcDateTime::parse(dt, &Iso8601::DEFAULT)
+            .or_else(|_| UtcDateTime::parse(dt, &Rfc2822))
+            .or_else(|_| UtcDateTime::parse(dt, &Rfc3339))
             .map(Self)
     }
 }

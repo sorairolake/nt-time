@@ -13,7 +13,7 @@ use std::time::SystemTime;
 use chrono::Utc;
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
-use nt_time::{FileTime, time::OffsetDateTime};
+use nt_time::{FileTime, time::UtcDateTime};
 use test::Bencher;
 
 #[bench]
@@ -33,8 +33,8 @@ fn from_file_time_to_system_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn try_from_file_time_to_offset_date_time(b: &mut Bencher) {
-    b.iter(|| OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
+fn try_from_file_time_to_utc_date_time(b: &mut Bencher) {
+    b.iter(|| UtcDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]
@@ -72,8 +72,8 @@ fn try_from_system_time_to_file_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn try_from_offset_date_time_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap());
+fn try_from_utc_date_time_to_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::try_from(UtcDateTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]

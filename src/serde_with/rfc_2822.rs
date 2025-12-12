@@ -38,7 +38,7 @@
 pub mod option;
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::serde::rfc2822;
+use time::{OffsetDateTime, UtcDateTime, serde::rfc2822};
 
 use crate::FileTime;
 
@@ -50,7 +50,12 @@ use crate::FileTime;
 /// [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 #[inline]
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    rfc2822::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
+    rfc2822::serialize(
+        &UtcDateTime::try_from(*ft)
+            .map(OffsetDateTime::from)
+            .map_err(S::Error::custom)?,
+        serializer,
+    )
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -61,7 +66,8 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 /// [RFC 2822 representation]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 #[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::try_from(rfc2822::deserialize(deserializer)?).map_err(D::Error::custom)
+    FileTime::try_from(rfc2822::deserialize(deserializer).map(UtcDateTime::from)?)
+        .map_err(D::Error::custom)
 }
 
 #[cfg(test)]

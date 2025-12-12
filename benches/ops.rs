@@ -14,7 +14,7 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::{Timestamp, ToSpan};
-use nt_time::{FileTime, time::macros::datetime};
+use nt_time::{FileTime, time::macros::utc_datetime};
 use test::Bencher;
 
 #[bench]
@@ -139,13 +139,13 @@ fn sub_system_time_from_file_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn sub_file_time_from_offset_date_time(b: &mut Bencher) {
-    b.iter(|| datetime!(9999-12-31 23:59:59.999_999_900 UTC) - FileTime::NT_TIME_EPOCH);
+fn sub_file_time_from_utc_date_time(b: &mut Bencher) {
+    b.iter(|| utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH);
 }
 
 #[bench]
-fn sub_offset_date_time_from_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00:00 UTC));
+fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00));
 }
 
 #[cfg(feature = "chrono")]
