@@ -52,7 +52,7 @@ std = [
   "dos-date-time?/std",
   "jiff?/std",
   "rand?/std",
-  "time/std"
+  "time/std",
 ]
 
 [lints.clippy]
