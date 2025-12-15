@@ -18,7 +18,6 @@ use core::{
 pub struct DosDateTimeRangeError(DosDateTimeRangeErrorKind);
 
 impl DosDateTimeRangeError {
-    #[inline]
     pub(crate) const fn new(kind: DosDateTimeRangeErrorKind) -> Self {
         Self(kind)
     }
@@ -37,14 +36,12 @@ impl DosDateTimeRangeError {
     /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn kind(&self) -> DosDateTimeRangeErrorKind {
         self.0
     }
 }
 
 impl fmt::Display for DosDateTimeRangeError {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.kind().fmt(f)
     }
@@ -53,7 +50,6 @@ impl fmt::Display for DosDateTimeRangeError {
 impl Error for DosDateTimeRangeError {}
 
 impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
-    #[inline]
     fn from(kind: DosDateTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -76,7 +72,6 @@ pub enum DosDateTimeRangeErrorKind {
 }
 
 impl fmt::Display for DosDateTimeRangeErrorKind {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Negative => write!(f, "MS-DOS date and time are before `1980-01-01 00:00:00`"),
@@ -92,7 +87,6 @@ impl fmt::Display for DosDateTimeRangeErrorKind {
 pub struct FileTimeRangeError(FileTimeRangeErrorKind);
 
 impl FileTimeRangeError {
-    #[inline]
     pub(crate) const fn new(kind: FileTimeRangeErrorKind) -> Self {
         Self(kind)
     }
@@ -111,14 +105,12 @@ impl FileTimeRangeError {
     /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn kind(&self) -> FileTimeRangeErrorKind {
         self.0
     }
 }
 
 impl fmt::Display for FileTimeRangeError {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.kind().fmt(f)
     }
@@ -127,7 +119,6 @@ impl fmt::Display for FileTimeRangeError {
 impl Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
-    #[inline]
     fn from(kind: FileTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -149,7 +140,6 @@ pub enum FileTimeRangeErrorKind {
 }
 
 impl fmt::Display for FileTimeRangeErrorKind {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Negative => write!(f, "file time is before `1601-01-01 00:00:00 UTC`"),
@@ -167,14 +157,12 @@ impl fmt::Display for FileTimeRangeErrorKind {
 pub struct ParseFileTimeError(ParseIntError);
 
 impl ParseFileTimeError {
-    #[inline]
     pub(crate) const fn new(inner: ParseIntError) -> Self {
         Self(inner)
     }
 }
 
 impl fmt::Display for ParseFileTimeError {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
         if inner.kind() == &IntErrorKind::PosOverflow {
@@ -189,7 +177,6 @@ impl fmt::Display for ParseFileTimeError {
 }
 
 impl Error for ParseFileTimeError {
-    #[inline]
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.0)
     }

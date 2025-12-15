@@ -60,7 +60,6 @@ use crate::FileTime;
 /// This serializes using the well-known [ISO 8601 format].
 ///
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::option::serialize(
         &(*ft)
@@ -78,7 +77,6 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 /// This deserializes from its [ISO 8601 representation].
 ///
 /// [ISO 8601 representation]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

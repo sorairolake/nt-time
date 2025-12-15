@@ -46,8 +46,6 @@ impl FileTime {
     ///
     /// assert_eq!(FileTime::MAX.checked_add(Duration::from_nanos(100)), None);
     /// ```
-    #[must_use]
-    #[inline]
     pub fn checked_add(self, rhs: Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
         self.to_raw().checked_add(duration).map(Self::new)
@@ -83,8 +81,6 @@ impl FileTime {
     ///     None
     /// );
     /// ```
-    #[must_use]
-    #[inline]
     pub fn checked_sub(self, rhs: Duration) -> Option<Self> {
         let duration = u64::try_from(rhs.as_nanos() / 100).ok()?;
         self.to_raw().checked_sub(duration).map(Self::new)
@@ -120,7 +116,6 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
-    #[inline]
     pub fn saturating_add(self, rhs: Duration) -> Self {
         self.checked_add(rhs).unwrap_or(Self::MAX)
     }
@@ -156,7 +151,6 @@ impl FileTime {
     /// );
     /// ```
     #[must_use]
-    #[inline]
     pub fn saturating_sub(self, rhs: Duration) -> Self {
         self.checked_sub(rhs).unwrap_or_default()
     }
@@ -165,7 +159,6 @@ impl FileTime {
 impl Add<Duration> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn add(self, rhs: Duration) -> Self::Output {
         self.checked_add(rhs)
             .expect("overflow when adding duration to date and time")
@@ -175,7 +168,6 @@ impl Add<Duration> for FileTime {
 impl Add<time::Duration> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn add(self, rhs: time::Duration) -> Self::Output {
         if rhs.is_positive() {
             self + rhs.unsigned_abs()
@@ -189,7 +181,6 @@ impl Add<time::Duration> for FileTime {
 impl Add<TimeDelta> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn add(self, rhs: TimeDelta) -> Self::Output {
         if rhs > TimeDelta::zero() {
             self + rhs.abs().to_std().expect("duration is less than zero")
@@ -203,7 +194,6 @@ impl Add<TimeDelta> for FileTime {
 impl Add<Span> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn add(self, rhs: Span) -> Self::Output {
         if rhs.is_positive() {
             self + Duration::try_from(rhs.abs()).expect("duration is less than zero")
@@ -214,14 +204,12 @@ impl Add<Span> for FileTime {
 }
 
 impl AddAssign<Duration> for FileTime {
-    #[inline]
     fn add_assign(&mut self, rhs: Duration) {
         *self = *self + rhs;
     }
 }
 
 impl AddAssign<time::Duration> for FileTime {
-    #[inline]
     fn add_assign(&mut self, rhs: time::Duration) {
         *self = *self + rhs;
     }
@@ -229,7 +217,6 @@ impl AddAssign<time::Duration> for FileTime {
 
 #[cfg(feature = "chrono")]
 impl AddAssign<TimeDelta> for FileTime {
-    #[inline]
     fn add_assign(&mut self, rhs: TimeDelta) {
         *self = *self + rhs;
     }
@@ -237,7 +224,6 @@ impl AddAssign<TimeDelta> for FileTime {
 
 #[cfg(feature = "jiff")]
 impl AddAssign<Span> for FileTime {
-    #[inline]
     fn add_assign(&mut self, rhs: Span) {
         *self = *self + rhs;
     }
@@ -246,7 +232,6 @@ impl AddAssign<Span> for FileTime {
 impl Sub for FileTime {
     type Output = Duration;
 
-    #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         let duration = self.to_raw() - rhs.to_raw();
         Self::Output::new(
@@ -260,7 +245,6 @@ impl Sub for FileTime {
 impl Sub<Duration> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn sub(self, rhs: Duration) -> Self::Output {
         self.checked_sub(rhs)
             .expect("overflow when subtracting duration from date and time")
@@ -270,7 +254,6 @@ impl Sub<Duration> for FileTime {
 impl Sub<time::Duration> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn sub(self, rhs: time::Duration) -> Self::Output {
         if rhs.is_positive() {
             self - rhs.unsigned_abs()
@@ -284,7 +267,6 @@ impl Sub<time::Duration> for FileTime {
 impl Sub<TimeDelta> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn sub(self, rhs: TimeDelta) -> Self::Output {
         if rhs > TimeDelta::zero() {
             self - rhs.abs().to_std().expect("duration is less than zero")
@@ -298,7 +280,6 @@ impl Sub<TimeDelta> for FileTime {
 impl Sub<Span> for FileTime {
     type Output = Self;
 
-    #[inline]
     fn sub(self, rhs: Span) -> Self::Output {
         if rhs.is_positive() {
             self - Duration::try_from(rhs.abs()).expect("duration is less than zero")
@@ -312,7 +293,6 @@ impl Sub<Span> for FileTime {
 impl Sub<FileTime> for SystemTime {
     type Output = Duration;
 
-    #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
         self.duration_since(rhs.into())
             .expect("RHS provided is later than LHS")
@@ -323,7 +303,6 @@ impl Sub<FileTime> for SystemTime {
 impl Sub<SystemTime> for FileTime {
     type Output = Duration;
 
-    #[inline]
     fn sub(self, rhs: SystemTime) -> Self::Output {
         SystemTime::from(self)
             .duration_since(rhs)
@@ -334,7 +313,6 @@ impl Sub<SystemTime> for FileTime {
 impl Sub<FileTime> for UtcDateTime {
     type Output = time::Duration;
 
-    #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
         self - Self::try_from(rhs).expect("RHS is out of range for `UtcDateTime`")
     }
@@ -343,7 +321,6 @@ impl Sub<FileTime> for UtcDateTime {
 impl Sub<UtcDateTime> for FileTime {
     type Output = time::Duration;
 
-    #[inline]
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
         UtcDateTime::try_from(self).expect("LHS is out of range for `UtcDateTime`") - rhs
     }
@@ -353,7 +330,6 @@ impl Sub<UtcDateTime> for FileTime {
 impl Sub<FileTime> for DateTime<Utc> {
     type Output = TimeDelta;
 
-    #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -363,7 +339,6 @@ impl Sub<FileTime> for DateTime<Utc> {
 impl Sub<DateTime<Utc>> for FileTime {
     type Output = TimeDelta;
 
-    #[inline]
     fn sub(self, rhs: DateTime<Utc>) -> Self::Output {
         DateTime::<Utc>::from(self) - rhs
     }
@@ -373,7 +348,6 @@ impl Sub<DateTime<Utc>> for FileTime {
 impl Sub<FileTime> for Timestamp {
     type Output = Span;
 
-    #[inline]
     fn sub(self, rhs: FileTime) -> Self::Output {
         self - Self::try_from(rhs).expect("RHS is out of range for `Timestamp`")
     }
@@ -383,21 +357,18 @@ impl Sub<FileTime> for Timestamp {
 impl Sub<Timestamp> for FileTime {
     type Output = Span;
 
-    #[inline]
     fn sub(self, rhs: Timestamp) -> Self::Output {
         Timestamp::try_from(self).expect("LHS is out of range for `Timestamp`") - rhs
     }
 }
 
 impl SubAssign<Duration> for FileTime {
-    #[inline]
     fn sub_assign(&mut self, rhs: Duration) {
         *self = *self - rhs;
     }
 }
 
 impl SubAssign<time::Duration> for FileTime {
-    #[inline]
     fn sub_assign(&mut self, rhs: time::Duration) {
         *self = *self - rhs;
     }
@@ -405,7 +376,6 @@ impl SubAssign<time::Duration> for FileTime {
 
 #[cfg(feature = "chrono")]
 impl SubAssign<TimeDelta> for FileTime {
-    #[inline]
     fn sub_assign(&mut self, rhs: TimeDelta) {
         *self = *self - rhs;
     }
@@ -413,7 +383,6 @@ impl SubAssign<TimeDelta> for FileTime {
 
 #[cfg(feature = "jiff")]
 impl SubAssign<Span> for FileTime {
-    #[inline]
     fn sub_assign(&mut self, rhs: Span) {
         *self = *self - rhs;
     }

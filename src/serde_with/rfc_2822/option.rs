@@ -53,7 +53,6 @@ use crate::FileTime;
 /// This serializes using the well-known [RFC 2822 format].
 ///
 /// [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
-#[inline]
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     rfc2822::option::serialize(
         &(*ft)
@@ -71,7 +70,6 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 /// This deserializes from its [RFC 2822 representation].
 ///
 /// [RFC 2822 representation]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

@@ -21,7 +21,6 @@ impl fmt::Display for FileTime {
     /// assert_eq!(format!("{}", FileTime::SIGNED_MAX), "9223372036854775807");
     /// assert_eq!(format!("{}", FileTime::MAX), "18446744073709551615");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -46,7 +45,6 @@ impl fmt::Octal for FileTime {
     /// );
     /// assert_eq!(format!("{:o}", FileTime::MAX), "1777777777777777777777");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -68,7 +66,6 @@ impl fmt::LowerHex for FileTime {
     /// );
     /// assert_eq!(format!("{:x}", FileTime::MAX), "ffffffffffffffff");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -90,7 +87,6 @@ impl fmt::UpperHex for FileTime {
     /// );
     /// assert_eq!(format!("{:X}", FileTime::MAX), "FFFFFFFFFFFFFFFF");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -118,7 +114,6 @@ impl fmt::Binary for FileTime {
     ///     "1111111111111111111111111111111111111111111111111111111111111111"
     /// );
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -143,7 +138,6 @@ impl fmt::LowerExp for FileTime {
     /// );
     /// assert_eq!(format!("{:e}", FileTime::MAX), "1.8446744073709551615e19");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }
@@ -168,7 +162,6 @@ impl fmt::UpperExp for FileTime {
     /// );
     /// assert_eq!(format!("{:E}", FileTime::MAX), "1.8446744073709551615E19");
     /// ```
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         u64::from(*self).fmt(f)
     }

@@ -81,7 +81,6 @@ impl FileTime {
     /// #
     /// let _ = FileTime::from_str_radix("0", 37);
     /// ```
-    #[inline]
     pub const fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseFileTimeError> {
         match u64::from_str_radix(src, radix) {
             Ok(ft) => Ok(Self::new(ft)),
@@ -138,7 +137,6 @@ impl FromStr for FileTime {
     ///
     /// assert!(FileTime::from_str("18446744073709551616").is_err());
     /// ```
-    #[inline]
     fn from_str(src: &str) -> Result<Self, Self::Err> {
         Self::from_str_radix(src, 10)
     }

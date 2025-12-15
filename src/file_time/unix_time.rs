@@ -41,7 +41,6 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     #[must_use]
-    #[inline]
     pub fn to_unix_time(self) -> (i64, u32) {
         let (secs, subsec_nanos) = (
             self.to_unix_time_secs(),
@@ -68,7 +67,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_secs(self) -> i64 {
         i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
             .expect("the number of seconds should be in the range of `i64`")
@@ -98,7 +96,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_millis(self) -> i64 {
         self.to_unix_time_nanos()
             .div_euclid(1_000_000)
@@ -132,7 +129,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_micros(self) -> i64 {
         self.to_unix_time_nanos()
             .div_euclid(1000)
@@ -165,7 +161,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_nanos(self) -> i128 {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
@@ -221,7 +216,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
-    #[inline]
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
         Self::from_unix_time_secs(secs).and_then(|ft| {
             ft.checked_add(Duration::from_nanos(nanos.into()))
@@ -263,7 +257,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         if secs <= 1_833_029_933_770 {
             u64::try_from(secs + 11_644_473_600)
@@ -309,7 +302,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_millis(millis: i64) -> Result<Self, FileTimeRangeError> {
         let nanos = i128::from(millis) * 1_000_000;
         Self::from_unix_time_nanos(nanos)
@@ -349,7 +341,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_micros(micros: i64) -> Result<Self, FileTimeRangeError> {
         let nanos = i128::from(micros) * 1000;
         Self::from_unix_time_nanos(nanos)
@@ -387,7 +378,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
         if nanos <= 1_833_029_933_770_955_161_500 {
             (nanos + 11_644_473_600_000_000_000)

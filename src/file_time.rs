@@ -86,7 +86,6 @@ impl FileTime {
     /// ```
     #[cfg(feature = "std")]
     #[must_use]
-    #[inline]
     pub fn now() -> Self {
         SystemTime::now()
             .try_into()
@@ -106,7 +105,6 @@ impl FileTime {
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn new(ft: u64) -> Self {
         Self(ft)
     }
@@ -124,7 +122,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_raw(self) -> u64 {
         self.0
     }
@@ -149,7 +146,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_be_bytes()
     }
@@ -174,7 +170,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_le_bytes()
     }
@@ -215,7 +210,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_ne_bytes()
     }
@@ -243,7 +237,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_be_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_be_bytes(bytes))
     }
@@ -271,7 +264,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_le_bytes(bytes))
     }
@@ -315,7 +307,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_ne_bytes(bytes))
     }
@@ -354,7 +345,6 @@ impl FileTime {
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
     /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
-    #[inline]
     pub const fn to_high_low(self) -> (u32, u32) {
         let raw = self.to_raw();
         ((raw >> u32::BITS) as u32, raw as u32)
@@ -393,7 +383,6 @@ impl FileTime {
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
     /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
-    #[inline]
     pub const fn from_high_low(high: u32, low: u32) -> Self {
         let raw = ((high as u64) << u32::BITS) | (low as u64);
         Self::new(raw)
@@ -413,7 +402,6 @@ impl Default for FileTime {
     /// #
     /// assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
     /// ```
-    #[inline]
     fn default() -> Self {
         Self::NT_TIME_EPOCH
     }

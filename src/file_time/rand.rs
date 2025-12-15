@@ -12,7 +12,6 @@ use rand::{
 use super::FileTime;
 
 impl Distribution<FileTime> for StandardUniform {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> FileTime {
         FileTime::new(rng.random())
     }

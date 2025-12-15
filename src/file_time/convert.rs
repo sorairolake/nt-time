@@ -37,7 +37,6 @@ impl From<FileTime> for u64 {
     /// assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
     /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     /// ```
-    #[inline]
     fn from(ft: FileTime) -> Self {
         ft.to_raw()
     }
@@ -74,7 +73,6 @@ impl TryFrom<FileTime> for i64 {
     /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
     /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
     /// [.NET]: https://dotnet.microsoft.com/
-    #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         ft.to_raw().try_into()
     }
@@ -104,7 +102,6 @@ impl From<FileTime> for SystemTime {
     ///     SystemTime::UNIX_EPOCH
     /// );
     /// ```
-    #[inline]
     fn from(ft: FileTime) -> Self {
         let duration = Duration::new(
             ft.to_raw() / FILE_TIMES_PER_SEC,
@@ -178,7 +175,6 @@ impl TryFrom<FileTime> for UtcDateTime {
     /// );
     /// # }
     /// ```
-    #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         Self::from_unix_timestamp_nanos(ft.to_unix_time_nanos())
     }
@@ -205,7 +201,6 @@ impl From<FileTime> for chrono::DateTime<Utc> {
     ///     DateTime::<Utc>::UNIX_EPOCH
     /// );
     /// ```
-    #[inline]
     fn from(ft: FileTime) -> Self {
         let ut = ft.to_unix_time();
         Self::from_timestamp(ut.0, ut.1)
@@ -239,7 +234,6 @@ impl TryFrom<FileTime> for Timestamp {
     ///
     /// assert!(Timestamp::try_from(FileTime::MAX).is_err());
     /// ```
-    #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         Self::from_nanosecond(ft.to_unix_time_nanos())
     }
@@ -276,7 +270,6 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     /// // After `2107-12-31 23:59:59.999999900 UTC`.
     /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     /// ```
-    #[inline]
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         let dt = ft.to_dos_date_time()?;
         let dt = Self::new(dt.0, dt.1).expect("MS-DOS date and time should be valid");
@@ -303,7 +296,6 @@ impl From<u64> for FileTime {
     /// assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
     /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     /// ```
-    #[inline]
     fn from(ft: u64) -> Self {
         Self::new(ft)
     }
@@ -340,7 +332,6 @@ impl TryFrom<i64> for FileTime {
     /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
     /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
     /// [.NET]: https://dotnet.microsoft.com/
-    #[inline]
     fn try_from(ft: i64) -> Result<Self, Self::Error> {
         ft.try_into()
             .map_err(|_| FileTimeRangeErrorKind::Negative.into())
@@ -388,7 +379,6 @@ impl TryFrom<SystemTime> for FileTime {
     ///         .is_err()
     /// );
     /// ```
-    #[inline]
     fn try_from(st: SystemTime) -> Result<Self, Self::Error> {
         let elapsed = st
             .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
@@ -451,7 +441,6 @@ impl TryFrom<UtcDateTime> for FileTime {
     /// );
     /// # }
     /// ```
-    #[inline]
     fn try_from(dt: UtcDateTime) -> Result<Self, Self::Error> {
         Self::from_unix_time_nanos(dt.unix_timestamp_nanos())
     }
@@ -503,7 +492,6 @@ impl TryFrom<chrono::DateTime<Utc>> for FileTime {
     ///     .is_err()
     /// );
     /// ```
-    #[inline]
     fn try_from(dt: chrono::DateTime<Utc>) -> Result<Self, Self::Error> {
         Self::from_unix_time(dt.timestamp(), dt.timestamp_subsec_nanos())
     }
@@ -539,7 +527,6 @@ impl TryFrom<Timestamp> for FileTime {
     ///         .is_err()
     /// );
     /// ```
-    #[inline]
     fn try_from(ts: Timestamp) -> Result<Self, Self::Error> {
         Self::from_unix_time_nanos(ts.as_nanosecond())
     }
@@ -565,7 +552,6 @@ impl From<dos_date_time::DateTime> for FileTime {
     ///     FileTime::new(159_992_927_980_000_000)
     /// );
     /// ```
-    #[inline]
     fn from(dt: dos_date_time::DateTime) -> Self {
         Self::from_dos_date_time(dt.date(), dt.time())
             .expect("MS-DOS date and time should be valid")

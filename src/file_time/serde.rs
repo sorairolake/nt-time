@@ -52,7 +52,6 @@ impl Serialize for FileTime {
     /// let json = serde_json::to_string(&ft).unwrap();
     /// assert_eq!(json, r#"{"time":null}"#);
     /// ```
-    #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_newtype_struct("FileTime", &self.to_raw())
     }
@@ -91,19 +90,16 @@ impl<'de> Deserialize<'de> for FileTime {
     /// let ft: Time = serde_json::from_str(r#"{"time":null}"#).unwrap();
     /// assert_eq!(ft.time, None);
     /// ```
-    #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct FileTimeVisitor;
 
         impl<'de> Visitor<'de> for FileTimeVisitor {
             type Value = FileTime;
 
-            #[inline]
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(formatter, "a newtype struct `FileTime`")
             }
 
-            #[inline]
             fn visit_newtype_struct<D: Deserializer<'de>>(
                 self,
                 deserializer: D,
