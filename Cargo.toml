@@ -39,7 +39,7 @@ test-strategy = "0.4.3"
 time = { version = "0.3.44", features = ["macros", "parsing"] }
 
 [features]
-default = ["std"]
+default = ["dos-date-time", "std"]
 chrono = ["dep:chrono"]
 dos-date-time = ["dep:dos-date-time"]
 jiff = ["dep:jiff"]

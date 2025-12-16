@@ -31,6 +31,13 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Replace `time::OffsetDateTime` with `time::UtcDateTime`
   ({pull-request-url}/394[#394])
 
+=== Removed
+
+* Remove `FileTime::to_dos_date_time` ({pull-request-url}/399[#399])
+* Remove `FileTime::from_dos_date_time` ({pull-request-url}/399[#399])
+* Remove `DosDateTimeRangeError` ({pull-request-url}/399[#399])
+* Remove `DosDateTimeRangeErrorKind` ({pull-request-url}/399[#399])
+
 == {compare-url}/v0.12.0\...v0.12.1[0.12.1] - 2025-08-02
 
 === Removed

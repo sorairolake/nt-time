@@ -76,7 +76,7 @@ impl FromStr for DateTime {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = FileTime::try_from(*opt.dt).context("could not convert time")?;
+    let ft = FileTime::try_from(*opt.dt).context("could not convert date and time")?;
     match opt.format {
         Format::Raw => println!("{}", ft.to_raw()),
         Format::BeBytes => println!("{:#04x?}", ft.to_be_bytes()),

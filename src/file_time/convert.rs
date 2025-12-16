@@ -10,6 +10,11 @@ use std::time::{Duration, SystemTime};
 
 #[cfg(feature = "chrono")]
 use chrono::Utc;
+#[cfg(feature = "dos-date-time")]
+use dos_date_time::{
+    error::{DateTimeRangeError, DateTimeRangeErrorKind},
+    time::PrimitiveDateTime,
+};
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
@@ -17,8 +22,6 @@ use time::{UtcDateTime, error::ComponentRange};
 #[cfg(feature = "std")]
 use super::FILE_TIMES_PER_SEC;
 use super::FileTime;
-#[cfg(feature = "dos-date-time")]
-use crate::error::DosDateTimeRangeError;
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl From<FileTime> for u64 {
@@ -241,7 +244,7 @@ impl TryFrom<FileTime> for Timestamp {
 
 #[cfg(feature = "dos-date-time")]
 impl TryFrom<FileTime> for dos_date_time::DateTime {
-    type Error = DosDateTimeRangeError;
+    type Error = DateTimeRangeError;
 
     /// Converts a `FileTime` to a [`dos_date_time::DateTime`].
     ///
@@ -271,9 +274,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        let dt = ft.to_dos_date_time()?;
-        let dt = Self::new(dt.0, dt.1).expect("MS-DOS date and time should be valid");
-        Ok(dt)
+        let dt = UtcDateTime::try_from(ft).map_err(|_| DateTimeRangeErrorKind::Overflow)?;
+        Self::from_date_time(dt.date(), dt.time())
     }
 }
 
@@ -553,8 +555,8 @@ impl From<dos_date_time::DateTime> for FileTime {
     /// );
     /// ```
     fn from(dt: dos_date_time::DateTime) -> Self {
-        Self::from_dos_date_time(dt.date(), dt.time())
-            .expect("MS-DOS date and time should be valid")
+        let dt = PrimitiveDateTime::from(dt).as_utc();
+        Self::try_from(dt).expect("date and time should be in the range of `FileTime`")
     }
 }
 
@@ -571,8 +573,6 @@ mod tests {
     use time::macros::utc_datetime;
 
     use super::*;
-    #[cfg(feature = "dos-date-time")]
-    use crate::error::DosDateTimeRangeErrorKind;
 
     #[test]
     fn from_file_time_to_u64() {
@@ -756,12 +756,12 @@ mod tests {
         // `1979-12-31 23:59:58 UTC`.
         assert_eq!(
             dos_date_time::DateTime::try_from(FileTime::new(119_600_063_980_000_000)).unwrap_err(),
-            DosDateTimeRangeErrorKind::Negative.into()
+            DateTimeRangeErrorKind::Negative.into()
         );
         // `1979-12-31 23:59:59 UTC`.
         assert_eq!(
             dos_date_time::DateTime::try_from(FileTime::new(119_600_063_990_000_000)).unwrap_err(),
-            DosDateTimeRangeErrorKind::Negative.into()
+            DateTimeRangeErrorKind::Negative.into()
         );
     }
 
@@ -810,7 +810,7 @@ mod tests {
         // `2108-01-01 00:00:00 UTC`.
         assert_eq!(
             dos_date_time::DateTime::try_from(FileTime::new(159_992_928_000_000_000)).unwrap_err(),
-            DosDateTimeRangeErrorKind::Overflow.into()
+            DateTimeRangeErrorKind::Overflow.into()
         );
     }
 

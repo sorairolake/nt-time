@@ -36,7 +36,7 @@ Enables the [`chrono`] crate.
 
 #### `dos-date-time`
 
-Enables the [`dos-date-time`] crate.
+Enables the [`dos-date-time`] crate. This is enabled by default.
 
 #### `jiff`
 

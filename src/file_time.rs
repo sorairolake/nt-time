@@ -9,7 +9,6 @@
 mod cmp;
 mod consts;
 mod convert;
-mod dos_date_time;
 mod fmt;
 mod ops;
 #[cfg(feature = "rand")]
