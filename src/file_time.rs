@@ -4,12 +4,11 @@
 
 //! A [Windows file time].
 //!
-//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 
 mod cmp;
 mod consts;
 mod convert;
-mod dos_date_time;
 mod fmt;
 mod ops;
 #[cfg(feature = "rand")]
@@ -20,6 +19,11 @@ mod str;
 mod unix_time;
 
 use core::mem;
+#[cfg(feature = "std")]
+use std::time::SystemTime;
+
+#[cfg(test)]
+use proptest_derive::Arbitrary;
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
@@ -27,7 +31,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as [NTFS] and [7z]. Windows uses a file time
+/// and is used as timestamps such as [NTFS] or [7z]. Windows uses a file time
 /// to record when an application creates, accesses, or writes to a file.
 ///
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
@@ -44,14 +48,14 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// </div>
 ///
 /// Also, the file time is sometimes represented as an [`i64`] value, such as in
-/// the [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+/// the [`DateTime.FromFileTimeUtc`] method or the [`DateTime.ToFileTimeUtc`]
 /// method in [.NET].
 ///
 /// Therefore, if you want the process to succeed in more environments, it is
 /// generally recommended that you use [`FileTime::SIGNED_MAX`] as the largest
 /// value instead of [`FileTime::MAX`].
 ///
-/// [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+/// [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
@@ -61,7 +65,8 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
 /// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(test, derive(proptest_derive::Arbitrary))]
+#[cfg_attr(test, derive(Arbitrary))]
+#[repr(transparent)]
 pub struct FileTime(u64);
 
 impl FileTime {
@@ -80,10 +85,7 @@ impl FileTime {
     /// ```
     #[cfg(feature = "std")]
     #[must_use]
-    #[inline]
     pub fn now() -> Self {
-        use std::time::SystemTime;
-
         SystemTime::now()
             .try_into()
             .expect("the current date and time should be in the range of the file time")
@@ -102,7 +104,6 @@ impl FileTime {
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn new(ft: u64) -> Self {
         Self(ft)
     }
@@ -120,7 +121,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_raw(self) -> u64 {
         self.0
     }
@@ -145,7 +145,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_be_bytes()
     }
@@ -170,7 +169,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_le_bytes()
     }
@@ -211,7 +209,6 @@ impl FileTime {
     /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
         self.to_raw().to_ne_bytes()
     }
@@ -239,7 +236,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_be_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_be_bytes(bytes))
     }
@@ -267,7 +263,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_le_bytes(bytes))
     }
@@ -311,7 +306,6 @@ impl FileTime {
     /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
         Self::new(u64::from_ne_bytes(bytes))
     }
@@ -350,7 +344,6 @@ impl FileTime {
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
     /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
-    #[inline]
     pub const fn to_high_low(self) -> (u32, u32) {
         let raw = self.to_raw();
         ((raw >> u32::BITS) as u32, raw as u32)
@@ -389,7 +382,6 @@ impl FileTime {
     /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
     /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
-    #[inline]
     pub const fn from_high_low(high: u32, low: u32) -> Self {
         let raw = ((high as u64) << u32::BITS) | (low as u64);
         Self::new(raw)
@@ -409,7 +401,6 @@ impl Default for FileTime {
     /// #
     /// assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
     /// ```
-    #[inline]
     fn default() -> Self {
         Self::NT_TIME_EPOCH
     }
@@ -417,12 +408,27 @@ impl Default for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use std::{
+        collections::hash_map::DefaultHasher,
+        hash::{Hash, Hasher},
+    };
+
+    #[cfg(feature = "std")]
+    use proptest::prop_assert_eq;
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     #[test]
     fn size_of() {
-        assert_eq!(mem::size_of::<FileTime>(), 8);
         assert_eq!(mem::size_of::<FileTime>(), mem::size_of::<u64>());
+    }
+
+    #[test]
+    fn align_of() {
+        assert_eq!(mem::align_of::<FileTime>(), mem::align_of::<u64>());
     }
 
     #[test]
@@ -440,11 +446,6 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn hash() {
-        use std::{
-            collections::hash_map::DefaultHasher,
-            hash::{Hash, Hasher},
-        };
-
         assert_ne!(
             {
                 let mut hasher = DefaultHasher::new();
@@ -508,10 +509,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_be_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_be_bytes(), ft.to_raw().to_be_bytes());
     }
 
@@ -535,10 +534,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_le_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
     }
 
@@ -570,10 +567,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_ne_bytes_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(ft.to_ne_bytes(), ft.to_raw().to_ne_bytes());
     }
 
@@ -600,10 +595,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_be_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_be_bytes(bytes),
             FileTime::new(u64::from_be_bytes(bytes))
@@ -633,10 +626,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_le_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_le_bytes(bytes),
             FileTime::new(u64::from_le_bytes(bytes))
@@ -674,10 +665,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_ne_bytes_roundtrip(bytes: [u8; mem::size_of::<FileTime>()]) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_ne_bytes(bytes),
             FileTime::new(u64::from_ne_bytes(bytes))
@@ -704,10 +693,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_high_low_roundtrip(ft: FileTime) {
-        use proptest::prop_assert_eq;
-
         let raw = ft.to_raw();
         prop_assert_eq!(ft.to_high_low(), ((raw >> u32::BITS) as u32, raw as u32));
     }
@@ -735,10 +722,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_high_low_roundtrip(high: u32, low: u32) {
-        use proptest::prop_assert_eq;
-
         let raw = (u64::from(high) << u32::BITS) | u64::from(low);
         prop_assert_eq!(FileTime::from_high_low(high, low), FileTime::new(raw));
     }

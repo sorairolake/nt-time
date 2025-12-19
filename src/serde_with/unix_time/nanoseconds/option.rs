@@ -52,7 +52,6 @@ use crate::FileTime;
 /// This serializes using [Unix time] in nanoseconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-#[inline]
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     ft.map(FileTime::to_unix_time_nanos).serialize(serializer)
 }
@@ -63,7 +62,6 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 /// This deserializes from its [Unix time] in nanoseconds.
 ///
 /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {

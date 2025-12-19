@@ -6,88 +6,74 @@
 
 extern crate test;
 
-use nt_time::{FileTime, time::macros::datetime};
+use core::time::Duration;
+#[cfg(feature = "std")]
+use std::time::SystemTime;
+
+#[cfg(feature = "chrono")]
+use chrono::{DateTime, TimeDelta, Utc};
+#[cfg(feature = "jiff")]
+use jiff::{Timestamp, ToSpan};
+use nt_time::{FileTime, time::macros::utc_datetime};
 use test::Bencher;
 
 #[bench]
 fn checked_add(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(100)));
 }
 
 #[bench]
 fn checked_sub(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::MAX.checked_sub(Duration::from_nanos(100)));
 }
 
 #[bench]
 fn saturating_add(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(100)));
 }
 
 #[bench]
 fn saturating_sub(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::MAX.saturating_sub(Duration::from_nanos(100)));
 }
 
 #[bench]
 fn add_std_duration(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::NT_TIME_EPOCH + Duration::from_nanos(100));
 }
 
 #[bench]
 fn add_positive_time_duration(b: &mut Bencher) {
-    use time::Duration;
-
-    b.iter(|| FileTime::NT_TIME_EPOCH + Duration::nanoseconds(100));
+    b.iter(|| FileTime::NT_TIME_EPOCH + time::Duration::nanoseconds(100));
 }
 
 #[bench]
 fn add_negative_time_duration(b: &mut Bencher) {
-    use time::Duration;
-
-    b.iter(|| FileTime::MAX + Duration::nanoseconds(-100));
+    b.iter(|| FileTime::MAX + -time::Duration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn add_positive_chrono_time_delta(b: &mut Bencher) {
-    use chrono::TimeDelta;
-
     b.iter(|| FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn add_negative_chrono_time_delta(b: &mut Bencher) {
-    use chrono::TimeDelta;
-
-    b.iter(|| FileTime::MAX + TimeDelta::nanoseconds(-100));
+    b.iter(|| FileTime::MAX + -TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn add_positive_jiff_span(b: &mut Bencher) {
-    use jiff::ToSpan;
-
     b.iter(|| FileTime::NT_TIME_EPOCH + 100.nanoseconds());
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn add_negative_jiff_span(b: &mut Bencher) {
-    use jiff::ToSpan;
-
-    b.iter(|| FileTime::MAX + (-100).nanoseconds());
+    b.iter(|| FileTime::MAX + -(100.nanoseconds()));
 }
 
 #[bench]
@@ -97,62 +83,46 @@ fn sub_file_time(b: &mut Bencher) {
 
 #[bench]
 fn sub_std_duration(b: &mut Bencher) {
-    use core::time::Duration;
-
     b.iter(|| FileTime::MAX - Duration::from_nanos(100));
 }
 
 #[bench]
 fn sub_positive_time_duration(b: &mut Bencher) {
-    use time::Duration;
-
-    b.iter(|| FileTime::MAX - Duration::nanoseconds(100));
+    b.iter(|| FileTime::MAX - time::Duration::nanoseconds(100));
 }
 
 #[bench]
 fn sub_negative_time_duration(b: &mut Bencher) {
-    use time::Duration;
-
-    b.iter(|| FileTime::NT_TIME_EPOCH - Duration::nanoseconds(-100));
+    b.iter(|| FileTime::NT_TIME_EPOCH - -time::Duration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_positive_chrono_time_delta(b: &mut Bencher) {
-    use chrono::TimeDelta;
-
     b.iter(|| FileTime::MAX - TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_negative_chrono_time_delta(b: &mut Bencher) {
-    use chrono::TimeDelta;
-
-    b.iter(|| FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(-100));
+    b.iter(|| FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_positive_jiff_span(b: &mut Bencher) {
-    use jiff::ToSpan;
-
     b.iter(|| FileTime::MAX - 100.nanoseconds());
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_negative_jiff_span(b: &mut Bencher) {
-    use jiff::ToSpan;
-
-    b.iter(|| FileTime::NT_TIME_EPOCH - (-100).nanoseconds());
+    b.iter(|| FileTime::NT_TIME_EPOCH - -(100.nanoseconds()));
 }
 
 #[cfg(feature = "std")]
 #[bench]
 fn sub_file_time_from_system_time(b: &mut Bencher) {
-    use std::time::{Duration, SystemTime};
-
     b.iter(|| {
         (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
             - FileTime::new(9_223_372_036_854_775_806)
@@ -162,8 +132,6 @@ fn sub_file_time_from_system_time(b: &mut Bencher) {
 #[cfg(feature = "std")]
 #[bench]
 fn sub_system_time_from_file_time(b: &mut Bencher) {
-    use std::time::{Duration, SystemTime};
-
     b.iter(|| {
         FileTime::new(9_223_372_036_854_775_807)
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
@@ -171,20 +139,18 @@ fn sub_system_time_from_file_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn sub_file_time_from_offset_date_time(b: &mut Bencher) {
-    b.iter(|| datetime!(9999-12-31 23:59:59.999_999_900 UTC) - FileTime::NT_TIME_EPOCH);
+fn sub_file_time_from_utc_date_time(b: &mut Bencher) {
+    b.iter(|| utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH);
 }
 
 #[bench]
-fn sub_offset_date_time_from_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - datetime!(1601-01-01 00:00 UTC));
+fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00));
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_file_time_from_chrono_date_time(b: &mut Bencher) {
-    use chrono::{DateTime, Utc};
-
     b.iter(|| {
         "+60056-05-28 05:36:10.955161500 UTC"
             .parse::<DateTime<Utc>>()
@@ -196,24 +162,18 @@ fn sub_file_time_from_chrono_date_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_chrono_date_time_from_file_time(b: &mut Bencher) {
-    use chrono::{DateTime, Utc};
-
     b.iter(|| FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
-    use jiff::{Timestamp, ToSpan};
-
     b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
-    use jiff::Timestamp;
-
     b.iter(|| {
         FileTime::new(2_650_466_808_009_999_999) - Timestamp::from_second(-11_644_473_600).unwrap()
     });

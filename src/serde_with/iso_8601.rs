@@ -45,7 +45,7 @@
 pub mod option;
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::serde::iso8601;
+use time::{OffsetDateTime, UtcDateTime, serde::iso8601};
 
 use crate::FileTime;
 
@@ -55,9 +55,13 @@ use crate::FileTime;
 /// This serializes using the well-known [ISO 8601 format].
 ///
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
-    iso8601::serialize(&(*ft).try_into().map_err(S::Error::custom)?, serializer)
+    iso8601::serialize(
+        &UtcDateTime::try_from(*ft)
+            .map(OffsetDateTime::from)
+            .map_err(S::Error::custom)?,
+        serializer,
+    )
 }
 
 #[allow(clippy::missing_errors_doc)]
@@ -66,15 +70,15 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 /// This deserializes from its [ISO 8601 representation].
 ///
 /// [ISO 8601 representation]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::try_from(iso8601::deserialize(deserializer)?).map_err(D::Error::custom)
+    FileTime::try_from(iso8601::deserialize(deserializer).map(UtcDateTime::from)?)
+        .map_err(D::Error::custom)
 }
 
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_de_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -86,7 +90,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::NT_TIME_EPOCH,
             },
@@ -100,7 +104,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::UNIX_EPOCH,
             },
@@ -119,7 +123,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn serde_with_large_dates() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: FileTime::MAX,
             },
@@ -137,7 +141,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -147,14 +151,14 @@ mod tests {
                 Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
     }
 
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn deserialize_error_without_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -171,7 +175,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn deserialize_error_with_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -181,7 +185,7 @@ mod tests {
                 Token::BorrowedStr("+060056-05-28T05:36:10.955161600Z"),
                 Token::StructEnd,
             ],
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
     }
 

@@ -10,89 +10,12 @@ use core::{
     num::{IntErrorKind, ParseIntError},
 };
 
-/// The error type indicating that [MS-DOS date and time] was out of range.
-///
-/// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::module_name_repetitions)]
-pub struct DosDateTimeRangeError(DosDateTimeRangeErrorKind);
-
-impl DosDateTimeRangeError {
-    #[inline]
-    pub(crate) const fn new(kind: DosDateTimeRangeErrorKind) -> Self {
-        Self(kind)
-    }
-
-    /// Returns the corresponding [`DosDateTimeRangeErrorKind`] for this error.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::{FileTime, error::DosDateTimeRangeErrorKind};
-    /// #
-    /// let err = FileTime::NT_TIME_EPOCH.to_dos_date_time().unwrap_err();
-    /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Negative);
-    ///
-    /// let err = FileTime::MAX.to_dos_date_time().unwrap_err();
-    /// assert_eq!(err.kind(), DosDateTimeRangeErrorKind::Overflow);
-    /// ```
-    #[must_use]
-    #[inline]
-    pub const fn kind(&self) -> DosDateTimeRangeErrorKind {
-        self.0
-    }
-}
-
-impl fmt::Display for DosDateTimeRangeError {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.kind().fmt(f)
-    }
-}
-
-impl Error for DosDateTimeRangeError {}
-
-impl From<DosDateTimeRangeErrorKind> for DosDateTimeRangeError {
-    #[inline]
-    fn from(kind: DosDateTimeRangeErrorKind) -> Self {
-        Self::new(kind)
-    }
-}
-
-/// Details of the error that caused a [`DosDateTimeRangeError`].
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum DosDateTimeRangeErrorKind {
-    /// Value was negative.
-    ///
-    /// This means the date and time was before "1980-01-01 00:00:00".
-    Negative,
-
-    /// Value was too big to be represented as [MS-DOS date and time].
-    ///
-    /// This means the date and time was after "2107-12-31 23:59:58".
-    ///
-    /// [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
-    Overflow,
-}
-
-impl fmt::Display for DosDateTimeRangeErrorKind {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Negative => write!(f, "date and time is before `1980-01-01 00:00:00`"),
-            Self::Overflow => write!(f, "date and time is after `2107-12-31 23:59:58`"),
-        }
-    }
-}
-
 /// The error type indicating that a [`FileTime`](crate::FileTime) was out of
 /// range.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(clippy::module_name_repetitions)]
 pub struct FileTimeRangeError(FileTimeRangeErrorKind);
 
 impl FileTimeRangeError {
-    #[inline]
     pub(crate) const fn new(kind: FileTimeRangeErrorKind) -> Self {
         Self(kind)
     }
@@ -111,14 +34,12 @@ impl FileTimeRangeError {
     /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
-    #[inline]
     pub const fn kind(&self) -> FileTimeRangeErrorKind {
         self.0
     }
 }
 
 impl fmt::Display for FileTimeRangeError {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.kind().fmt(f)
     }
@@ -127,7 +48,6 @@ impl fmt::Display for FileTimeRangeError {
 impl Error for FileTimeRangeError {}
 
 impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
-    #[inline]
     fn from(kind: FileTimeRangeErrorKind) -> Self {
         Self::new(kind)
     }
@@ -138,24 +58,23 @@ impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
 pub enum FileTimeRangeErrorKind {
     /// Value was negative.
     ///
-    /// This means the date and time was before "1601-01-01 00:00:00 UTC".
+    /// This means the file time was before "1601-01-01 00:00:00 UTC".
     Negative,
 
     /// Value was too big to be represented as [`FileTime`](crate::FileTime).
     ///
-    /// This means the date and time was after "+60056-05-28 05:36:10.955161500
+    /// This means the file time was after "+60056-05-28 05:36:10.955161500
     /// UTC".
     Overflow,
 }
 
 impl fmt::Display for FileTimeRangeErrorKind {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Negative => write!(f, "date and time is before `1601-01-01 00:00:00 UTC`"),
+            Self::Negative => write!(f, "file time is before `1601-01-01 00:00:00 UTC`"),
             Self::Overflow => write!(
                 f,
-                "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+                "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
             ),
         }
     }
@@ -163,24 +82,21 @@ impl fmt::Display for FileTimeRangeErrorKind {
 
 /// An error which can be returned when parsing a [`FileTime`](crate::FileTime).
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[allow(clippy::module_name_repetitions)]
 pub struct ParseFileTimeError(ParseIntError);
 
 impl ParseFileTimeError {
-    #[inline]
     pub(crate) const fn new(inner: ParseIntError) -> Self {
         Self(inner)
     }
 }
 
 impl fmt::Display for ParseFileTimeError {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let inner = &self.0;
         if inner.kind() == &IntErrorKind::PosOverflow {
             write!(
                 f,
-                "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+                "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
             )
         } else {
             inner.fmt(f)
@@ -189,7 +105,6 @@ impl fmt::Display for ParseFileTimeError {
 }
 
 impl Error for ParseFileTimeError {
-    #[inline]
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.0)
     }
@@ -200,204 +115,6 @@ mod tests {
     use core::str::FromStr;
 
     use super::*;
-
-    #[test]
-    fn clone_dos_date_time_range_error() {
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative).clone(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow).clone(),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-        );
-    }
-
-    #[test]
-    fn copy_dos_date_time_range_error() {
-        {
-            let a = DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative);
-            let b = a;
-            assert_eq!(a, b);
-        }
-
-        {
-            let a = DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow);
-            let b = a;
-            assert_eq!(a, b);
-        }
-    }
-
-    #[test]
-    fn debug_dos_date_time_range_error() {
-        assert_eq!(
-            format!(
-                "{:?}",
-                DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-            ),
-            "DosDateTimeRangeError(Negative)"
-        );
-        assert_eq!(
-            format!(
-                "{:?}",
-                DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-            ),
-            "DosDateTimeRangeError(Overflow)"
-        );
-    }
-
-    #[test]
-    fn dos_date_time_range_error_equality() {
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
-        assert_ne!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-        );
-        assert_ne!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-        );
-    }
-
-    #[test]
-    fn kind_dos_date_time_range_error() {
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative).kind(),
-            DosDateTimeRangeErrorKind::Negative
-        );
-        assert_eq!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow).kind(),
-            DosDateTimeRangeErrorKind::Overflow
-        );
-    }
-
-    #[test]
-    const fn kind_dos_date_time_range_error_is_const_fn() {
-        const _: DosDateTimeRangeErrorKind =
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative).kind();
-    }
-
-    #[test]
-    fn display_dos_date_time_range_error() {
-        assert_eq!(
-            format!(
-                "{}",
-                DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-            ),
-            "date and time is before `1980-01-01 00:00:00`"
-        );
-        assert_eq!(
-            format!(
-                "{}",
-                DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-            ),
-            "date and time is after `2107-12-31 23:59:58`"
-        );
-    }
-
-    #[test]
-    fn source_dos_date_time_range_error() {
-        assert!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-                .source()
-                .is_none()
-        );
-        assert!(
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-                .source()
-                .is_none()
-        );
-    }
-
-    #[test]
-    fn from_dos_date_time_range_error_kind_to_dos_date_time_range_error() {
-        assert_eq!(
-            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Negative),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Negative)
-        );
-        assert_eq!(
-            DosDateTimeRangeError::from(DosDateTimeRangeErrorKind::Overflow),
-            DosDateTimeRangeError::new(DosDateTimeRangeErrorKind::Overflow)
-        );
-    }
-
-    #[test]
-    fn clone_dos_date_time_range_error_kind() {
-        assert_eq!(
-            DosDateTimeRangeErrorKind::Negative.clone(),
-            DosDateTimeRangeErrorKind::Negative
-        );
-        assert_eq!(
-            DosDateTimeRangeErrorKind::Overflow.clone(),
-            DosDateTimeRangeErrorKind::Overflow
-        );
-    }
-
-    #[test]
-    fn copy_dos_date_time_range_error_kind() {
-        {
-            let a = DosDateTimeRangeErrorKind::Negative;
-            let b = a;
-            assert_eq!(a, b);
-        }
-
-        {
-            let a = DosDateTimeRangeErrorKind::Overflow;
-            let b = a;
-            assert_eq!(a, b);
-        }
-    }
-
-    #[test]
-    fn debug_dos_date_time_range_error_kind() {
-        assert_eq!(
-            format!("{:?}", DosDateTimeRangeErrorKind::Negative),
-            "Negative"
-        );
-        assert_eq!(
-            format!("{:?}", DosDateTimeRangeErrorKind::Overflow),
-            "Overflow"
-        );
-    }
-
-    #[test]
-    fn dos_date_time_range_error_kind_equality() {
-        assert_eq!(
-            DosDateTimeRangeErrorKind::Negative,
-            DosDateTimeRangeErrorKind::Negative
-        );
-        assert_ne!(
-            DosDateTimeRangeErrorKind::Negative,
-            DosDateTimeRangeErrorKind::Overflow
-        );
-        assert_ne!(
-            DosDateTimeRangeErrorKind::Overflow,
-            DosDateTimeRangeErrorKind::Negative
-        );
-        assert_eq!(
-            DosDateTimeRangeErrorKind::Overflow,
-            DosDateTimeRangeErrorKind::Overflow
-        );
-    }
-
-    #[test]
-    fn display_dos_date_time_range_error_kind() {
-        assert_eq!(
-            format!("{}", DosDateTimeRangeErrorKind::Negative),
-            "date and time is before `1980-01-01 00:00:00`"
-        );
-        assert_eq!(
-            format!("{}", DosDateTimeRangeErrorKind::Overflow),
-            "date and time is after `2107-12-31 23:59:58`"
-        );
-    }
 
     #[test]
     fn clone_file_time_range_error() {
@@ -489,14 +206,14 @@ mod tests {
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Negative)
             ),
-            "date and time is before `1601-01-01 00:00:00 UTC`"
+            "file time is before `1601-01-01 00:00:00 UTC`"
         );
         assert_eq!(
             format!(
                 "{}",
                 FileTimeRangeError::new(FileTimeRangeErrorKind::Overflow)
             ),
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
         );
     }
 
@@ -589,11 +306,11 @@ mod tests {
     fn display_file_time_range_error_kind() {
         assert_eq!(
             format!("{}", FileTimeRangeErrorKind::Negative),
-            "date and time is before `1601-01-01 00:00:00 UTC`"
+            "file time is before `1601-01-01 00:00:00 UTC`"
         );
         assert_eq!(
             format!("{}", FileTimeRangeErrorKind::Overflow),
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
         );
     }
 
@@ -683,7 +400,7 @@ mod tests {
                 "{}",
                 ParseFileTimeError::new(u64::from_str("18446744073709551616").unwrap_err())
             ),
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`"
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`"
         );
     }
 

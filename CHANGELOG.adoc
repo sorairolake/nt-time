@@ -14,6 +14,30 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
+== {compare-url}/v0.12.1\...v0.13.0[0.13.0] - 2025-12-19
+
+=== Added
+
+* Add `#[repr(transparent)]` to `FileTime` ({pull-request-url}/378[#378])
+* Add support for `dos-date-time` crate ({pull-request-url}/390[#390])
+* Add `TryFrom<FileTime>` for `dos_date_time::DateTime`
+  ({pull-request-url}/390[#390])
+* Add `From<dos_date_time::DateTime>` for `FileTime`
+  ({pull-request-url}/390[#390])
+
+=== Changed
+
+* Change the error message ({pull-request-url}/391[#391])
+* Replace `time::OffsetDateTime` with `time::UtcDateTime`
+  ({pull-request-url}/394[#394])
+
+=== Removed
+
+* Remove `FileTime::to_dos_date_time` ({pull-request-url}/399[#399])
+* Remove `FileTime::from_dos_date_time` ({pull-request-url}/399[#399])
+* Remove `DosDateTimeRangeError` ({pull-request-url}/399[#399])
+* Remove `DosDateTimeRangeErrorKind` ({pull-request-url}/399[#399])
+
 == {compare-url}/v0.12.0\...v0.12.1[0.12.1] - 2025-08-02
 
 === Removed

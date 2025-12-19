@@ -43,7 +43,7 @@
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::{OffsetDateTime, serde::rfc3339};
+use time::{OffsetDateTime, UtcDateTime, serde::rfc3339};
 
 use crate::FileTime;
 
@@ -53,13 +53,13 @@ use crate::FileTime;
 /// This serializes using the well-known [RFC 3339 format].
 ///
 /// [RFC 3339 format]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
-#[inline]
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     rfc3339::option::serialize(
         &(*ft)
-            .map(OffsetDateTime::try_from)
+            .map(UtcDateTime::try_from)
             .transpose()
-            .map_err(S::Error::custom)?,
+            .map_err(S::Error::custom)?
+            .map(OffsetDateTime::from),
         serializer,
     )
 }
@@ -70,11 +70,11 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 /// This deserializes from its [RFC 3339 representation].
 ///
 /// [RFC 3339 representation]: https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     rfc3339::option::deserialize(deserializer)?
+        .map(UtcDateTime::from)
         .map(FileTime::try_from)
         .transpose()
         .map_err(D::Error::custom)
@@ -83,7 +83,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -95,7 +95,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::NT_TIME_EPOCH),
             },
@@ -110,7 +110,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::UNIX_EPOCH),
             },
@@ -125,7 +125,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test { time: None },
             &[
                 Token::Struct {
@@ -142,7 +142,7 @@ mod tests {
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn serialize_error_without_large_dates() {
-        assert_ser_tokens_error::<Test>(
+        serde_test::assert_ser_tokens_error::<Test>(
             &Test {
                 time: Some(FileTime::MAX),
             },
@@ -160,7 +160,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn serialize_error_with_large_dates() {
-        assert_ser_tokens_error::<Test>(
+        serde_test::assert_ser_tokens_error::<Test>(
             &Test {
                 time: Some(FileTime::MAX),
             },
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -188,7 +188,7 @@ mod tests {
                 Token::BorrowedStr("1600-12-31T23:59:59.999999900Z"),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
     }
 

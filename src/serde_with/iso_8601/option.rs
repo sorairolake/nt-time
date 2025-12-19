@@ -50,7 +50,7 @@
 //! [`with`]: https://serde.rs/field-attrs.html#with
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::{OffsetDateTime, serde::iso8601};
+use time::{OffsetDateTime, UtcDateTime, serde::iso8601};
 
 use crate::FileTime;
 
@@ -60,13 +60,13 @@ use crate::FileTime;
 /// This serializes using the well-known [ISO 8601 format].
 ///
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::option::serialize(
         &(*ft)
-            .map(OffsetDateTime::try_from)
+            .map(UtcDateTime::try_from)
             .transpose()
-            .map_err(S::Error::custom)?,
+            .map_err(S::Error::custom)?
+            .map(OffsetDateTime::from),
         serializer,
     )
 }
@@ -77,11 +77,11 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
 /// This deserializes from its [ISO 8601 representation].
 ///
 /// [ISO 8601 representation]: https://www.iso.org/iso-8601-date-and-time-format.html
-#[inline]
 pub fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<FileTime>, D::Error> {
     iso8601::option::deserialize(deserializer)?
+        .map(UtcDateTime::from)
         .map(FileTime::try_from)
         .transpose()
         .map_err(D::Error::custom)
@@ -90,7 +90,7 @@ pub fn deserialize<'de, D: Deserializer<'de>>(
 #[cfg(test)]
 mod tests {
     use serde::{Deserialize, Serialize};
-    use serde_test::{Token, assert_de_tokens_error, assert_tokens};
+    use serde_test::Token;
 
     use super::*;
 
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn serde() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::NT_TIME_EPOCH),
             },
@@ -117,7 +117,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::UNIX_EPOCH),
             },
@@ -132,7 +132,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test { time: None },
             &[
                 Token::Struct {
@@ -149,7 +149,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn serde_with_large_dates() {
-        assert_tokens(
+        serde_test::assert_tokens(
             &Test {
                 time: Some(FileTime::MAX),
             },
@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn deserialize_error() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -179,14 +179,14 @@ mod tests {
                 Token::BorrowedStr("+001600-12-31T23:59:59.999999900Z"),
                 Token::StructEnd,
             ],
-            "date and time is before `1601-01-01 00:00:00 UTC`",
+            "file time is before `1601-01-01 00:00:00 UTC`",
         );
     }
 
     #[cfg(not(feature = "large-dates"))]
     #[test]
     fn deserialize_error_without_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -204,7 +204,7 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn deserialize_error_with_large_dates() {
-        assert_de_tokens_error::<Test>(
+        serde_test::assert_de_tokens_error::<Test>(
             &[
                 Token::Struct {
                     name: "Test",
@@ -215,7 +215,7 @@ mod tests {
                 Token::BorrowedStr("+060056-05-28T05:36:10.955161600Z"),
                 Token::StructEnd,
             ],
-            "date and time is after `+60056-05-28 05:36:10.955161500 UTC`",
+            "file time is after `+60056-05-28 05:36:10.955161500 UTC`",
         );
     }
 

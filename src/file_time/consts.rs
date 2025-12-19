@@ -16,9 +16,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, time::macros::datetime};
+    /// # use nt_time::{FileTime, time::macros::utc_datetime};
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
+    /// assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
     /// ```
     ///
     /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
@@ -32,9 +32,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, time::OffsetDateTime};
+    /// # use nt_time::{FileTime, time::UtcDateTime};
     /// #
-    /// assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
+    /// assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
@@ -51,7 +51,7 @@ impl FileTime {
     /// integer value, but many environments, such as the Win32 API, may limit
     /// the largest value to [`i64::MAX`], and the file time is sometimes
     /// represented as an [`i64`] value, such as in the
-    /// [`DateTime.FromFileTimeUtc`] method and the [`DateTime.ToFileTimeUtc`]
+    /// [`DateTime.FromFileTimeUtc`] method or the [`DateTime.ToFileTimeUtc`]
     /// method in [.NET], so if you want the process to succeed in more
     /// environments, it is generally recommended that you use this constant as
     /// the largest value instead of [`FileTime::MAX`].
@@ -72,11 +72,11 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{FileTime, time::macros::datetime};
+    /// # use nt_time::{FileTime, time::macros::utc_datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
-    ///     datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
+    ///     utc_datetime!(+30828-09-14 02:48:05.477_580_700)
     /// );
     /// # }
     /// ```
@@ -99,22 +99,22 @@ impl FileTime {
     ///
     /// Many environments, such as the Win32 API, may limit the largest file
     /// time to [`i64::MAX`], and the file time is sometimes represented as an
-    /// [`i64`] value, such as in the [`DateTime.FromFileTimeUtc`] method and
-    /// the [`DateTime.ToFileTimeUtc`] method in [.NET], so if you want the
-    /// process to succeed in more environments, it is generally recommended
-    /// that you use [`FileTime::SIGNED_MAX`] as the largest value instead of
-    /// this constant.
+    /// [`i64`] value, such as in the [`DateTime.FromFileTimeUtc`] method or the
+    /// [`DateTime.ToFileTimeUtc`] method in [.NET], so if you want the process
+    /// to succeed in more environments, it is generally recommended that you
+    /// use [`FileTime::SIGNED_MAX`] as the largest value instead of this
+    /// constant.
     ///
     /// # Examples
     ///
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{FileTime, time::macros::datetime};
+    /// # use nt_time::{FileTime, time::macros::utc_datetime};
     /// #
     /// assert_eq!(
     ///     FileTime::MAX,
-    ///     datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
+    ///     utc_datetime!(+60056-05-28 05:36:10.955_161_500)
     /// );
     /// # }
     /// ```
@@ -129,18 +129,18 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
-    use time::{OffsetDateTime, macros::datetime};
+    use time::{UtcDateTime, macros::utc_datetime};
 
     use super::*;
 
     #[test]
     fn nt_time_epoch() {
-        assert_eq!(FileTime::NT_TIME_EPOCH, datetime!(1601-01-01 00:00 UTC));
+        assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
     }
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(FileTime::UNIX_EPOCH, OffsetDateTime::UNIX_EPOCH);
+        assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
     }
 
     #[cfg(feature = "large-dates")]
@@ -148,7 +148,7 @@ mod tests {
     fn signed_max() {
         assert_eq!(
             FileTime::SIGNED_MAX,
-            datetime!(+30828-09-14 02:48:05.477_580_700 UTC)
+            utc_datetime!(+30828-09-14 02:48:05.477_580_700)
         );
     }
 
@@ -157,7 +157,7 @@ mod tests {
     fn max() {
         assert_eq!(
             FileTime::MAX,
-            datetime!(+60056-05-28 05:36:10.955_161_500 UTC)
+            utc_datetime!(+60056-05-28 05:36:10.955_161_500)
         );
     }
 }

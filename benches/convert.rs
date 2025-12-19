@@ -6,7 +6,14 @@
 
 extern crate test;
 
-use nt_time::{FileTime, time::OffsetDateTime};
+#[cfg(feature = "std")]
+use std::time::SystemTime;
+
+#[cfg(feature = "chrono")]
+use chrono::Utc;
+#[cfg(feature = "jiff")]
+use jiff::Timestamp;
+use nt_time::{FileTime, time::UtcDateTime};
 use test::Bencher;
 
 #[bench]
@@ -22,30 +29,30 @@ fn try_from_file_time_to_i64(b: &mut Bencher) {
 #[cfg(feature = "std")]
 #[bench]
 fn from_file_time_to_system_time(b: &mut Bencher) {
-    use std::time::SystemTime;
-
     b.iter(|| SystemTime::from(FileTime::UNIX_EPOCH));
 }
 
 #[bench]
-fn try_from_file_time_to_offset_date_time(b: &mut Bencher) {
-    b.iter(|| OffsetDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
+fn try_from_file_time_to_utc_date_time(b: &mut Bencher) {
+    b.iter(|| UtcDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn from_file_time_to_chrono_date_time(b: &mut Bencher) {
-    use chrono::{DateTime, Utc};
-
-    b.iter(|| DateTime::<Utc>::from(FileTime::UNIX_EPOCH));
+    b.iter(|| chrono::DateTime::<Utc>::from(FileTime::UNIX_EPOCH));
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn try_from_file_time_to_jiff_timestamp(b: &mut Bencher) {
-    use jiff::Timestamp;
-
     b.iter(|| Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap());
+}
+
+#[cfg(feature = "dos-date-time")]
+#[bench]
+fn try_from_file_time_to_dos_date_time(b: &mut Bencher) {
+    b.iter(|| dos_date_time::DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap());
 }
 
 #[bench]
@@ -61,28 +68,28 @@ fn try_from_i64_to_file_time(b: &mut Bencher) {
 #[cfg(feature = "std")]
 #[bench]
 fn try_from_system_time_to_file_time(b: &mut Bencher) {
-    use std::time::SystemTime;
-
     b.iter(|| FileTime::try_from(SystemTime::UNIX_EPOCH).unwrap());
 }
 
 #[bench]
-fn try_from_offset_date_time_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(OffsetDateTime::UNIX_EPOCH).unwrap());
+fn try_from_utc_date_time_to_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::try_from(UtcDateTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn try_from_chrono_date_time_to_file_time(b: &mut Bencher) {
-    use chrono::{DateTime, Utc};
-
-    b.iter(|| FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH).unwrap());
+    b.iter(|| FileTime::try_from(chrono::DateTime::<Utc>::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn try_from_jiff_timestamp_to_file_time(b: &mut Bencher) {
-    use jiff::Timestamp;
-
     b.iter(|| FileTime::try_from(Timestamp::UNIX_EPOCH).unwrap());
+}
+
+#[cfg(feature = "dos-date-time")]
+#[bench]
+fn from_dos_date_time_to_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::from(dos_date_time::DateTime::MIN));
 }

@@ -41,7 +41,6 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     #[must_use]
-    #[inline]
     pub fn to_unix_time(self) -> (i64, u32) {
         let (secs, subsec_nanos) = (
             self.to_unix_time_secs(),
@@ -68,7 +67,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_secs(self) -> i64 {
         i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
             .expect("the number of seconds should be in the range of `i64`")
@@ -98,7 +96,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_millis(self) -> i64 {
         self.to_unix_time_nanos()
             .div_euclid(1_000_000)
@@ -132,7 +129,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_micros(self) -> i64 {
         self.to_unix_time_nanos()
             .div_euclid(1000)
@@ -165,7 +161,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
-    #[inline]
     pub fn to_unix_time_nanos(self) -> i128 {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
@@ -221,7 +216,6 @@ impl FileTime {
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
-    #[inline]
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
         Self::from_unix_time_secs(secs).and_then(|ft| {
             ft.checked_add(Duration::from_nanos(nanos.into()))
@@ -263,7 +257,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         if secs <= 1_833_029_933_770 {
             u64::try_from(secs + 11_644_473_600)
@@ -309,7 +302,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_millis(millis: i64) -> Result<Self, FileTimeRangeError> {
         let nanos = i128::from(millis) * 1_000_000;
         Self::from_unix_time_nanos(nanos)
@@ -349,7 +341,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_micros(micros: i64) -> Result<Self, FileTimeRangeError> {
         let nanos = i128::from(micros) * 1000;
         Self::from_unix_time_nanos(nanos)
@@ -387,7 +378,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    #[inline]
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
         if nanos <= 1_833_029_933_770_955_161_500 {
             (nanos + 11_644_473_600_000_000_000)
@@ -403,6 +393,11 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use proptest::{prop_assert, prop_assert_eq};
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
+
     use super::*;
 
     const NANOS_PER_SEC: u32 = 1_000_000_000;
@@ -449,10 +444,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_unix_time_roundtrip(ft: u64) {
-        use proptest::prop_assert;
-
         let ts = FileTime::new(ft).to_unix_time();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts.0));
         prop_assert!(ts.1 < NANOS_PER_SEC);
@@ -512,10 +505,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_unix_time_secs_roundtrip(ft: u64) {
-        use proptest::prop_assert;
-
         let ts = FileTime::new(ft).to_unix_time_secs();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
     }
@@ -580,10 +571,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_unix_time_millis_roundtrip(ft: u64) {
-        use proptest::prop_assert;
-
         let ts = FileTime::new(ft).to_unix_time_millis();
         prop_assert!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
     }
@@ -654,10 +643,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_unix_time_micros_roundtrip(ft: u64) {
-        use proptest::prop_assert;
-
         let ts = FileTime::new(ft).to_unix_time_micros();
         prop_assert!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
     }
@@ -704,10 +691,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn to_unix_time_nanos_roundtrip(ft: u64) {
-        use proptest::prop_assert;
-
         let ts = FileTime::new(ft).to_unix_time_nanos();
         prop_assert!((-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500).contains(&ts));
     }
@@ -757,13 +742,11 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_601_i64)] secs: i64,
         nanos: u32,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time(secs, nanos).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -859,7 +842,7 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_roundtrip(
         #[strategy(-11_644_473_600..=1_833_029_933_770_i64)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
@@ -910,7 +893,7 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_with_too_big_date_time_roundtrip(
         #[strategy(1_833_029_933_770_i64..)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
@@ -940,12 +923,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_secs_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_601_i64)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_secs(ts).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -985,10 +966,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_secs_roundtrip(#[strategy(-11_644_473_600..=1_833_029_933_770_i64)] ts: i64) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::from_unix_time_secs(ts).is_ok());
     }
 
@@ -1005,12 +984,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_secs_with_too_big_date_time_roundtrip(
         #[strategy(1_833_029_933_771_i64..)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_secs(ts).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
@@ -1030,12 +1007,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_millis_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_600_001_i64)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_millis(ts).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -1075,12 +1050,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_millis_roundtrip(
         #[strategy(-11_644_473_600_000..=1_833_029_933_770_955_i64)] ts: i64,
     ) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::from_unix_time_millis(ts).is_ok());
     }
 
@@ -1097,12 +1070,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_millis_with_too_big_date_time_roundtrip(
         #[strategy(1_833_029_933_770_956_i64..)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_millis(ts).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
@@ -1122,12 +1093,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_micros_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_600_000_001_i64)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_micros(ts).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -1167,12 +1136,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_micros_roundtrip(
         #[strategy(-11_644_473_600_000_000..=1_833_029_933_770_955_161_i64)] ts: i64,
     ) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::from_unix_time_micros(ts).is_ok());
     }
 
@@ -1189,12 +1156,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_micros_with_too_big_date_time_roundtrip(
         #[strategy(1_833_029_933_770_955_162_i64..)] ts: i64,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_micros(ts).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
@@ -1222,12 +1187,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_nanos_before_nt_time_epoch_roundtrip(
         #[strategy(..=-11_644_473_600_000_000_001_i128)] ts: i128,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_nanos(ts).unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -1307,12 +1270,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_nanos_roundtrip(
         #[strategy(-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500_i128)] ts: i128,
     ) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::from_unix_time_nanos(ts).is_ok());
     }
 
@@ -1329,12 +1290,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_unix_time_nanos_with_too_big_date_time_roundtrip(
         #[strategy(1_833_029_933_770_955_161_501_i128..)] ts: i128,
     ) {
-        use proptest::prop_assert_eq;
-
         prop_assert_eq!(
             FileTime::from_unix_time_nanos(ts).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()

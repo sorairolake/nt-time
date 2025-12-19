@@ -7,42 +7,32 @@
 //! The [`FileTime`] is a type that represents the file time, which is a 64-bit
 //! unsigned integer value that represents the number of 100-nanosecond
 //! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used as
-//! timestamps such as [NTFS] and [7z]. Windows uses a file time to record when
+//! timestamps such as [NTFS] or [7z]. Windows uses a file time to record when
 //! an application creates, accesses, or writes to a file.
-//!
-//! <div class="warning">
-//!
-//! Note that many environments, such as the [Win32 API], may limit the largest
-//! value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
-//! equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
-//! when represented as an underlying integer value. This is the largest file
-//! time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
-//!
-//! </div>
 //!
 //! # Examples
 //!
 //! ## Basic usage
 //!
 //! [`FileTime`] can be converted from and to a type which represents time such
-//! as [`time::OffsetDateTime`]. Addition and subtraction are also supported.
+//! as [`time::UtcDateTime`]. Addition and subtraction are also supported.
 //!
 //! ```
 //! use core::time::Duration;
 //!
 //! use nt_time::{
 //!     FileTime,
-//!     time::{OffsetDateTime, macros::datetime},
+//!     time::{UtcDateTime, macros::utc_datetime},
 //! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
-//!     OffsetDateTime::try_from(ft),
-//!     Ok(datetime!(1601-01-01 00:00 UTC))
+//!     UtcDateTime::try_from(ft),
+//!     Ok(utc_datetime!(1601-01-01 00:00:00))
 //! );
 //!
 //! let ft = ft + Duration::from_secs(11_644_473_600);
-//! assert_eq!(OffsetDateTime::try_from(ft), Ok(OffsetDateTime::UNIX_EPOCH));
+//! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!
 //! // The practical largest file time.
@@ -56,25 +46,49 @@
 //! [`FileTime`] can be converted from and to other system times such as [Unix
 //! time] or [MS-DOS date and time].
 //!
-//! ```
-//! use core::time::Duration;
+//! ### Unix time
 //!
-//! use nt_time::{FileTime, time::OffsetDateTime};
+//! ```
+//! use nt_time::{
+//!     FileTime,
+//!     time::{UtcDateTime, macros::utc_datetime},
+//! };
 //!
 //! // `1970-01-01 00:00:00 UTC`.
-//! let ut = i64::default();
-//! assert_eq!(
-//!     OffsetDateTime::from_unix_timestamp(ut),
-//!     Ok(OffsetDateTime::UNIX_EPOCH)
-//! );
+//! let dt = UtcDateTime::UNIX_EPOCH;
+//! assert_eq!(dt, utc_datetime!(1970-01-01 00:00:00));
 //!
-//! let ft = FileTime::from_unix_time_secs(ut).unwrap();
+//! // Convert to a `FileTime`.
+//! let ft = FileTime::from_unix_time_secs(dt.unix_timestamp()).unwrap();
 //! assert_eq!(ft, FileTime::UNIX_EPOCH);
 //!
-//! // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
-//! let ft = ft + Duration::from_secs(315_532_800);
-//! let dos_dt = ft.to_dos_date_time();
-//! assert_eq!(dos_dt, Ok((0x0021, u16::MIN)));
+//! // Back to Unix time.
+//! let ut = ft.to_unix_time_secs();
+//! assert_eq!(ut, 0);
+//! ```
+//!
+//! ### MS-DOS date and time
+//!
+//! ```
+//! # #[cfg(feature = "dos-date-time")]
+//! # {
+//! use nt_time::{FileTime, dos_date_time::DateTime};
+//!
+//! // `1980-01-01 00:00:00`.
+//! let dt = DateTime::MIN;
+//! assert_eq!(dt.to_string(), "1980-01-01 00:00:00");
+//!
+//! // Convert to a `FileTime`.
+//! let ft = FileTime::from(dt);
+//! assert_eq!(ft, FileTime::new(119_600_064_000_000_000));
+//!
+//! // Back to MS-DOS date and time.
+//! let dt = DateTime::try_from(ft).unwrap();
+//! assert_eq!(
+//!     (dt.date().to_raw(), dt.time().to_raw()),
+//!     (0b0000_0000_0010_0001, u16::MIN)
+//! );
+//! # }
 //! ```
 //!
 //! ## Formatting and printing the file time
@@ -82,29 +96,27 @@
 //! The formatting traits for [`FileTime`] are implemented to show the
 //! underlying [`u64`] value. If you need a human-readable date and time,
 //! convert [`FileTime`] to a type which represents time such as
-//! [`time::OffsetDateTime`].
+//! [`time::UtcDateTime`].
 //!
 //! ```
-//! use nt_time::{FileTime, time::OffsetDateTime};
+//! use nt_time::{FileTime, time::UtcDateTime};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");
 //!
-//! let dt = OffsetDateTime::try_from(ft).unwrap();
-//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00:00:00");
+//! let dt = UtcDateTime::try_from(ft).unwrap();
+//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00");
 //! ```
 //!
-//! [Windows file time]: https://docs.microsoft.com/en-us/windows/win32/sysinfo/file-times
+//! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [NTFS]: https://en.wikipedia.org/wiki/NTFS
 //! [7z]: https://www.7-zip.org/7z.html
-//! [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
-//! [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.12.1/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.13.0/")]
 #![no_std]
-#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 // Lint levels of rustc.
 #![deny(missing_docs)]
 
@@ -121,6 +133,8 @@ pub mod serde_with;
 
 #[cfg(feature = "chrono")]
 pub use chrono;
+#[cfg(feature = "dos-date-time")]
+pub use dos_date_time;
 #[cfg(feature = "jiff")]
 pub use jiff;
 #[cfg(feature = "rand")]

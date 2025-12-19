@@ -11,7 +11,7 @@ use clap::{Parser, ValueEnum};
 use nt_time::{
     FileTime,
     time::{
-        OffsetDateTime,
+        UtcDateTime,
         error::Parse,
         format_description::well_known::{Iso8601, Rfc2822, Rfc3339},
     },
@@ -52,10 +52,10 @@ enum Format {
 }
 
 #[derive(Clone, Debug)]
-struct DateTime(OffsetDateTime);
+struct DateTime(UtcDateTime);
 
 impl Deref for DateTime {
-    type Target = OffsetDateTime;
+    type Target = UtcDateTime;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -65,10 +65,10 @@ impl Deref for DateTime {
 impl FromStr for DateTime {
     type Err = Parse;
 
-    fn from_str(dt: &str) -> Result<Self, Parse> {
-        OffsetDateTime::parse(dt, &Iso8601::DEFAULT)
-            .or_else(|_| OffsetDateTime::parse(dt, &Rfc2822))
-            .or_else(|_| OffsetDateTime::parse(dt, &Rfc3339))
+    fn from_str(dt: &str) -> Result<Self, Self::Err> {
+        UtcDateTime::parse(dt, &Iso8601::DEFAULT)
+            .or_else(|_| UtcDateTime::parse(dt, &Rfc2822))
+            .or_else(|_| UtcDateTime::parse(dt, &Rfc3339))
             .map(Self)
     }
 }
@@ -76,7 +76,7 @@ impl FromStr for DateTime {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = FileTime::try_from(*opt.dt).context("could not convert time")?;
+    let ft = FileTime::try_from(*opt.dt).context("could not convert date and time")?;
     match opt.format {
         Format::Raw => println!("{}", ft.to_raw()),
         Format::BeBytes => println!("{:#04x?}", ft.to_be_bytes()),

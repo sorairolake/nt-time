@@ -81,7 +81,6 @@ impl FileTime {
     /// #
     /// let _ = FileTime::from_str_radix("0", 37);
     /// ```
-    #[inline]
     pub const fn from_str_radix(src: &str, radix: u32) -> Result<Self, ParseFileTimeError> {
         match u64::from_str_radix(src, radix) {
             Ok(ft) => Ok(Self::new(ft)),
@@ -138,7 +137,6 @@ impl FromStr for FileTime {
     ///
     /// assert!(FileTime::from_str("18446744073709551616").is_err());
     /// ```
-    #[inline]
     fn from_str(src: &str) -> Result<Self, Self::Err> {
         Self::from_str_radix(src, 10)
     }
@@ -150,6 +148,11 @@ mod tests {
         error::Error,
         num::{IntErrorKind, ParseIntError},
     };
+
+    #[cfg(feature = "std")]
+    use proptest::{prop_assert, prop_assert_eq};
+    #[cfg(feature = "std")]
+    use test_strategy::proptest;
 
     use super::*;
 
@@ -656,10 +659,8 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_str_roundtrip(#[strategy(r"\+?[0-9]{1,19}")] s: std::string::String) {
-        use proptest::prop_assert_eq;
-
         let ft = s.parse().unwrap();
         prop_assert_eq!(FileTime::from_str(&s).unwrap(), FileTime::new(ft));
     }
@@ -753,12 +754,10 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
-    #[test_strategy::proptest]
+    #[proptest]
     fn from_str_with_invalid_digit_roundtrip(
         #[strategy(r"-[0-9]+|[^0-9]+")] s: std::string::String,
     ) {
-        use proptest::prop_assert;
-
         prop_assert!(FileTime::from_str(&s).is_err());
     }
 
