@@ -84,7 +84,10 @@
 //!
 //! // Back to MS-DOS date and time.
 //! let dt = DateTime::try_from(ft).unwrap();
-//! assert_eq!((dt.date(), dt.time()), (0b0000_0000_0010_0001, u16::MIN));
+//! assert_eq!(
+//!     (dt.date().to_raw(), dt.time().to_raw()),
+//!     (0b0000_0000_0010_0001, u16::MIN)
+//! );
 //! # }
 //! ```
 //!

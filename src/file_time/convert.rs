@@ -248,6 +248,21 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
 
     /// Converts a `FileTime` to a [`dos_date_time::DateTime`].
     ///
+    /// <div class="warning">
+    ///
+    /// [`dos_date_time::DateTime`] represents the local date and time, and has
+    /// no notion of the time zone.
+    ///
+    /// </div>
+    ///
+    /// <div class="warning">
+    ///
+    /// The resolution of MS-DOS date and time is 2 seconds. So this method
+    /// rounds towards zero, truncating any fractional part of the exact result
+    /// of dividing seconds by 2.
+    ///
+    /// </div>
+    ///
     /// # Errors
     ///
     /// Returns [`Err`] if `ft` is out of range for [`dos_date_time::DateTime`].
@@ -538,6 +553,8 @@ impl TryFrom<Timestamp> for FileTime {
 impl From<dos_date_time::DateTime> for FileTime {
     /// Converts a [`dos_date_time::DateTime`] to a `FileTime`.
     ///
+    /// This method assumes the time zone of `dt` is the UTC time zone.
+    ///
     /// # Examples
     ///
     /// ```
@@ -564,6 +581,8 @@ impl From<dos_date_time::DateTime> for FileTime {
 mod tests {
     #[cfg(feature = "chrono")]
     use chrono::TimeDelta;
+    #[cfg(feature = "dos-date-time")]
+    use dos_date_time::{Date, Time};
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     #[cfg(feature = "std")]
@@ -783,14 +802,20 @@ mod tests {
         // From `2002-11-27 03:25:00 UTC` to `2002-11-27 03:25:00`.
         assert_eq!(
             dos_date_time::DateTime::try_from(FileTime::new(126_828_411_000_000_000)).unwrap(),
-            dos_date_time::DateTime::new(0b0010_1101_0111_1011, 0b0001_1011_0010_0000).unwrap()
+            dos_date_time::DateTime::new(
+                Date::new(0b0010_1101_0111_1011).unwrap(),
+                Time::new(0b0001_1011_0010_0000).unwrap()
+            )
         );
         // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
         //
         // From `2018-11-17 10:38:30 UTC` to `2018-11-17 10:38:30`.
         assert_eq!(
             dos_date_time::DateTime::try_from(FileTime::new(131_869_247_100_000_000)).unwrap(),
-            dos_date_time::DateTime::new(0b0100_1101_0111_0001, 0b0101_0100_1100_1111).unwrap()
+            dos_date_time::DateTime::new(
+                Date::new(0b0100_1101_0111_0001).unwrap(),
+                Time::new(0b0101_0100_1100_1111).unwrap()
+            )
         );
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 23:59:58`.
         assert_eq!(
@@ -1131,18 +1156,20 @@ mod tests {
         //
         // From `2002-11-26 19:25:00` to `2002-11-26 19:25:00 UTC`.
         assert_eq!(
-            FileTime::from(
-                dos_date_time::DateTime::new(0b0010_1101_0111_1010, 0b1001_1011_0010_0000).unwrap()
-            ),
+            FileTime::from(dos_date_time::DateTime::new(
+                Date::new(0b0010_1101_0111_1010).unwrap(),
+                Time::new(0b1001_1011_0010_0000).unwrap()
+            )),
             FileTime::new(126_828_123_000_000_000)
         );
         // <https://github.com/zip-rs/zip/blob/v0.6.4/src/types.rs#L553-L569>.
         //
         // From `2018-11-17 10:38:30` to `2018-11-17 10:38:30 UTC`.
         assert_eq!(
-            FileTime::from(
-                dos_date_time::DateTime::new(0b0100_1101_0111_0001, 0b0101_0100_1100_1111).unwrap()
-            ),
+            FileTime::from(dos_date_time::DateTime::new(
+                Date::new(0b0100_1101_0111_0001).unwrap(),
+                Time::new(0b0101_0100_1100_1111).unwrap()
+            )),
             FileTime::new(131_869_247_100_000_000)
         );
         // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
