@@ -41,6 +41,53 @@
 //! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!
+//! ## Conversion from and to other system times
+//!
+//! [`FileTime`] can be converted from and to other system times such as [Unix
+//! time] or [MS-DOS date and time].
+//!
+//! ### Unix time
+//!
+//! ```
+//! use nt_time::{
+//!     FileTime,
+//!     time::{UtcDateTime, macros::utc_datetime},
+//! };
+//!
+//! // `1970-01-01 00:00:00 UTC`.
+//! let dt = UtcDateTime::UNIX_EPOCH;
+//! assert_eq!(dt, utc_datetime!(1970-01-01 00:00:00));
+//!
+//! // Convert to a `FileTime`.
+//! let ft = FileTime::from_unix_time_secs(dt.unix_timestamp()).unwrap();
+//! assert_eq!(ft, FileTime::UNIX_EPOCH);
+//!
+//! // Back to Unix time.
+//! let ut = ft.to_unix_time_secs();
+//! assert_eq!(ut, 0);
+//! ```
+//!
+//! ### MS-DOS date and time
+//!
+//! ```
+//! # #[cfg(feature = "dos-date-time")]
+//! # {
+//! use nt_time::{FileTime, dos_date_time::DateTime};
+//!
+//! // `1980-01-01 00:00:00`.
+//! let dt = DateTime::MIN;
+//! assert_eq!(dt.to_string(), "1980-01-01 00:00:00");
+//!
+//! // Convert to a `FileTime`.
+//! let ft = FileTime::from(dt);
+//! assert_eq!(ft, FileTime::new(119_600_064_000_000_000));
+//!
+//! // Back to MS-DOS date and time.
+//! let dt = DateTime::try_from(ft).unwrap();
+//! assert_eq!((dt.date(), dt.time()), (0b0000_0000_0010_0001, u16::MIN));
+//! # }
+//! ```
+//!
 //! ## Formatting and printing the file time
 //!
 //! The formatting traits for [`FileTime`] are implemented to show the
@@ -61,6 +108,8 @@
 //! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [NTFS]: https://en.wikipedia.org/wiki/NTFS
 //! [7z]: https://www.7-zip.org/7z.html
+//! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
+//! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
 #![doc(html_root_url = "https://docs.rs/nt-time/0.12.1/")]
 #![no_std]
