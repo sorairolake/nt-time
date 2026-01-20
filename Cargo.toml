@@ -24,7 +24,7 @@ dos-date-time = { version = "0.2.0", default-features = false, optional = true }
 jiff = { version = "0.2.18", default-features = false, optional = true }
 rand = { version = "0.9.2", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, optional = true }
-time = { version = "0.3.44", default-features = false }
+time = { version = "0.3.45", default-features = false }
 
 [dev-dependencies]
 anyhow = "1.0.100"
@@ -36,7 +36,7 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_test = "1.0.177"
 test-strategy = "0.4.3"
-time = { version = "0.3.44", features = ["macros", "parsing"] }
+time = { version = "0.3.45", features = ["macros", "parsing"] }
 
 [features]
 default = ["dos-date-time", "std"]
