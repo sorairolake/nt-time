@@ -18,6 +18,14 @@ include = ["/LICENSES", "/README.md", "/src"]
 [package.metadata.docs.rs]
 all-features = true
 
+[[example]]
+name = "dos2ft"
+required-features = ["dos-date-time"]
+
+[[example]]
+name = "ft2dos"
+required-features = ["dos-date-time"]
+
 [dependencies]
 chrono = { version = "0.4.43", default-features = false, optional = true }
 dos-date-time = { version = "0.2.0", default-features = false, optional = true }
