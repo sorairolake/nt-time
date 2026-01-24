@@ -28,8 +28,7 @@ struct Opt {
     ///
     /// <DATE> is a string representing a date and time in either ISO 8601, RFC
     /// 2822, or RFC 3339 format.
-    #[arg(value_name("DATE"))]
-    dt: DateTime,
+    date: DateTime,
 }
 
 #[derive(Clone, Debug, Default, ValueEnum)]
@@ -76,7 +75,7 @@ impl FromStr for DateTime {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = FileTime::try_from(*opt.dt).context("could not convert date and time")?;
+    let ft = FileTime::try_from(*opt.date).context("could not convert date and time")?;
     match opt.format {
         Format::Raw => println!("{}", ft.to_raw()),
         Format::BeBytes => println!("{:#04x?}", ft.to_be_bytes()),
