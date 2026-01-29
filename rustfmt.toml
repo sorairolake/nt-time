@@ -7,5 +7,6 @@ format_macro_matchers = true
 group_imports = "StdExternalCrate"
 hex_literal_case = "Upper"
 imports_granularity = "Crate"
+newline_style = "Unix"
 skip_macro_invocations = ["utc_datetime"]
 wrap_comments = true
