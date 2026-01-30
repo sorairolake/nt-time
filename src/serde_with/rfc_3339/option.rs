@@ -153,7 +153,7 @@ mod tests {
                 },
                 Token::Str("time"),
             ],
-            "timestamp must be in the range -377705116800..=253402300799",
+            "timestamp was not in range",
         );
     }
 
