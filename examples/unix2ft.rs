@@ -23,7 +23,8 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let ft = FileTime::from_unix_time(opt.secs, opt.nanos).context("could not convert time")?;
+    let ft =
+        FileTime::from_unix_time(opt.secs, opt.nanos).context("could not convert Unix time")?;
     println!("{ft}");
     Ok(())
 }

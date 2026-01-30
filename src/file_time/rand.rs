@@ -30,14 +30,14 @@ mod tests {
         assert_eq!(
             buf,
             [
-                FileTime::new(0xe160_e532_6180_0aab),
-                FileTime::new(0x2a29_11d5_87fc_4ed5),
-                FileTime::new(0xdfe7_5554_bbd3_4d0d),
-                FileTime::new(0x2a4c_f66b_2879_6f51),
-                FileTime::new(0x500e_b6de_08bd_473b),
-                FileTime::new(0x8660_66c5_0dab_6374),
-                FileTime::new(0xe8e3_3086_f142_3eff),
-                FileTime::new(0x7d67_17b2_e579_844f)
+                FileTime::new(0xE160_E532_6180_0AAB),
+                FileTime::new(0x2A29_11D5_87FC_4ED5),
+                FileTime::new(0xDFE7_5554_BBD3_4D0D),
+                FileTime::new(0x2A4C_F66B_2879_6F51),
+                FileTime::new(0x500E_B6DE_08BD_473B),
+                FileTime::new(0x8660_66C5_0DAB_6374),
+                FileTime::new(0xE8E3_3086_F142_3EFF),
+                FileTime::new(0x7D67_17B2_E579_844F)
             ]
         );
     }
