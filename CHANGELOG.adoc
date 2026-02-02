@@ -14,13 +14,6 @@ All notable changes to this project will be documented in this file.
 The format is based on https://keepachangelog.com/[Keep a Changelog], and this
 project adheres to https://semver.org/[Semantic Versioning].
 
-== {compare-url}/v0.13.1\...HEAD[Unreleased]
-
-=== Changed
-
-* Enable `chrono` feature by default ({pull-request-url}/419[#419])
-* Enable `jiff` feature by default ({pull-request-url}/419[#419])
-
 == {compare-url}/v0.13.0\...v0.13.1[0.13.1] - 2026-01-30
 
 === Changed
