@@ -10,12 +10,12 @@ mod cmp;
 mod consts;
 mod convert;
 mod fmt;
+mod from_str;
 mod ops;
 #[cfg(feature = "rand")]
 mod rand;
 #[cfg(feature = "serde")]
 mod serde;
-mod str;
 mod unix_time;
 
 use core::mem;
