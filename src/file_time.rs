@@ -25,6 +25,9 @@ use std::time::SystemTime;
 #[cfg(test)]
 use proptest_derive::Arbitrary;
 
+#[cfg(feature = "serde")]
+use crate::serde::{Deserialize, Serialize};
+
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
 /// `FileTime` is a type that represents a [Windows file time].
@@ -65,6 +68,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
 /// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(test, derive(Arbitrary))]
 #[repr(transparent)]
 pub struct FileTime(u64);

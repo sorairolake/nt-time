@@ -2,115 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! [Serde] support for [`FileTime`].
+//! [Serde] support for [`FileTime`](super::FileTime).
 //!
 //! [Serde]: https://serde.rs/
-
-use core::fmt;
-
-use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
-
-use super::FileTime;
-
-impl Serialize for FileTime {
-    /// Serializes a `FileTime` into the given Serde serializer.
-    ///
-    /// This serializes using the underlying [`u64`] format.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::{serde::Serialize, FileTime};
-    /// #
-    /// #[derive(Serialize)]
-    /// struct Time {
-    ///     time: FileTime,
-    /// }
-    ///
-    /// let ft = Time {
-    ///     time: FileTime::UNIX_EPOCH,
-    /// };
-    /// let json = serde_json::to_string(&ft).unwrap();
-    /// assert_eq!(json, r#"{"time":116444736000000000}"#);
-    /// ```
-    ///
-    /// ```
-    /// # use nt_time::{serde::Serialize, FileTime};
-    /// #
-    /// #[derive(Serialize)]
-    /// struct Time {
-    ///     time: Option<FileTime>,
-    /// }
-    ///
-    /// let ft = Time {
-    ///     time: Some(FileTime::UNIX_EPOCH),
-    /// };
-    /// let json = serde_json::to_string(&ft).unwrap();
-    /// assert_eq!(json, r#"{"time":116444736000000000}"#);
-    ///
-    /// let ft = Time { time: None };
-    /// let json = serde_json::to_string(&ft).unwrap();
-    /// assert_eq!(json, r#"{"time":null}"#);
-    /// ```
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_newtype_struct("FileTime", &self.to_raw())
-    }
-}
-
-impl<'de> Deserialize<'de> for FileTime {
-    /// Deserializes a `FileTime` from the given Serde deserializer.
-    ///
-    /// This deserializes from its underlying [`u64`] representation.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::{serde::Deserialize, FileTime};
-    /// #
-    /// #[derive(Deserialize)]
-    /// struct Time {
-    ///     time: FileTime,
-    /// }
-    ///
-    /// let ft: Time = serde_json::from_str(r#"{"time":116444736000000000}"#).unwrap();
-    /// assert_eq!(ft.time, FileTime::UNIX_EPOCH);
-    /// ```
-    ///
-    /// ```
-    /// # use nt_time::{serde::Deserialize, FileTime};
-    /// #
-    /// #[derive(Deserialize)]
-    /// struct Time {
-    ///     time: Option<FileTime>,
-    /// }
-    ///
-    /// let ft: Time = serde_json::from_str(r#"{"time":116444736000000000}"#).unwrap();
-    /// assert_eq!(ft.time, Some(FileTime::UNIX_EPOCH));
-    ///
-    /// let ft: Time = serde_json::from_str(r#"{"time":null}"#).unwrap();
-    /// assert_eq!(ft.time, None);
-    /// ```
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        struct FileTimeVisitor;
-
-        impl<'de> Visitor<'de> for FileTimeVisitor {
-            type Value = FileTime;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                write!(formatter, "a newtype struct `FileTime`")
-            }
-
-            fn visit_newtype_struct<D: Deserializer<'de>>(
-                self,
-                deserializer: D,
-            ) -> Result<Self::Value, D::Error> {
-                <_>::deserialize(deserializer).map(FileTime::new)
-            }
-        }
-
-        deserializer.deserialize_newtype_struct("FileTime", FileTimeVisitor)
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -119,11 +13,12 @@ mod tests {
 
     #[cfg(feature = "std")]
     use proptest::prop_assert_eq;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
     #[cfg(feature = "std")]
     use test_strategy::proptest;
 
-    use super::*;
+    use super::super::FileTime;
 
     #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
     struct Test {
@@ -195,7 +90,7 @@ mod tests {
                 Token::Str("time"),
                 Token::BorrowedStr("FileTime"),
             ],
-            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+            r#"invalid type: string "FileTime", expected tuple struct FileTime"#,
         );
         serde_test::assert_de_tokens_error::<Test>(
             &[
@@ -310,7 +205,7 @@ mod tests {
                 Token::Some,
                 Token::BorrowedStr("FileTime"),
             ],
-            r#"invalid type: string "FileTime", expected a newtype struct `FileTime`"#,
+            r#"invalid type: string "FileTime", expected tuple struct FileTime"#,
         );
         serde_test::assert_de_tokens_error::<TestOption>(
             &[
