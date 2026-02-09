@@ -19,6 +19,7 @@ project adheres to https://semver.org/[Semantic Versioning].
 === Changed
 
 * Change to use derive to implement serde ({pull-request-url}/421[#421])
+* Bump `rand` from 0.9.2 to 0.10.0 ({pull-request-url}/427[#427])
 
 == {compare-url}/v0.13.0\...v0.13.1[0.13.1] - 2026-01-30
 

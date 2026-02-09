@@ -5,7 +5,7 @@
 //! Implementations of [`rand`] for [`FileTime`].
 
 use rand::{
-    Rng,
+    Rng, RngExt,
     distr::{Distribution, StandardUniform},
 };
 
