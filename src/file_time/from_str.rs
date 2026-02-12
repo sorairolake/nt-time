@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Utilities for string related operations.
+//! Utilities for parsing a [`FileTime`] from a string.
 
 use core::str::FromStr;
 
