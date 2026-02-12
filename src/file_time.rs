@@ -22,11 +22,10 @@ use core::mem;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
+#[cfg(feature = "serde")]
+use ::serde::{Deserialize, Serialize};
 #[cfg(test)]
 use proptest_derive::Arbitrary;
-
-#[cfg(feature = "serde")]
-use crate::serde::{Deserialize, Serialize};
 
 const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 
