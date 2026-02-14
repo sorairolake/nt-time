@@ -49,7 +49,7 @@ use time::{OffsetDateTime, UtcDateTime, serde::iso8601};
 
 use crate::FileTime;
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
 /// This serializes using the well-known [ISO 8601 format].
@@ -64,7 +64,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
     )
 }
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Deserializes a [`FileTime`] from the given Serde deserializer.
 ///
 /// This deserializes from its [ISO 8601 representation].

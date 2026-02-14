@@ -12,7 +12,7 @@ use super::{FILE_TIMES_PER_SEC, FileTime};
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] represented as a pair of the number of whole seconds
     /// and the number of additional nanoseconds, like the [`timespec`]
     /// structure in C11, which represents the same date and time as this
@@ -50,7 +50,7 @@ impl FileTime {
         (secs, subsec_nanos)
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in seconds which represents the same date and time
     /// as this `FileTime`.
     ///
@@ -73,7 +73,7 @@ impl FileTime {
             - 11_644_473_600
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in milliseconds which represents the same date and
     /// time as this `FileTime`.
     ///
@@ -103,7 +103,7 @@ impl FileTime {
             .expect("the number of milliseconds should be in the range of `i64`")
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in microseconds which represents the same date and
     /// time as this `FileTime`.
     ///

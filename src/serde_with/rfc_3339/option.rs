@@ -47,7 +47,7 @@ use time::{OffsetDateTime, UtcDateTime, serde::rfc3339};
 
 use crate::FileTime;
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Serializes an [`Option<FileTime>`] into the given Serde serializer.
 ///
 /// This serializes using the well-known [RFC 3339 format].
@@ -64,7 +64,7 @@ pub fn serialize<S: Serializer>(ft: &Option<FileTime>, serializer: S) -> Result<
     )
 }
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Deserializes an [`Option<FileTime>`] from the given Serde deserializer.
 ///
 /// This deserializes from its [RFC 3339 representation].

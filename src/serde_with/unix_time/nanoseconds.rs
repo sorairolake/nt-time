@@ -41,7 +41,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error};
 
 use crate::FileTime;
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Serializes a [`FileTime`] into the given Serde serializer.
 ///
 /// This serializes using [Unix time] in nanoseconds.
@@ -51,7 +51,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
     ft.to_unix_time_nanos().serialize(serializer)
 }
 
-#[allow(clippy::missing_errors_doc)]
+#[expect(clippy::missing_errors_doc)]
 /// Deserializes a [`FileTime`] from the given Serde deserializer.
 ///
 /// This deserializes from its [Unix time] in nanoseconds.

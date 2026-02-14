@@ -313,7 +313,7 @@ impl FileTime {
         Self::new(u64::from_ne_bytes(bytes))
     }
 
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation)]
     /// Returns the high-order and low-order parts of this `FileTime`.
     ///
     /// The first return value represents the high-order part of this
