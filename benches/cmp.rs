@@ -88,10 +88,7 @@ fn order_system_time_and_file_time(b: &mut Bencher) {
 #[cfg(feature = "std")]
 #[bench]
 fn order_file_time_and_system_time(b: &mut Bencher) {
-    b.iter(|| {
-        FileTime::UNIX_EPOCH
-            > (SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH))
-    });
+    b.iter(|| FileTime::UNIX_EPOCH > (SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()));
 }
 
 #[bench]

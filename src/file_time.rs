@@ -9,6 +9,7 @@
 mod cmp;
 mod consts;
 mod convert;
+mod duration;
 mod fmt;
 mod from_str;
 mod ops;

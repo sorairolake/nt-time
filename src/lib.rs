@@ -31,7 +31,7 @@
 //!     Ok(utc_datetime!(1601-01-01 00:00:00))
 //! );
 //!
-//! let ft = ft + Duration::from_secs(11_644_473_600);
+//! let ft = ft + Duration::from_hours(3_234_576);
 //! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //!

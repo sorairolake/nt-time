@@ -17,7 +17,7 @@ use chrono::{DateTime, TimeDelta, Utc};
 use jiff::{Span, Timestamp};
 use time::UtcDateTime;
 
-use super::{FILE_TIMES_PER_SEC, FileTime};
+use super::FileTime;
 
 impl FileTime {
     /// Computes `self + rhs`, returning [`None`] if overflow occurred.
@@ -234,11 +234,7 @@ impl Sub for FileTime {
 
     fn sub(self, rhs: Self) -> Self::Output {
         let duration = self.to_raw() - rhs.to_raw();
-        Self::Output::new(
-            duration / FILE_TIMES_PER_SEC,
-            u32::try_from((duration % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `u32`"),
-        )
+        Self::Output::from_nanos_u128(u128::from(duration) * 100)
     }
 }
 
@@ -436,11 +432,11 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn checked_add_roundtrip(dur: Duration) {
-        if dur <= Duration::new(1_844_674_407_370, 955_161_500) {
-            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(dur).is_some());
+    fn checked_add_roundtrip(duration: Duration) {
+        if duration <= Duration::new(1_844_674_407_370, 955_161_500) {
+            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(duration).is_some());
         } else {
-            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(dur).is_none());
+            prop_assert!(FileTime::NT_TIME_EPOCH.checked_add(duration).is_none());
         }
     }
 
@@ -483,11 +479,11 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn checked_sub_roundtrip(dur: Duration) {
-        if dur <= Duration::new(1_844_674_407_370, 955_161_500) {
-            prop_assert!(FileTime::MAX.checked_sub(dur).is_some());
+    fn checked_sub_roundtrip(duration: Duration) {
+        if duration <= Duration::new(1_844_674_407_370, 955_161_500) {
+            prop_assert!(FileTime::MAX.checked_sub(duration).is_some());
         } else {
-            prop_assert!(FileTime::MAX.checked_sub(dur).is_none());
+            prop_assert!(FileTime::MAX.checked_sub(duration).is_none());
         }
     }
 
@@ -527,11 +523,17 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn saturating_add_roundtrip(dur: Duration) {
-        if dur <= Duration::new(1_844_674_407_370, 955_161_400) {
-            prop_assert_ne!(FileTime::NT_TIME_EPOCH.saturating_add(dur), FileTime::MAX);
+    fn saturating_add_roundtrip(duration: Duration) {
+        if duration <= Duration::new(1_844_674_407_370, 955_161_400) {
+            prop_assert_ne!(
+                FileTime::NT_TIME_EPOCH.saturating_add(duration),
+                FileTime::MAX
+            );
         } else {
-            prop_assert_eq!(FileTime::NT_TIME_EPOCH.saturating_add(dur), FileTime::MAX);
+            prop_assert_eq!(
+                FileTime::NT_TIME_EPOCH.saturating_add(duration),
+                FileTime::MAX
+            );
         }
     }
 
@@ -571,11 +573,17 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn saturating_sub_roundtrip(dur: Duration) {
-        if dur <= Duration::new(1_844_674_407_370, 955_161_400) {
-            prop_assert_ne!(FileTime::MAX.saturating_sub(dur), FileTime::NT_TIME_EPOCH);
+    fn saturating_sub_roundtrip(duration: Duration) {
+        if duration <= Duration::new(1_844_674_407_370, 955_161_400) {
+            prop_assert_ne!(
+                FileTime::MAX.saturating_sub(duration),
+                FileTime::NT_TIME_EPOCH
+            );
         } else {
-            prop_assert_eq!(FileTime::MAX.saturating_sub(dur), FileTime::NT_TIME_EPOCH);
+            prop_assert_eq!(
+                FileTime::MAX.saturating_sub(duration),
+                FileTime::NT_TIME_EPOCH
+            );
         }
     }
 

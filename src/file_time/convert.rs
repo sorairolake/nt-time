@@ -6,7 +6,7 @@
 
 use core::num::TryFromIntError;
 #[cfg(feature = "std")]
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::Utc;
@@ -19,8 +19,6 @@ use dos_date_time::{
 use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
 
-#[cfg(feature = "std")]
-use super::FILE_TIMES_PER_SEC;
 use super::FileTime;
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
@@ -98,7 +96,7 @@ impl From<FileTime> for SystemTime {
     /// #
     /// assert_eq!(
     ///     SystemTime::from(FileTime::NT_TIME_EPOCH),
-    ///     SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
+    ///     SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)
     /// );
     /// assert_eq!(
     ///     SystemTime::from(FileTime::UNIX_EPOCH),
@@ -106,12 +104,8 @@ impl From<FileTime> for SystemTime {
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
-        let duration = Duration::new(
-            ft.to_raw() / FILE_TIMES_PER_SEC,
-            u32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `u32`"),
-        );
-        (Self::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)) + duration
+        let duration = ft.to_duration();
+        (Self::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()) + duration
     }
 }
 
@@ -366,7 +360,7 @@ impl TryFrom<SystemTime> for FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)),
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)),
     ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
@@ -390,11 +384,9 @@ impl TryFrom<SystemTime> for FileTime {
     /// ```
     fn try_from(st: SystemTime) -> Result<Self, Self::Error> {
         let elapsed = st
-            .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
-            .map(|d| d.as_nanos())
+            .duration_since(SystemTime::UNIX_EPOCH - Self::UNIX_EPOCH.to_duration())
             .map_err(|_| FileTimeRangeErrorKind::Negative)?;
-        let ft = u64::try_from(elapsed / 100).map_err(|_| FileTimeRangeErrorKind::Overflow)?;
-        Ok(Self::new(ft))
+        Self::from_duration(elapsed)
     }
 }
 
@@ -571,6 +563,9 @@ impl From<dos_date_time::DateTime> for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use std::time::Duration;
+
     #[cfg(feature = "chrono")]
     use chrono::TimeDelta;
     #[cfg(feature = "dos-date-time")]
@@ -633,7 +628,7 @@ mod tests {
     fn from_file_time_to_system_time() {
         assert_eq!(
             SystemTime::from(FileTime::NT_TIME_EPOCH),
-            SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
+            SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()
         );
         assert_eq!(
             SystemTime::from(FileTime::UNIX_EPOCH),
@@ -645,7 +640,7 @@ mod tests {
         );
         assert_eq!(
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
-            SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
+            SystemTime::UNIX_EPOCH + Duration::from_hours(70_389_528)
         );
         // Largest `SystemTime` on Windows.
         assert_eq!(
@@ -908,10 +903,8 @@ mod tests {
     #[test]
     fn try_from_system_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(
-                SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
-            )
-            .unwrap(),
+            FileTime::try_from(SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration())
+                .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
@@ -926,8 +919,7 @@ mod tests {
             FileTime::new(2_650_467_743_999_999_999)
         );
         assert_eq!(
-            FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800))
-                .unwrap(),
+            FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_hours(70_389_528)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
         // Largest `SystemTime` on Windows.

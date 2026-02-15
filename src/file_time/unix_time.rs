@@ -394,7 +394,7 @@ impl FileTime {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "std")]
-    use proptest::{prop_assert, prop_assert_eq};
+    use proptest::{prop_assert, prop_assert_eq, prop_assume};
     #[cfg(feature = "std")]
     use test_strategy::proptest;
 
@@ -445,8 +445,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time();
+    fn to_unix_time_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts.0));
         prop_assert!(ts.1 < NANOS_PER_SEC);
     }
@@ -506,8 +506,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_secs_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_secs();
+    fn to_unix_time_secs_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_secs();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
     }
 
@@ -572,8 +572,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_millis_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_millis();
+    fn to_unix_time_millis_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_millis();
         prop_assert!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
     }
 
@@ -644,8 +644,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_micros_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_micros();
+    fn to_unix_time_micros_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_micros();
         prop_assert!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
     }
 
@@ -692,8 +692,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_nanos_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_nanos();
+    fn to_unix_time_nanos_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_nanos();
         prop_assert!((-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500).contains(&ts));
     }
 
@@ -847,8 +847,6 @@ mod tests {
         #[strategy(-11_644_473_600..=1_833_029_933_770_i64)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
     ) {
-        use proptest::{prop_assert, prop_assume};
-
         if secs == 1_833_029_933_770 {
             prop_assume!(nanos < 955_161_600);
         }
@@ -898,8 +896,6 @@ mod tests {
         #[strategy(1_833_029_933_770_i64..)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
     ) {
-        use proptest::{prop_assert_eq, prop_assume};
-
         if secs == 1_833_029_933_770 {
             prop_assume!(nanos >= 955_161_600);
         }
