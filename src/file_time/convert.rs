@@ -250,16 +250,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     ///
     /// <div class="warning">
     ///
-    /// [`dos_date_time::DateTime`] represents the local date and time, and has
-    /// no notion of the time zone.
-    ///
-    /// </div>
-    ///
-    /// <div class="warning">
-    ///
-    /// The resolution of MS-DOS date and time is 2 seconds. So this method
-    /// rounds towards zero, truncating any fractional part of the exact result
-    /// of dividing seconds by 2.
+    /// This method may round towards zero, truncating more precise times that a
+    /// [`dos_date_time::DateTime`] cannot store.
     ///
     /// </div>
     ///
