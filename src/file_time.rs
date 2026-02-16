@@ -40,33 +40,11 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
 /// API], which represents a 64-bit unsigned integer value.
 ///
-/// <div class="warning">
-///
-/// Note that many environments, such as the Win32 API, may limit the largest
-/// value of the file time to "+30828-09-14 02:48:05.477580700 UTC", which is
-/// equal to [`i64::MAX`], the largest value of a 64-bit signed integer type
-/// when represented as an underlying integer value. This is the largest file
-/// time accepted by the [`FileTimeToSystemTime`] function of the Win32 API.
-///
-/// </div>
-///
-/// Also, the file time is sometimes represented as an [`i64`] value, such as in
-/// the [`DateTime.FromFileTimeUtc`] method or the [`DateTime.ToFileTimeUtc`]
-/// method in [.NET].
-///
-/// Therefore, if you want the process to succeed in more environments, it is
-/// generally recommended that you use [`FileTime::SIGNED_MAX`] as the largest
-/// value instead of [`FileTime::MAX`].
-///
 /// [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
 /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
-/// [`FileTimeToSystemTime`]: https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-filetimetosystemtime
-/// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
-/// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
-/// [.NET]: https://dotnet.microsoft.com/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(test, derive(Arbitrary))]
@@ -95,7 +73,7 @@ impl FileTime {
             .expect("the current date and time should be in the range of the file time")
     }
 
-    /// Creates a new `FileTime` with the given file time.
+    /// Creates a new `FileTime` with the given underlying [`u64`] value.
     ///
     /// # Examples
     ///
@@ -112,7 +90,7 @@ impl FileTime {
         Self(ft)
     }
 
-    /// Returns the contents of this `FileTime` as the underlying [`u64`] value.
+    /// Returns this `FileTime` as the underlying [`u64`] value.
     ///
     /// # Examples
     ///

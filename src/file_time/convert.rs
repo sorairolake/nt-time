@@ -24,7 +24,7 @@ use crate::error::FileTimeRangeError;
 use crate::error::FileTimeRangeErrorKind;
 
 impl From<FileTime> for u64 {
-    /// Converts a `FileTime` to the file time.
+    /// Converts a `FileTime` to the underlying [`u64`] value.
     ///
     /// # Examples
     ///
@@ -243,7 +243,7 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
 }
 
 impl From<u64> for FileTime {
-    /// Converts the file time to a `FileTime`.
+    /// Converts the underlying [`u64`] value to a `FileTime`.
     ///
     /// # Examples
     ///
