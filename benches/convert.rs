@@ -21,11 +21,6 @@ fn from_file_time_to_u64(b: &mut Bencher) {
     b.iter(|| u64::from(FileTime::NT_TIME_EPOCH));
 }
 
-#[bench]
-fn try_from_file_time_to_i64(b: &mut Bencher) {
-    b.iter(|| i64::try_from(FileTime::NT_TIME_EPOCH).unwrap());
-}
-
 #[cfg(feature = "std")]
 #[bench]
 fn from_file_time_to_system_time(b: &mut Bencher) {
@@ -58,11 +53,6 @@ fn try_from_file_time_to_dos_date_time(b: &mut Bencher) {
 #[bench]
 fn from_u64_to_file_time(b: &mut Bencher) {
     b.iter(|| FileTime::from(u64::MIN));
-}
-
-#[bench]
-fn try_from_i64_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(i64::default()).unwrap());
 }
 
 #[cfg(feature = "std")]

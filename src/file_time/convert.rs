@@ -4,7 +4,6 @@
 
 //! Implementations of conversions between [`FileTime`] and other types.
 
-use core::num::TryFromIntError;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
@@ -20,7 +19,9 @@ use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
 
 use super::FileTime;
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
+use crate::error::FileTimeRangeError;
+#[cfg(feature = "std")]
+use crate::error::FileTimeRangeErrorKind;
 
 impl From<FileTime> for u64 {
     /// Converts a `FileTime` to the file time.
@@ -37,42 +38,6 @@ impl From<FileTime> for u64 {
     /// ```
     fn from(ft: FileTime) -> Self {
         ft.to_raw()
-    }
-}
-
-impl TryFrom<FileTime> for i64 {
-    type Error = TryFromIntError;
-
-    /// Converts a `FileTime` to the file time.
-    ///
-    /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method or the
-    /// [`DateTime.ToFileTimeUtc`] method in [.NET].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if `ft` is after "+30828-09-14 02:48:05.477580700 UTC".
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(i64::try_from(FileTime::NT_TIME_EPOCH), Ok(0));
-    /// assert_eq!(
-    ///     i64::try_from(FileTime::UNIX_EPOCH),
-    ///     Ok(116_444_736_000_000_000)
-    /// );
-    /// assert_eq!(i64::try_from(FileTime::SIGNED_MAX), Ok(i64::MAX));
-    ///
-    /// assert!(i64::try_from(FileTime::MAX).is_err());
-    /// ```
-    ///
-    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
-    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
-    /// [.NET]: https://dotnet.microsoft.com/
-    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        ft.to_raw().try_into()
     }
 }
 
@@ -295,44 +260,6 @@ impl From<u64> for FileTime {
     /// ```
     fn from(ft: u64) -> Self {
         Self::new(ft)
-    }
-}
-
-impl TryFrom<i64> for FileTime {
-    type Error = FileTimeRangeError;
-
-    /// Converts the file time to a `FileTime`.
-    ///
-    /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method or the
-    /// [`DateTime.ToFileTimeUtc`] method in [.NET].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if `ft` is negative.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::try_from(0_i64), Ok(FileTime::NT_TIME_EPOCH));
-    /// assert_eq!(
-    ///     FileTime::try_from(116_444_736_000_000_000_i64),
-    ///     Ok(FileTime::UNIX_EPOCH)
-    /// );
-    /// assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
-    ///
-    /// assert!(FileTime::try_from(i64::MIN).is_err());
-    /// ```
-    ///
-    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
-    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
-    /// [.NET]: https://dotnet.microsoft.com/
-    fn try_from(ft: i64) -> Result<Self, Self::Error> {
-        ft.try_into()
-            .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-            .map(Self::new)
     }
 }
 
@@ -567,12 +494,13 @@ mod tests {
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     #[cfg(feature = "std")]
-    use proptest::{prop_assert, prop_assert_eq};
+    use proptest::prop_assert_eq;
     #[cfg(feature = "std")]
     use test_strategy::proptest;
     use time::macros::utc_datetime;
 
     use super::*;
+    use crate::error::FileTimeRangeErrorKind;
 
     #[test]
     fn from_file_time_to_u64() {
@@ -586,35 +514,6 @@ mod tests {
     #[proptest]
     fn from_file_time_to_u64_roundtrip(ft: FileTime) {
         prop_assert_eq!(u64::from(ft), ft.to_raw());
-    }
-
-    #[test]
-    fn try_from_file_time_to_i64() {
-        assert_eq!(
-            i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            i64::default()
-        );
-        assert_eq!(
-            i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
-            116_444_736_000_000_000
-        );
-        assert_eq!(i64::try_from(FileTime::SIGNED_MAX).unwrap(), i64::MAX);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_file_time_to_i64_roundtrip(ft: FileTime) {
-        if ft <= FileTime::SIGNED_MAX {
-            prop_assert!(i64::try_from(ft).is_ok());
-        } else {
-            prop_assert!(i64::try_from(ft).is_err());
-        }
-    }
-
-    #[test]
-    fn try_from_file_time_to_i64_with_too_big_file_time() {
-        assert!(i64::try_from(FileTime::new(u64::try_from(i64::MAX).unwrap() + 1)).is_err());
-        assert!(i64::try_from(FileTime::MAX).is_err());
     }
 
     #[cfg(feature = "std")]
@@ -835,48 +734,6 @@ mod tests {
     #[proptest]
     fn from_u64_to_file_time_roundtrip(ft: u64) {
         prop_assert_eq!(FileTime::from(ft), FileTime::new(ft));
-    }
-
-    #[test]
-    fn try_from_i64_to_file_time_before_nt_time_epoch() {
-        assert_eq!(
-            FileTime::try_from(i64::MIN).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-        assert_eq!(
-            FileTime::try_from(i64::default() - 1).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_i64_to_file_time_before_nt_time_epoch_roundtrip(
-        #[strategy(..i64::default())] ft: i64,
-    ) {
-        prop_assert_eq!(
-            FileTime::try_from(ft).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-    }
-
-    #[test]
-    fn try_from_i64_to_file_time() {
-        assert_eq!(
-            FileTime::try_from(i64::default()).unwrap(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
-            FileTime::UNIX_EPOCH
-        );
-        assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_i64_to_file_time_roundtrip(#[strategy(i64::default()..)] ft: i64) {
-        prop_assert!(FileTime::try_from(ft).is_ok());
     }
 
     #[cfg(feature = "std")]

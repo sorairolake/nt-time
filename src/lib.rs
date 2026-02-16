@@ -34,11 +34,6 @@
 //! let ft = ft + Duration::from_hours(3_234_576);
 //! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
-//!
-//! // The practical largest file time.
-//! assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
-//! // The theoretical largest file time.
-//! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!
 //! ## Conversion from and to other system times
