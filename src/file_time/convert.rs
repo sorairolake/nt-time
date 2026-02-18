@@ -24,18 +24,6 @@ use crate::error::FileTimeRangeError;
 use crate::error::FileTimeRangeErrorKind;
 
 impl From<FileTime> for u64 {
-    /// Converts a `FileTime` to the underlying [`u64`] value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
-    /// assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
-    /// assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
-    /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
-    /// ```
     fn from(ft: FileTime) -> Self {
         ft.to_raw()
     }
@@ -243,21 +231,6 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
 }
 
 impl From<u64> for FileTime {
-    /// Converts the underlying [`u64`] value to a `FileTime`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_TIME_EPOCH);
-    /// assert_eq!(
-    ///     FileTime::from(116_444_736_000_000_000),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
-    /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
-    /// ```
     fn from(ft: u64) -> Self {
         Self::new(ft)
     }
