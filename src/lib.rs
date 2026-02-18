@@ -88,9 +88,9 @@
 //!
 //! ## Formatting and printing the file time
 //!
-//! The formatting traits for [`FileTime`] are implemented to show the
-//! underlying [`u64`] value. If you need a human-readable date and time,
-//! convert [`FileTime`] to a type which represents time such as
+//! The [`Display`](core::fmt::Display) trait for [`FileTime`] is implemented to
+//! show the underlying [`u64`] value. If you need a human-readable date and
+//! time, convert [`FileTime`] to a type which represents time such as
 //! [`time::UtcDateTime`].
 //!
 //! ```

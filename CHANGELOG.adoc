@@ -30,6 +30,8 @@ project adheres to https://semver.org/[Semantic Versioning].
 * Remove `TryFrom<FileTime>` for `i64` ({pull-request-url}/437[#437])
 * Remove `TryFrom<i64>` for `FileTime` ({pull-request-url}/437[#437])
 * Remove `FileTime::from_str_radix` ({pull-request-url}/442[#442])
+* Remove the formatting traits for `FileTime` except `fmt::Debug` and
+  `fmt::Display` ({pull-request-url}/444[#444])
 
 == {compare-url}/v0.13.1\...v0.13.2[0.13.2] - 2026-02-12
 
