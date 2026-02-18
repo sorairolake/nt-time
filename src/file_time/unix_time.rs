@@ -217,10 +217,9 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
-        Self::from_unix_time_secs(secs).and_then(|ft| {
-            ft.checked_add(Duration::from_nanos(nanos.into()))
-                .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
-        })
+        let ft = Self::from_unix_time_secs(secs)?;
+        ft.checked_add(Duration::from_nanos(nanos.into()))
+            .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
     }
 
     /// Creates a `FileTime` with the given [Unix time] in seconds.
@@ -259,10 +258,10 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         if secs <= 1_833_029_933_770 {
-            u64::try_from(secs + 11_644_473_600)
-                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-                .map(|t| t * FILE_TIMES_PER_SEC)
-                .map(Self::new)
+            let duration = u64::try_from(secs + 11_644_473_600)
+                .map_err(|_| FileTimeRangeErrorKind::Negative)?;
+            let ft = Self::new(duration * FILE_TIMES_PER_SEC);
+            Ok(ft)
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }
@@ -380,11 +379,12 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
         if nanos <= 1_833_029_933_770_955_161_500 {
-            (nanos + 11_644_473_600_000_000_000)
+            let ft = (nanos + 11_644_473_600_000_000_000)
                 .div_euclid(100)
                 .try_into()
-                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-                .map(Self::new)
+                .map_err(|_| FileTimeRangeErrorKind::Negative)?;
+            let ft = Self::new(ft);
+            Ok(ft)
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }

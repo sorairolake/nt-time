@@ -74,9 +74,10 @@ impl FileTime {
     /// assert!(FileTime::from_duration(Duration::new(1_844_674_407_370, 955_161_600)).is_err());
     /// ```
     pub fn from_duration(duration: Duration) -> Result<Self, FileTimeRangeError> {
-        u64::try_from(duration.as_nanos() / 100)
-            .map_err(|_| FileTimeRangeErrorKind::Overflow.into())
-            .map(Self::new)
+        let ft = u64::try_from(duration.as_nanos() / 100)
+            .map_err(|_| FileTimeRangeErrorKind::Overflow)?;
+        let ft = Self::new(ft);
+        Ok(ft)
     }
 }
 
