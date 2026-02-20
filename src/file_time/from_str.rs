@@ -25,6 +25,8 @@ mod tests {
         error::Error,
         num::{IntErrorKind, ParseIntError},
     };
+    #[cfg(feature = "std")]
+    use std::string::String;
 
     #[cfg(feature = "std")]
     use proptest::{prop_assert, prop_assert_eq};
@@ -65,7 +67,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn from_str_roundtrip(#[strategy(r"\+?[0-9]{1,19}")] s: std::string::String) {
+    fn from_str_roundtrip(#[strategy(r"\+?[0-9]{1,19}")] s: String) {
         let ft = s.parse().unwrap();
         prop_assert_eq!(FileTime::from_str(&s).unwrap(), FileTime::new(ft));
     }
@@ -160,9 +162,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn from_str_with_invalid_digit_roundtrip(
-        #[strategy(r"-[0-9]+|[^0-9]+")] s: std::string::String,
-    ) {
+    fn from_str_with_invalid_digit_roundtrip(#[strategy(r"-[0-9]+|[^0-9]+")] s: String) {
         prop_assert!(FileTime::from_str(&s).is_err());
     }
 
