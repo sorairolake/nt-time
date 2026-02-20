@@ -31,14 +31,9 @@
 //!     Ok(utc_datetime!(1601-01-01 00:00:00))
 //! );
 //!
-//! let ft = ft + Duration::from_secs(11_644_473_600);
+//! let ft = ft + Duration::from_hours(3_234_576);
 //! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
-//!
-//! // The practical largest file time.
-//! assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
-//! // The theoretical largest file time.
-//! assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
 //! ```
 //!
 //! ## Conversion from and to other system times
@@ -93,9 +88,9 @@
 //!
 //! ## Formatting and printing the file time
 //!
-//! The formatting traits for [`FileTime`] are implemented to show the
-//! underlying [`u64`] value. If you need a human-readable date and time,
-//! convert [`FileTime`] to a type which represents time such as
+//! The [`Display`](core::fmt::Display) trait for [`FileTime`] is implemented to
+//! show the underlying [`u64`] value. If you need a human-readable date and
+//! time, convert [`FileTime`] to a type which represents time such as
 //! [`time::UtcDateTime`].
 //!
 //! ```
@@ -114,7 +109,7 @@
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time
 
-#![doc(html_root_url = "https://docs.rs/nt-time/0.13.2/")]
+#![doc(html_root_url = "https://docs.rs/nt-time/0.14.0/")]
 #![no_std]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // Lint levels of rustc.

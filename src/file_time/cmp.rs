@@ -337,8 +337,7 @@ mod tests {
             Some(Ordering::Equal)
         );
         assert!(
-            FileTime::UNIX_EPOCH
-                > (SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH))
+            FileTime::UNIX_EPOCH > (SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration())
         );
     }
 

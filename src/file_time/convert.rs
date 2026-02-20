@@ -4,9 +4,8 @@
 
 //! Implementations of conversions between [`FileTime`] and other types.
 
-use core::num::TryFromIntError;
 #[cfg(feature = "std")]
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::Utc;
@@ -19,65 +18,14 @@ use dos_date_time::{
 use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
 
-#[cfg(feature = "std")]
-use super::FILE_TIMES_PER_SEC;
 use super::FileTime;
-use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
+use crate::error::FileTimeRangeError;
+#[cfg(feature = "std")]
+use crate::error::FileTimeRangeErrorKind;
 
 impl From<FileTime> for u64 {
-    /// Converts a `FileTime` to the file time.
-    ///
-    /// Equivalent to [`FileTime::to_raw`] except that it is not callable in
-    /// const contexts.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
-    /// assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
-    /// assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
-    /// assert_eq!(u64::from(FileTime::MAX), u64::MAX);
-    /// ```
     fn from(ft: FileTime) -> Self {
         ft.to_raw()
-    }
-}
-
-impl TryFrom<FileTime> for i64 {
-    type Error = TryFromIntError;
-
-    /// Converts a `FileTime` to the file time.
-    ///
-    /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method or the
-    /// [`DateTime.ToFileTimeUtc`] method in [.NET].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if `ft` is after "+30828-09-14 02:48:05.477580700 UTC".
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(i64::try_from(FileTime::NT_TIME_EPOCH), Ok(0));
-    /// assert_eq!(
-    ///     i64::try_from(FileTime::UNIX_EPOCH),
-    ///     Ok(116_444_736_000_000_000)
-    /// );
-    /// assert_eq!(i64::try_from(FileTime::SIGNED_MAX), Ok(i64::MAX));
-    ///
-    /// assert!(i64::try_from(FileTime::MAX).is_err());
-    /// ```
-    ///
-    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
-    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
-    /// [.NET]: https://dotnet.microsoft.com/
-    fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        ft.to_raw().try_into()
     }
 }
 
@@ -98,7 +46,7 @@ impl From<FileTime> for SystemTime {
     /// #
     /// assert_eq!(
     ///     SystemTime::from(FileTime::NT_TIME_EPOCH),
-    ///     SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)
+    ///     SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)
     /// );
     /// assert_eq!(
     ///     SystemTime::from(FileTime::UNIX_EPOCH),
@@ -106,12 +54,8 @@ impl From<FileTime> for SystemTime {
     /// );
     /// ```
     fn from(ft: FileTime) -> Self {
-        let duration = Duration::new(
-            ft.to_raw() / FILE_TIMES_PER_SEC,
-            u32::try_from((ft.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `u32`"),
-        );
-        (Self::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)) + duration
+        let duration = ft.to_duration();
+        (Self::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()) + duration
     }
 }
 
@@ -250,16 +194,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     ///
     /// <div class="warning">
     ///
-    /// [`dos_date_time::DateTime`] represents the local date and time, and has
-    /// no notion of the time zone.
-    ///
-    /// </div>
-    ///
-    /// <div class="warning">
-    ///
-    /// The resolution of MS-DOS date and time is 2 seconds. So this method
-    /// rounds towards zero, truncating any fractional part of the exact result
-    /// of dividing seconds by 2.
+    /// This method may round towards zero, truncating more precise times that a
+    /// [`dos_date_time::DateTime`] cannot store.
     ///
     /// </div>
     ///
@@ -295,64 +231,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
 }
 
 impl From<u64> for FileTime {
-    /// Converts the file time to a `FileTime`.
-    ///
-    /// Equivalent to [`FileTime::new`] except that it is not callable in const
-    /// contexts.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::from(u64::MIN), FileTime::NT_TIME_EPOCH);
-    /// assert_eq!(
-    ///     FileTime::from(116_444_736_000_000_000),
-    ///     FileTime::UNIX_EPOCH
-    /// );
-    /// assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
-    /// assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
-    /// ```
     fn from(ft: u64) -> Self {
         Self::new(ft)
-    }
-}
-
-impl TryFrom<i64> for FileTime {
-    type Error = FileTimeRangeError;
-
-    /// Converts the file time to a `FileTime`.
-    ///
-    /// The file time is sometimes represented as an [`i64`] value, such as in
-    /// the [`DateTime.FromFileTimeUtc`] method or the
-    /// [`DateTime.ToFileTimeUtc`] method in [.NET].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Err`] if `ft` is negative.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use nt_time::FileTime;
-    /// #
-    /// assert_eq!(FileTime::try_from(0_i64), Ok(FileTime::NT_TIME_EPOCH));
-    /// assert_eq!(
-    ///     FileTime::try_from(116_444_736_000_000_000_i64),
-    ///     Ok(FileTime::UNIX_EPOCH)
-    /// );
-    /// assert_eq!(FileTime::try_from(i64::MAX), Ok(FileTime::SIGNED_MAX));
-    ///
-    /// assert!(FileTime::try_from(i64::MIN).is_err());
-    /// ```
-    ///
-    /// [`DateTime.FromFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.fromfiletimeutc
-    /// [`DateTime.ToFileTimeUtc`]: https://learn.microsoft.com/en-us/dotnet/api/system.datetime.tofiletimeutc
-    /// [.NET]: https://dotnet.microsoft.com/
-    fn try_from(ft: i64) -> Result<Self, Self::Error> {
-        ft.try_into()
-            .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-            .map(Self::new)
     }
 }
 
@@ -374,7 +254,7 @@ impl TryFrom<SystemTime> for FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_secs(11_644_473_600)),
+    ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)),
     ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
@@ -398,11 +278,9 @@ impl TryFrom<SystemTime> for FileTime {
     /// ```
     fn try_from(st: SystemTime) -> Result<Self, Self::Error> {
         let elapsed = st
-            .duration_since(SystemTime::UNIX_EPOCH - (Self::UNIX_EPOCH - Self::NT_TIME_EPOCH))
-            .map(|d| d.as_nanos())
+            .duration_since(SystemTime::UNIX_EPOCH - Self::UNIX_EPOCH.to_duration())
             .map_err(|_| FileTimeRangeErrorKind::Negative)?;
-        let ft = u64::try_from(elapsed / 100).map_err(|_| FileTimeRangeErrorKind::Overflow)?;
-        Ok(Self::new(ft))
+        Self::from_duration(elapsed)
     }
 }
 
@@ -579,6 +457,9 @@ impl From<dos_date_time::DateTime> for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "std")]
+    use std::time::Duration;
+
     #[cfg(feature = "chrono")]
     use chrono::TimeDelta;
     #[cfg(feature = "dos-date-time")]
@@ -586,12 +467,13 @@ mod tests {
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     #[cfg(feature = "std")]
-    use proptest::{prop_assert, prop_assert_eq};
+    use proptest::prop_assert_eq;
     #[cfg(feature = "std")]
     use test_strategy::proptest;
     use time::macros::utc_datetime;
 
     use super::*;
+    use crate::error::FileTimeRangeErrorKind;
 
     #[test]
     fn from_file_time_to_u64() {
@@ -607,41 +489,12 @@ mod tests {
         prop_assert_eq!(u64::from(ft), ft.to_raw());
     }
 
-    #[test]
-    fn try_from_file_time_to_i64() {
-        assert_eq!(
-            i64::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            i64::default()
-        );
-        assert_eq!(
-            i64::try_from(FileTime::UNIX_EPOCH).unwrap(),
-            116_444_736_000_000_000
-        );
-        assert_eq!(i64::try_from(FileTime::SIGNED_MAX).unwrap(), i64::MAX);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_file_time_to_i64_roundtrip(ft: FileTime) {
-        if ft <= FileTime::SIGNED_MAX {
-            prop_assert!(i64::try_from(ft).is_ok());
-        } else {
-            prop_assert!(i64::try_from(ft).is_err());
-        }
-    }
-
-    #[test]
-    fn try_from_file_time_to_i64_with_too_big_file_time() {
-        assert!(i64::try_from(FileTime::new(u64::try_from(i64::MAX).unwrap() + 1)).is_err());
-        assert!(i64::try_from(FileTime::MAX).is_err());
-    }
-
     #[cfg(feature = "std")]
     #[test]
     fn from_file_time_to_system_time() {
         assert_eq!(
             SystemTime::from(FileTime::NT_TIME_EPOCH),
-            SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
+            SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()
         );
         assert_eq!(
             SystemTime::from(FileTime::UNIX_EPOCH),
@@ -653,7 +506,7 @@ mod tests {
         );
         assert_eq!(
             SystemTime::from(FileTime::new(2_650_467_744_000_000_000)),
-            SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800)
+            SystemTime::UNIX_EPOCH + Duration::from_hours(70_389_528)
         );
         // Largest `SystemTime` on Windows.
         assert_eq!(
@@ -856,48 +709,6 @@ mod tests {
         prop_assert_eq!(FileTime::from(ft), FileTime::new(ft));
     }
 
-    #[test]
-    fn try_from_i64_to_file_time_before_nt_time_epoch() {
-        assert_eq!(
-            FileTime::try_from(i64::MIN).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-        assert_eq!(
-            FileTime::try_from(i64::default() - 1).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_i64_to_file_time_before_nt_time_epoch_roundtrip(
-        #[strategy(..i64::default())] ft: i64,
-    ) {
-        prop_assert_eq!(
-            FileTime::try_from(ft).unwrap_err(),
-            FileTimeRangeErrorKind::Negative.into()
-        );
-    }
-
-    #[test]
-    fn try_from_i64_to_file_time() {
-        assert_eq!(
-            FileTime::try_from(i64::default()).unwrap(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::try_from(116_444_736_000_000_000_i64).unwrap(),
-            FileTime::UNIX_EPOCH
-        );
-        assert_eq!(FileTime::try_from(i64::MAX).unwrap(), FileTime::SIGNED_MAX);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn try_from_i64_to_file_time_roundtrip(#[strategy(i64::default()..)] ft: i64) {
-        prop_assert!(FileTime::try_from(ft).is_ok());
-    }
-
     #[cfg(feature = "std")]
     #[test]
     fn try_from_system_time_to_file_time_before_nt_time_epoch() {
@@ -916,10 +727,8 @@ mod tests {
     #[test]
     fn try_from_system_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(
-                SystemTime::UNIX_EPOCH - (FileTime::UNIX_EPOCH - FileTime::NT_TIME_EPOCH)
-            )
-            .unwrap(),
+            FileTime::try_from(SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration())
+                .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
@@ -934,8 +743,7 @@ mod tests {
             FileTime::new(2_650_467_743_999_999_999)
         );
         assert_eq!(
-            FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_secs(253_402_300_800))
-                .unwrap(),
+            FileTime::try_from(SystemTime::UNIX_EPOCH + Duration::from_hours(70_389_528)).unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
         // Largest `SystemTime` on Windows.

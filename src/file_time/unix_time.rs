@@ -12,7 +12,7 @@ use super::{FILE_TIMES_PER_SEC, FileTime};
 use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] represented as a pair of the number of whole seconds
     /// and the number of additional nanoseconds, like the [`timespec`]
     /// structure in C11, which represents the same date and time as this
@@ -50,7 +50,7 @@ impl FileTime {
         (secs, subsec_nanos)
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in seconds which represents the same date and time
     /// as this `FileTime`.
     ///
@@ -73,7 +73,7 @@ impl FileTime {
             - 11_644_473_600
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in milliseconds which represents the same date and
     /// time as this `FileTime`.
     ///
@@ -103,7 +103,7 @@ impl FileTime {
             .expect("the number of milliseconds should be in the range of `i64`")
     }
 
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Returns [Unix time] in microseconds which represents the same date and
     /// time as this `FileTime`.
     ///
@@ -217,10 +217,9 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
-        Self::from_unix_time_secs(secs).and_then(|ft| {
-            ft.checked_add(Duration::from_nanos(nanos.into()))
-                .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
-        })
+        let ft = Self::from_unix_time_secs(secs)?;
+        ft.checked_add(Duration::from_nanos(nanos.into()))
+            .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
     }
 
     /// Creates a `FileTime` with the given [Unix time] in seconds.
@@ -259,10 +258,10 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time_secs(secs: i64) -> Result<Self, FileTimeRangeError> {
         if secs <= 1_833_029_933_770 {
-            u64::try_from(secs + 11_644_473_600)
-                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-                .map(|t| t * FILE_TIMES_PER_SEC)
-                .map(Self::new)
+            let duration = u64::try_from(secs + 11_644_473_600)
+                .map_err(|_| FileTimeRangeErrorKind::Negative)?;
+            let ft = Self::new(duration * FILE_TIMES_PER_SEC);
+            Ok(ft)
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }
@@ -380,11 +379,12 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     pub fn from_unix_time_nanos(nanos: i128) -> Result<Self, FileTimeRangeError> {
         if nanos <= 1_833_029_933_770_955_161_500 {
-            (nanos + 11_644_473_600_000_000_000)
+            let ft = (nanos + 11_644_473_600_000_000_000)
                 .div_euclid(100)
                 .try_into()
-                .map_err(|_| FileTimeRangeErrorKind::Negative.into())
-                .map(Self::new)
+                .map_err(|_| FileTimeRangeErrorKind::Negative)?;
+            let ft = Self::new(ft);
+            Ok(ft)
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }
@@ -394,7 +394,7 @@ impl FileTime {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "std")]
-    use proptest::{prop_assert, prop_assert_eq};
+    use proptest::{prop_assert, prop_assert_eq, prop_assume};
     #[cfg(feature = "std")]
     use test_strategy::proptest;
 
@@ -445,8 +445,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time();
+    fn to_unix_time_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts.0));
         prop_assert!(ts.1 < NANOS_PER_SEC);
     }
@@ -506,8 +506,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_secs_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_secs();
+    fn to_unix_time_secs_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_secs();
         prop_assert!((-11_644_473_600..=1_833_029_933_770).contains(&ts));
     }
 
@@ -572,8 +572,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_millis_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_millis();
+    fn to_unix_time_millis_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_millis();
         prop_assert!((-11_644_473_600_000..=1_833_029_933_770_955).contains(&ts));
     }
 
@@ -644,8 +644,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_micros_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_micros();
+    fn to_unix_time_micros_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_micros();
         prop_assert!((-11_644_473_600_000_000..=1_833_029_933_770_955_161).contains(&ts));
     }
 
@@ -692,8 +692,8 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_unix_time_nanos_roundtrip(ft: u64) {
-        let ts = FileTime::new(ft).to_unix_time_nanos();
+    fn to_unix_time_nanos_roundtrip(ft: FileTime) {
+        let ts = ft.to_unix_time_nanos();
         prop_assert!((-11_644_473_600_000_000_000..=1_833_029_933_770_955_161_500).contains(&ts));
     }
 
@@ -847,8 +847,6 @@ mod tests {
         #[strategy(-11_644_473_600..=1_833_029_933_770_i64)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
     ) {
-        use proptest::{prop_assert, prop_assume};
-
         if secs == 1_833_029_933_770 {
             prop_assume!(nanos < 955_161_600);
         }
@@ -898,8 +896,6 @@ mod tests {
         #[strategy(1_833_029_933_770_i64..)] secs: i64,
         #[strategy(..NANOS_PER_SEC)] nanos: u32,
     ) {
-        use proptest::{prop_assert_eq, prop_assume};
-
         if secs == 1_833_029_933_770 {
             prop_assume!(nanos >= 955_161_600);
         }

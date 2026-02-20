@@ -4,9 +4,9 @@
 
 [package]
 name = "nt-time"
-version = "0.13.2"
+version = "0.14.0"
 edition = "2024"
-rust-version = "1.88.0"
+rust-version = "1.93.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 repository = "https://github.com/sorairolake/nt-time"
@@ -28,15 +28,15 @@ required-features = ["dos-date-time"]
 
 [dependencies]
 chrono = { version = "0.4.43", default-features = false, optional = true }
-dos-date-time = { version = "0.2.1", default-features = false, optional = true }
+dos-date-time = { version = "0.2.2", default-features = false, optional = true }
 jiff = { version = "0.2.20", default-features = false, optional = true }
 rand = { version = "0.10.0", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.47", default-features = false }
 
 [dev-dependencies]
-anyhow = "1.0.101"
-clap = { version = "4.5.58", features = ["derive"] }
+anyhow = "1.0.102"
+clap = { version = "4.5.60", features = ["derive"] }
 proptest = "1.10.0"
 proptest-derive = "0.8.0"
 rand_pcg = "0.10.1"
