@@ -14,8 +14,7 @@ impl FromStr for FileTime {
 
     fn from_str(src: &str) -> Result<Self, Self::Err> {
         let ft = src.parse().map_err(ParseFileTimeError::new)?;
-        let ft = Self::new(ft);
-        Ok(ft)
+        Ok(Self::new(ft))
     }
 }
 

@@ -217,8 +217,8 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
-        let ft = Self::from_unix_time_secs(secs)?;
-        ft.checked_add(Duration::from_nanos(nanos.into()))
+        Self::from_unix_time_secs(secs)?
+            .checked_add(Duration::from_nanos(nanos.into()))
             .ok_or_else(|| FileTimeRangeErrorKind::Overflow.into())
     }
 
@@ -260,8 +260,7 @@ impl FileTime {
         if secs <= 1_833_029_933_770 {
             let duration = u64::try_from(secs + 11_644_473_600)
                 .map_err(|_| FileTimeRangeErrorKind::Negative)?;
-            let ft = Self::new(duration * FILE_TIMES_PER_SEC);
-            Ok(ft)
+            Ok(Self::new(duration * FILE_TIMES_PER_SEC))
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }
@@ -383,8 +382,7 @@ impl FileTime {
                 .div_euclid(100)
                 .try_into()
                 .map_err(|_| FileTimeRangeErrorKind::Negative)?;
-            let ft = Self::new(ft);
-            Ok(ft)
+            Ok(Self::new(ft))
         } else {
             Err(FileTimeRangeErrorKind::Overflow.into())
         }
