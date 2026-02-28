@@ -34,7 +34,7 @@ impl FileTimeRangeError {
     /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Overflow);
     /// ```
     #[must_use]
-    pub const fn kind(&self) -> FileTimeRangeErrorKind {
+    pub const fn kind(self) -> FileTimeRangeErrorKind {
         self.0
     }
 }

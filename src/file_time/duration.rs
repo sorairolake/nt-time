@@ -76,8 +76,7 @@ impl FileTime {
     pub fn from_duration(duration: Duration) -> Result<Self, FileTimeRangeError> {
         let ft = u64::try_from(duration.as_nanos() / 100)
             .map_err(|_| FileTimeRangeErrorKind::Overflow)?;
-        let ft = Self::new(ft);
-        Ok(ft)
+        Ok(Self::new(ft))
     }
 }
 

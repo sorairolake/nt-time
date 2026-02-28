@@ -4,7 +4,7 @@
 
 [package]
 name = "nt-time"
-version = "0.14.0"
+version = "0.15.0"
 edition = "2024"
 rust-version = "1.93.0"
 description = "A Windows file time library"
@@ -27,9 +27,9 @@ name = "ft2dos"
 required-features = ["dos-date-time"]
 
 [dependencies]
-chrono = { version = "0.4.43", default-features = false, optional = true }
-dos-date-time = { version = "0.2.2", default-features = false, optional = true }
-jiff = { version = "0.2.20", default-features = false, optional = true }
+chrono = { version = "0.4.44", default-features = false, optional = true }
+dos-date-time = { version = "0.3.0", default-features = false, optional = true }
+jiff = { version = "0.2.21", default-features = false, optional = true }
 rand = { version = "0.10.0", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.47", default-features = false }
