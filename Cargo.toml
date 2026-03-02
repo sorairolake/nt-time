@@ -29,7 +29,7 @@ required-features = ["dos-date-time"]
 [dependencies]
 chrono = { version = "0.4.44", default-features = false, optional = true }
 dos-date-time = { version = "0.3.0", default-features = false, optional = true }
-jiff = { version = "0.2.21", default-features = false, optional = true }
+jiff = { version = "0.2.22", default-features = false, optional = true }
 rand = { version = "0.10.0", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, features = ["derive"], optional = true }
 time = { version = "0.3.47", default-features = false }
