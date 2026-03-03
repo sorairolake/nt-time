@@ -32,13 +32,13 @@ impl PartialEq<SystemTime> for FileTime {
 
 impl PartialEq<FileTime> for UtcDateTime {
     fn eq(&self, other: &FileTime) -> bool {
-        self == &Self::try_from(*other).expect("`other` is out of range for `UtcDateTime`")
+        self == &Self::try_from(*other).unwrap()
     }
 }
 
 impl PartialEq<UtcDateTime> for FileTime {
     fn eq(&self, other: &UtcDateTime) -> bool {
-        &UtcDateTime::try_from(*self).expect("`self` is out of range for `UtcDateTime`") == other
+        &UtcDateTime::try_from(*self).unwrap() == other
     }
 }
 
@@ -59,14 +59,14 @@ impl PartialEq<DateTime<Utc>> for FileTime {
 #[cfg(feature = "jiff")]
 impl PartialEq<FileTime> for Timestamp {
     fn eq(&self, other: &FileTime) -> bool {
-        self == &Self::try_from(*other).expect("`other` is out of range for `Timestamp`")
+        self == &Self::try_from(*other).unwrap()
     }
 }
 
 #[cfg(feature = "jiff")]
 impl PartialEq<Timestamp> for FileTime {
     fn eq(&self, other: &Timestamp) -> bool {
-        &Timestamp::try_from(*self).expect("`self` is out of range for `Timestamp`") == other
+        &Timestamp::try_from(*self).unwrap() == other
     }
 }
 
@@ -86,17 +86,13 @@ impl PartialOrd<SystemTime> for FileTime {
 
 impl PartialOrd<FileTime> for UtcDateTime {
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
-        self.partial_cmp(
-            &Self::try_from(*other).expect("`other` is out of range for `UtcDateTime`"),
-        )
+        self.partial_cmp(&Self::try_from(*other).unwrap())
     }
 }
 
 impl PartialOrd<UtcDateTime> for FileTime {
     fn partial_cmp(&self, other: &UtcDateTime) -> Option<Ordering> {
-        UtcDateTime::try_from(*self)
-            .expect("`self` is out of range for `UtcDateTime`")
-            .partial_cmp(other)
+        UtcDateTime::try_from(*self).unwrap().partial_cmp(other)
     }
 }
 
@@ -117,16 +113,14 @@ impl PartialOrd<DateTime<Utc>> for FileTime {
 #[cfg(feature = "jiff")]
 impl PartialOrd<FileTime> for Timestamp {
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::try_from(*other).expect("`other` is out of range for `Timestamp`"))
+        self.partial_cmp(&Self::try_from(*other).unwrap())
     }
 }
 
 #[cfg(feature = "jiff")]
 impl PartialOrd<Timestamp> for FileTime {
     fn partial_cmp(&self, other: &Timestamp) -> Option<Ordering> {
-        Timestamp::try_from(*self)
-            .expect("`self` is out of range for `Timestamp`")
-            .partial_cmp(other)
+        Timestamp::try_from(*self).unwrap().partial_cmp(other)
     }
 }
 

@@ -68,9 +68,7 @@ impl FileTime {
     #[cfg(feature = "std")]
     #[must_use]
     pub fn now() -> Self {
-        SystemTime::now()
-            .try_into()
-            .expect("the current date and time should be in the range of the file time")
+        SystemTime::now().try_into().unwrap()
     }
 
     /// Creates a new `FileTime` with the given underlying [`u64`] value.

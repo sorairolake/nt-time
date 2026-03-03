@@ -44,8 +44,7 @@ impl FileTime {
     pub fn to_unix_time(self) -> (i64, u32) {
         let (secs, subsec_nanos) = (
             self.to_unix_time_secs(),
-            u32::try_from((self.to_raw() % FILE_TIMES_PER_SEC) * 100)
-                .expect("the number of nanoseconds should be in the range of `u32`"),
+            u32::try_from((self.to_raw() % FILE_TIMES_PER_SEC) * 100).unwrap(),
         );
         (secs, subsec_nanos)
     }
@@ -68,9 +67,7 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
     pub fn to_unix_time_secs(self) -> i64 {
-        i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC)
-            .expect("the number of seconds should be in the range of `i64`")
-            - 11_644_473_600
+        i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC).unwrap() - 11_644_473_600
     }
 
     #[expect(clippy::missing_panics_doc)]
@@ -100,7 +97,7 @@ impl FileTime {
         self.to_unix_time_nanos()
             .div_euclid(1_000_000)
             .try_into()
-            .expect("the number of milliseconds should be in the range of `i64`")
+            .unwrap()
     }
 
     #[expect(clippy::missing_panics_doc)]
@@ -133,7 +130,7 @@ impl FileTime {
         self.to_unix_time_nanos()
             .div_euclid(1000)
             .try_into()
-            .expect("the number of microseconds should be in the range of `i64`")
+            .unwrap()
     }
 
     /// Returns [Unix time] in nanoseconds which represents the same date and

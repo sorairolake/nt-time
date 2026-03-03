@@ -128,6 +128,7 @@ impl TryFrom<FileTime> for UtcDateTime {
 }
 
 #[cfg(feature = "chrono")]
+#[expect(clippy::fallible_impl_from)]
 impl From<FileTime> for chrono::DateTime<Utc> {
     /// Converts a `FileTime` to a [`chrono::DateTime<Utc>`].
     ///
@@ -150,8 +151,7 @@ impl From<FileTime> for chrono::DateTime<Utc> {
     /// ```
     fn from(ft: FileTime) -> Self {
         let ut = ft.to_unix_time();
-        Self::from_timestamp(ut.0, ut.1)
-            .expect("Unix time in nanoseconds should be in the range of `DateTime<Utc>`")
+        Self::from_timestamp(ut.0, ut.1).unwrap()
     }
 }
 
@@ -428,6 +428,7 @@ impl TryFrom<Timestamp> for FileTime {
 }
 
 #[cfg(feature = "dos-date-time")]
+#[expect(clippy::fallible_impl_from)]
 impl From<dos_date_time::DateTime> for FileTime {
     /// Converts a [`dos_date_time::DateTime`] to a `FileTime`.
     ///
@@ -451,7 +452,7 @@ impl From<dos_date_time::DateTime> for FileTime {
     /// ```
     fn from(dt: dos_date_time::DateTime) -> Self {
         let dt = PrimitiveDateTime::from(dt).as_utc();
-        Self::try_from(dt).expect("date and time should be in the range of `FileTime`")
+        Self::try_from(dt).unwrap()
     }
 }
 

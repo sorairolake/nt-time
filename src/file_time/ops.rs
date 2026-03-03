@@ -160,8 +160,7 @@ impl Add<Duration> for FileTime {
     type Output = Self;
 
     fn add(self, rhs: Duration) -> Self::Output {
-        self.checked_add(rhs)
-            .expect("overflow when adding duration to date and time")
+        self.checked_add(rhs).unwrap()
     }
 }
 
@@ -183,9 +182,9 @@ impl Add<TimeDelta> for FileTime {
 
     fn add(self, rhs: TimeDelta) -> Self::Output {
         if rhs > TimeDelta::zero() {
-            self + rhs.abs().to_std().expect("duration is less than zero")
+            self + rhs.abs().to_std().unwrap()
         } else {
-            self - rhs.abs().to_std().expect("duration is less than zero")
+            self - rhs.abs().to_std().unwrap()
         }
     }
 }
@@ -196,9 +195,9 @@ impl Add<Span> for FileTime {
 
     fn add(self, rhs: Span) -> Self::Output {
         if rhs.is_positive() {
-            self + Duration::try_from(rhs.abs()).expect("duration is less than zero")
+            self + Duration::try_from(rhs.abs()).unwrap()
         } else {
-            self - Duration::try_from(rhs.abs()).expect("duration is less than zero")
+            self - Duration::try_from(rhs.abs()).unwrap()
         }
     }
 }
@@ -242,8 +241,7 @@ impl Sub<Duration> for FileTime {
     type Output = Self;
 
     fn sub(self, rhs: Duration) -> Self::Output {
-        self.checked_sub(rhs)
-            .expect("overflow when subtracting duration from date and time")
+        self.checked_sub(rhs).unwrap()
     }
 }
 
@@ -265,9 +263,9 @@ impl Sub<TimeDelta> for FileTime {
 
     fn sub(self, rhs: TimeDelta) -> Self::Output {
         if rhs > TimeDelta::zero() {
-            self - rhs.abs().to_std().expect("duration is less than zero")
+            self - rhs.abs().to_std().unwrap()
         } else {
-            self + rhs.abs().to_std().expect("duration is less than zero")
+            self + rhs.abs().to_std().unwrap()
         }
     }
 }
@@ -278,9 +276,9 @@ impl Sub<Span> for FileTime {
 
     fn sub(self, rhs: Span) -> Self::Output {
         if rhs.is_positive() {
-            self - Duration::try_from(rhs.abs()).expect("duration is less than zero")
+            self - Duration::try_from(rhs.abs()).unwrap()
         } else {
-            self + Duration::try_from(rhs.abs()).expect("duration is less than zero")
+            self + Duration::try_from(rhs.abs()).unwrap()
         }
     }
 }
@@ -290,8 +288,7 @@ impl Sub<FileTime> for SystemTime {
     type Output = Duration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
-        self.duration_since(rhs.into())
-            .expect("RHS provided is later than LHS")
+        self.duration_since(rhs.into()).unwrap()
     }
 }
 
@@ -300,9 +297,7 @@ impl Sub<SystemTime> for FileTime {
     type Output = Duration;
 
     fn sub(self, rhs: SystemTime) -> Self::Output {
-        SystemTime::from(self)
-            .duration_since(rhs)
-            .expect("RHS provided is later than LHS")
+        SystemTime::from(self).duration_since(rhs).unwrap()
     }
 }
 
@@ -310,7 +305,7 @@ impl Sub<FileTime> for UtcDateTime {
     type Output = time::Duration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
-        self - Self::try_from(rhs).expect("RHS is out of range for `UtcDateTime`")
+        self - Self::try_from(rhs).unwrap()
     }
 }
 
@@ -318,7 +313,7 @@ impl Sub<UtcDateTime> for FileTime {
     type Output = time::Duration;
 
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
-        UtcDateTime::try_from(self).expect("LHS is out of range for `UtcDateTime`") - rhs
+        UtcDateTime::try_from(self).unwrap() - rhs
     }
 }
 
@@ -345,7 +340,7 @@ impl Sub<FileTime> for Timestamp {
     type Output = Span;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
-        self - Self::try_from(rhs).expect("RHS is out of range for `Timestamp`")
+        self - Self::try_from(rhs).unwrap()
     }
 }
 
@@ -354,7 +349,7 @@ impl Sub<Timestamp> for FileTime {
     type Output = Span;
 
     fn sub(self, rhs: Timestamp) -> Self::Output {
-        Timestamp::try_from(self).expect("LHS is out of range for `Timestamp`") - rhs
+        Timestamp::try_from(self).unwrap() - rhs
     }
 }
 
@@ -612,7 +607,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_std_duration_with_overflow() {
         let _ = FileTime::MAX + Duration::from_nanos(100);
     }
@@ -645,7 +640,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_positive_time_duration_with_overflow() {
         let _ = FileTime::MAX + time::Duration::nanoseconds(100);
     }
@@ -678,7 +673,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_negative_time_duration_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH + -time::Duration::nanoseconds(100);
     }
@@ -710,7 +705,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_positive_chrono_time_delta_with_overflow() {
         let _ = FileTime::MAX + TimeDelta::nanoseconds(100);
     }
@@ -742,7 +737,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_negative_chrono_time_delta_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(100);
     }
@@ -774,7 +769,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_positive_jiff_span_with_overflow() {
         let _ = FileTime::MAX + 100.nanoseconds();
     }
@@ -806,7 +801,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_negative_jiff_span_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH + -(100.nanoseconds());
     }
@@ -852,7 +847,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_assign_std_duration_with_overflow() {
         let mut ft = FileTime::MAX;
         ft += Duration::from_nanos(100);
@@ -899,7 +894,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_assign_positive_time_duration_with_overflow() {
         let mut ft = FileTime::MAX;
         ft += time::Duration::nanoseconds(100);
@@ -946,7 +941,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_assign_negative_time_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft += -time::Duration::nanoseconds(100);
@@ -995,7 +990,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_assign_positive_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::MAX;
         ft += TimeDelta::nanoseconds(100);
@@ -1044,7 +1039,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_assign_negative_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft += -TimeDelta::nanoseconds(100);
@@ -1093,7 +1088,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn add_assign_positive_jiff_span_with_overflow() {
         let mut ft = FileTime::MAX;
         ft += 100.nanoseconds();
@@ -1142,7 +1137,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn add_assign_negative_jiff_span_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft += -(100.nanoseconds());
@@ -1162,7 +1157,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "attempt to subtract with overflow")]
+    #[should_panic]
     fn sub_file_time_with_overflow() {
         let _ = (FileTime::MAX - Duration::from_nanos(100)) - FileTime::MAX;
     }
@@ -1192,7 +1187,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_std_duration_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH - Duration::from_nanos(100);
     }
@@ -1225,7 +1220,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_positive_time_duration_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH - time::Duration::nanoseconds(100);
     }
@@ -1258,7 +1253,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_negative_time_duration_with_overflow() {
         let _ = FileTime::MAX - -time::Duration::nanoseconds(100);
     }
@@ -1290,7 +1285,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_positive_chrono_time_delta_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(100);
     }
@@ -1322,7 +1317,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_negative_chrono_time_delta_with_overflow() {
         let _ = FileTime::MAX - -TimeDelta::nanoseconds(100);
     }
@@ -1354,7 +1349,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_positive_jiff_span_with_overflow() {
         let _ = FileTime::NT_TIME_EPOCH - 100.nanoseconds();
     }
@@ -1386,7 +1381,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_negative_jiff_span_with_overflow() {
         let _ = FileTime::MAX - -(100.nanoseconds());
     }
@@ -1413,7 +1408,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    #[should_panic(expected = "RHS provided is later than LHS")]
+    #[should_panic]
     fn sub_file_time_from_system_time_with_overflow() {
         let _ = FileTime::new(9_223_372_036_854_775_806)
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
@@ -1450,7 +1445,7 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    #[should_panic(expected = "RHS provided is later than LHS")]
+    #[should_panic]
     fn sub_system_time_from_file_time_with_overflow() {
         let _ = (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
             - FileTime::new(9_223_372_036_854_775_807);
@@ -1668,7 +1663,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_assign_std_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= Duration::from_nanos(100);
@@ -1715,7 +1710,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_assign_positive_time_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= time::Duration::nanoseconds(100);
@@ -1762,7 +1757,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_assign_negative_time_duration_with_overflow() {
         let mut ft = FileTime::MAX;
         ft -= -time::Duration::nanoseconds(100);
@@ -1811,7 +1806,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_assign_positive_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= TimeDelta::nanoseconds(100);
@@ -1860,7 +1855,7 @@ mod tests {
 
     #[cfg(feature = "chrono")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_assign_negative_chrono_time_delta_with_overflow() {
         let mut ft = FileTime::MAX;
         ft -= -TimeDelta::nanoseconds(100);
@@ -1909,7 +1904,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when subtracting duration from date and time")]
+    #[should_panic]
     fn sub_assign_positive_jiff_span_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft -= 100.nanoseconds();
@@ -1958,7 +1953,7 @@ mod tests {
 
     #[cfg(feature = "jiff")]
     #[test]
-    #[should_panic(expected = "overflow when adding duration to date and time")]
+    #[should_panic]
     fn sub_assign_negative_jiff_span_with_overflow() {
         let mut ft = FileTime::MAX;
         ft -= -(100.nanoseconds());
