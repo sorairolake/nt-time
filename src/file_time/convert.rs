@@ -263,9 +263,10 @@ impl TryFrom<SystemTime> for FileTime {
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
+    /// #[cfg(not(windows))]
     /// assert!(
     ///     FileTime::try_from(
-    ///         SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
+    ///         SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
     ///     )
     ///     .is_err()
     /// );
@@ -711,14 +712,13 @@ mod tests {
     }
 
     #[cfg(feature = "std")]
+    #[cfg(not(windows))]
     #[test]
     fn try_from_system_time_to_file_time_before_nt_time_epoch() {
         assert_eq!(
-            FileTime::try_from(if cfg!(windows) {
-                SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_100)
-            } else {
+            FileTime::try_from(
                 SystemTime::UNIX_EPOCH - Duration::from_nanos(11_644_473_600_000_000_001)
-            })
+            )
             .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );

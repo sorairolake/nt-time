@@ -6,7 +6,7 @@
 name = "nt-time"
 version = "0.15.0"
 edition = "2024"
-rust-version = "1.93.0"
+rust-version = "1.94.0"
 description = "A Windows file time library"
 documentation = "https://docs.rs/nt-time"
 repository = "https://github.com/sorairolake/nt-time"
