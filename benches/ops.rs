@@ -125,7 +125,7 @@ fn sub_negative_jiff_span(b: &mut Bencher) {
 fn sub_file_time_from_system_time(b: &mut Bencher) {
     b.iter(|| {
         (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-            - FileTime::new(9_223_372_036_854_775_806)
+            - FileTime::new(i64::MAX as u64 - 1)
     });
 }
 
@@ -133,7 +133,7 @@ fn sub_file_time_from_system_time(b: &mut Bencher) {
 #[bench]
 fn sub_system_time_from_file_time(b: &mut Bencher) {
     b.iter(|| {
-        FileTime::new(9_223_372_036_854_775_807)
+        FileTime::SIGNED_MAX
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_600))
     });
 }

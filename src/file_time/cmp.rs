@@ -163,11 +163,11 @@ mod tests {
     fn equality_system_time_and_file_time() {
         assert_eq!(
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)),
-            FileTime::new(9_223_372_036_854_775_807)
+            FileTime::SIGNED_MAX
         );
         assert_ne!(
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)),
-            FileTime::new(9_223_372_036_854_775_806)
+            FileTime::new(i64::MAX as u64 - 1)
         );
         assert_eq!(SystemTime::UNIX_EPOCH, FileTime::UNIX_EPOCH);
         assert_ne!(SystemTime::UNIX_EPOCH, FileTime::NT_TIME_EPOCH);
@@ -177,11 +177,11 @@ mod tests {
     #[test]
     fn equality_file_time_and_system_time() {
         assert_eq!(
-            FileTime::new(9_223_372_036_854_775_807),
+            FileTime::SIGNED_MAX,
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_ne!(
-            FileTime::new(9_223_372_036_854_775_806),
+            FileTime::new(i64::MAX as u64 - 1),
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_eq!(FileTime::UNIX_EPOCH, SystemTime::UNIX_EPOCH);
@@ -311,7 +311,7 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn order_system_time_and_file_time() {
-        assert!(SystemTime::UNIX_EPOCH < FileTime::new(9_223_372_036_854_775_807));
+        assert!(SystemTime::UNIX_EPOCH < FileTime::SIGNED_MAX);
         assert_eq!(
             SystemTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)

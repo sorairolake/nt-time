@@ -512,7 +512,7 @@ mod tests {
         );
         // Largest `SystemTime` on Windows.
         assert_eq!(
-            SystemTime::from(FileTime::new(9_223_372_036_854_775_807)),
+            SystemTime::from(FileTime::SIGNED_MAX),
             SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
         );
         if !cfg!(windows) {
@@ -753,7 +753,7 @@ mod tests {
                 SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)
             )
             .unwrap(),
-            FileTime::new(9_223_372_036_854_775_807)
+            FileTime::SIGNED_MAX
         );
         if !cfg!(windows) {
             assert_eq!(
