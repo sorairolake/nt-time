@@ -17,8 +17,9 @@ SPDX-License-Identifier: CC-BY-4.0
 
 A Windows file time is a 64-bit unsigned integer value that represents the
 number of 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00
-UTC", and is used as timestamps such as [NTFS] or [7z]. Windows uses a file
-time to record when an application creates, accesses, or writes to a file.
+UTC", and is used for timestamps in technologies such as [NTFS], [SMB], or
+[7z]. Windows uses a file time to record when an application creates, accesses,
+or writes to a file.
 
 ## Usage
 
@@ -113,6 +114,7 @@ licensing information.
 [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 [Rust]: https://www.rust-lang.org/
 [NTFS]: https://en.wikipedia.org/wiki/NTFS
+[SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
 [7z]: https://www.7-zip.org/7z.html
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono

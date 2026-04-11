@@ -6,9 +6,10 @@
 //!
 //! The [`FileTime`] is a type that represents the file time, which is a 64-bit
 //! unsigned integer value that represents the number of 100-nanosecond
-//! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used as
-//! timestamps such as [NTFS] or [7z]. Windows uses a file time to record when
-//! an application creates, accesses, or writes to a file.
+//! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used for
+//! timestamps in technologies such as [NTFS], [SMB], or [7z]. Windows uses a
+//! file time to record when an application creates, accesses, or writes to a
+//! file.
 //!
 //! # Examples
 //!
@@ -105,6 +106,7 @@
 //!
 //! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 //! [NTFS]: https://en.wikipedia.org/wiki/NTFS
+//! [SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
 //! [7z]: https://www.7-zip.org/7z.html
 //! [Unix time]: https://en.wikipedia.org/wiki/Unix_time
 //! [MS-DOS date and time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/ms-dos-date-and-time

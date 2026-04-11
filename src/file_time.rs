@@ -34,14 +34,16 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
 /// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
-/// and is used as timestamps such as [NTFS] or [7z]. Windows uses a file time
-/// to record when an application creates, accesses, or writes to a file.
+/// and is used for timestamps in technologies such as [NTFS], [SMB], or [7z].
+/// Windows uses a file time to record when an application creates, accesses, or
+/// writes to a file.
 ///
 /// This represents the same value as the [`FILETIME`] structure of the [Win32
 /// API], which represents a 64-bit unsigned integer value.
 ///
 /// [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
 /// [NTFS]: https://en.wikipedia.org/wiki/NTFS
+/// [SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
 /// [7z]: https://www.7-zip.org/7z.html
 /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
 /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
