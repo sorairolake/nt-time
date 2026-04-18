@@ -87,7 +87,7 @@ impl TryFrom<FileTime> for UtcDateTime {
     /// ```
     ///
     /// With the `large-dates` feature disabled, returns [`Err`] if the file
-    /// time represents after "9999-12-31 23:59:59.999999900 UTC":
+    /// time represents after `9999-12-31 23:59:59.999999900 UTC`:
     ///
     /// ```
     /// # #[cfg(not(feature = "large-dates"))]
@@ -135,19 +135,13 @@ impl From<FileTime> for chrono::DateTime<Utc> {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     chrono::{DateTime, Utc},
-    /// # };
+    /// # use nt_time::{FileTime, chrono::DateTime};
     /// #
     /// assert_eq!(
-    ///     DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
-    ///     "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+    ///     DateTime::from(FileTime::NT_TIME_EPOCH),
+    ///     DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
     /// );
-    /// assert_eq!(
-    ///     DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-    ///     DateTime::<Utc>::UNIX_EPOCH
-    /// );
+    /// assert_eq!(DateTime::from(FileTime::UNIX_EPOCH), DateTime::UNIX_EPOCH);
     /// ```
     fn from(ft: FileTime) -> Self {
         let ut = ft.to_unix_time();
@@ -319,7 +313,7 @@ impl TryFrom<UtcDateTime> for FileTime {
     /// ```
     ///
     /// With the `large-dates` feature enabled, returns [`Err`] if
-    /// [`UtcDateTime`] represents after "+60056-05-28 05:36:10.955161500 UTC":
+    /// [`UtcDateTime`] represents after `+60056-05-28 05:36:10.955161500 UTC`:
     ///
     /// ```
     /// # #[cfg(feature = "large-dates")]
@@ -355,37 +349,26 @@ impl TryFrom<chrono::DateTime<Utc>> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     chrono::{DateTime, TimeDelta, Utc},
-    /// # };
+    /// # use nt_time::{FileTime, chrono::DateTime};
     /// #
     /// assert_eq!(
-    ///     FileTime::try_from("1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()),
+    ///     FileTime::try_from(DateTime::from_timestamp_secs(-11_644_473_600).unwrap()),
     ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(DateTime::<Utc>::UNIX_EPOCH),
+    ///     FileTime::try_from(DateTime::UNIX_EPOCH),
     ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     ///
     /// // Before `1601-01-01 00:00:00 UTC`.
     /// assert!(
-    ///     FileTime::try_from(
-    ///         "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-    ///             - TimeDelta::nanoseconds(100)
-    ///     )
-    ///     .is_err()
+    ///     FileTime::try_from(DateTime::from_timestamp(-11_644_473_601, 999_999_900).unwrap())
+    ///         .is_err()
     /// );
     /// // After `+60056-05-28 05:36:10.955161500 UTC`.
     /// assert!(
-    ///     FileTime::try_from(
-    ///         "+60056-05-28 05:36:10.955161500 UTC"
-    ///             .parse::<DateTime<Utc>>()
-    ///             .unwrap()
-    ///             + TimeDelta::nanoseconds(100)
-    ///     )
-    ///     .is_err()
+    ///     FileTime::try_from(DateTime::from_timestamp(1_833_029_933_770, 955_161_600).unwrap())
+    ///         .is_err()
     /// );
     /// ```
     fn try_from(dt: chrono::DateTime<Utc>) -> Result<Self, Self::Error> {
@@ -462,8 +445,6 @@ mod tests {
     #[cfg(feature = "std")]
     use std::time::Duration;
 
-    #[cfg(feature = "chrono")]
-    use chrono::TimeDelta;
     #[cfg(feature = "dos-date-time")]
     use dos_date_time::{Date, Time};
     #[cfg(feature = "jiff")]
@@ -566,38 +547,28 @@ mod tests {
     #[test]
     fn from_file_time_to_chrono_date_time() {
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::NT_TIME_EPOCH),
-            "1601-01-01 00:00:00 UTC"
-                .parse::<chrono::DateTime<Utc>>()
-                .unwrap()
+            chrono::DateTime::from(FileTime::NT_TIME_EPOCH),
+            chrono::DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
         );
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::UNIX_EPOCH),
-            chrono::DateTime::<Utc>::UNIX_EPOCH
+            chrono::DateTime::from(FileTime::UNIX_EPOCH),
+            chrono::DateTime::UNIX_EPOCH
         );
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::new(2_650_467_743_999_999_999)),
-            "9999-12-31 23:59:59.999999900 UTC"
-                .parse::<chrono::DateTime<Utc>>()
-                .unwrap()
+            chrono::DateTime::from(FileTime::new(2_650_467_743_999_999_999)),
+            chrono::DateTime::from_timestamp(253_402_300_799, 999_999_900).unwrap()
         );
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::new(2_650_467_744_000_000_000)),
-            "+10000-01-01 00:00:00 UTC"
-                .parse::<chrono::DateTime<Utc>>()
-                .unwrap()
+            chrono::DateTime::from(FileTime::new(2_650_467_744_000_000_000)),
+            chrono::DateTime::from_timestamp_secs(253_402_300_800).unwrap()
         );
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::SIGNED_MAX),
-            "+30828-09-14 02:48:05.477580700 UTC"
-                .parse::<chrono::DateTime<Utc>>()
-                .unwrap()
+            chrono::DateTime::from(FileTime::SIGNED_MAX),
+            chrono::DateTime::from_timestamp(910_692_730_085, 477_580_700).unwrap()
         );
         assert_eq!(
-            chrono::DateTime::<Utc>::from(FileTime::MAX),
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<chrono::DateTime<Utc>>()
-                .unwrap()
+            chrono::DateTime::from(FileTime::MAX),
+            chrono::DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
         );
     }
 
@@ -847,10 +818,7 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_before_nt_time_epoch() {
         assert_eq!(
             FileTime::try_from(
-                "1601-01-01 00:00:00 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
-                    - TimeDelta::nanoseconds(100)
+                chrono::DateTime::from_timestamp(-11_644_473_601, 999_999_900).unwrap()
             )
             .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
@@ -861,50 +829,36 @@ mod tests {
     #[test]
     fn try_from_chrono_date_time_to_file_time() {
         assert_eq!(
-            FileTime::try_from(
-                "1601-01-01 00:00:00 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
-            )
-            .unwrap(),
+            FileTime::try_from(chrono::DateTime::from_timestamp_secs(-11_644_473_600).unwrap())
+                .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::try_from(chrono::DateTime::<Utc>::UNIX_EPOCH).unwrap(),
+            FileTime::try_from(chrono::DateTime::UNIX_EPOCH).unwrap(),
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
             FileTime::try_from(
-                "9999-12-31 23:59:59.999999999 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
+                chrono::DateTime::from_timestamp(253_402_300_799, 999_999_900).unwrap()
             )
             .unwrap(),
             FileTime::new(2_650_467_743_999_999_999)
         );
         assert_eq!(
-            FileTime::try_from(
-                "+10000-01-01 00:00:00 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
-            )
-            .unwrap(),
+            FileTime::try_from(chrono::DateTime::from_timestamp_secs(253_402_300_800).unwrap())
+                .unwrap(),
             FileTime::new(2_650_467_744_000_000_000)
         );
         assert_eq!(
             FileTime::try_from(
-                "+30828-09-14 02:48:05.477580700 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
+                chrono::DateTime::from_timestamp(910_692_730_085, 477_580_700).unwrap()
             )
             .unwrap(),
             FileTime::SIGNED_MAX
         );
         assert_eq!(
             FileTime::try_from(
-                "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
+                chrono::DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
             )
             .unwrap(),
             FileTime::MAX
@@ -916,10 +870,7 @@ mod tests {
     fn try_from_chrono_date_time_to_file_time_with_too_big_date_time() {
         assert_eq!(
             FileTime::try_from(
-                "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<chrono::DateTime<Utc>>()
-                    .unwrap()
-                    + TimeDelta::nanoseconds(100)
+                chrono::DateTime::from_timestamp(1_833_029_933_770, 955_161_600).unwrap()
             )
             .unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()

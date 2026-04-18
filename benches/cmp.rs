@@ -10,7 +10,7 @@ extern crate test;
 use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
-use chrono::{DateTime, Utc};
+use chrono::DateTime;
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
 use nt_time::{
@@ -54,17 +54,13 @@ fn equality_file_time_and_utc_date_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn equality_chrono_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| {
-        "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap() == FileTime::NT_TIME_EPOCH
-    });
+    b.iter(|| DateTime::from_timestamp_secs(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn equality_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| {
-        FileTime::NT_TIME_EPOCH == "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
-    });
+    b.iter(|| FileTime::NT_TIME_EPOCH == DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
 }
 
 #[cfg(feature = "jiff")]
@@ -104,13 +100,13 @@ fn order_file_time_and_utc_date_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn order_chrono_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| DateTime::<Utc>::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+    b.iter(|| DateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn order_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
+    b.iter(|| FileTime::UNIX_EPOCH > DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
 }
 
 #[cfg(feature = "jiff")]

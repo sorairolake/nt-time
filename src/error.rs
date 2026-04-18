@@ -58,13 +58,13 @@ impl From<FileTimeRangeErrorKind> for FileTimeRangeError {
 pub enum FileTimeRangeErrorKind {
     /// Value was negative.
     ///
-    /// This means the file time was before "1601-01-01 00:00:00 UTC".
+    /// This means the file time was before `1601-01-01 00:00:00 UTC`.
     Negative,
 
     /// Value was too big to be represented as [`FileTime`](crate::FileTime).
     ///
-    /// This means the file time was after "+60056-05-28 05:36:10.955161500
-    /// UTC".
+    /// This means the file time was after `+60056-05-28 05:36:10.955161500
+    /// UTC`.
     Overflow,
 }
 

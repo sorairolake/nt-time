@@ -9,8 +9,6 @@ extern crate test;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-#[cfg(feature = "chrono")]
-use chrono::Utc;
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
 use nt_time::{FileTime, time::UtcDateTime};
@@ -35,7 +33,7 @@ fn try_from_file_time_to_utc_date_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn from_file_time_to_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| chrono::DateTime::<Utc>::from(FileTime::UNIX_EPOCH));
+    b.iter(|| chrono::DateTime::from(FileTime::UNIX_EPOCH));
 }
 
 #[cfg(feature = "jiff")]
@@ -69,7 +67,7 @@ fn try_from_utc_date_time_to_file_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn try_from_chrono_date_time_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(chrono::DateTime::<Utc>::UNIX_EPOCH).unwrap());
+    b.iter(|| FileTime::try_from(chrono::DateTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "jiff")]

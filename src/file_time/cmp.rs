@@ -52,7 +52,7 @@ impl PartialEq<FileTime> for DateTime<Utc> {
 #[cfg(feature = "chrono")]
 impl PartialEq<DateTime<Utc>> for FileTime {
     fn eq(&self, other: &DateTime<Utc>) -> bool {
-        &DateTime::<Utc>::from(*self) == other
+        &DateTime::from(*self) == other
     }
 }
 
@@ -106,7 +106,7 @@ impl PartialOrd<FileTime> for DateTime<Utc> {
 #[cfg(feature = "chrono")]
 impl PartialOrd<DateTime<Utc>> for FileTime {
     fn partial_cmp(&self, other: &DateTime<Utc>) -> Option<Ordering> {
-        DateTime::<Utc>::from(*self).partial_cmp(other)
+        DateTime::from(*self).partial_cmp(other)
     }
 }
 
@@ -226,23 +226,19 @@ mod tests {
     #[test]
     fn equality_chrono_date_time_and_file_time() {
         assert_eq!(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap(),
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
             FileTime::MAX
         );
         assert_ne!(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap(),
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
+            DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
             FileTime::MAX
         );
         assert_eq!(
-            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
+            DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -252,23 +248,19 @@ mod tests {
     fn equality_file_time_and_chrono_date_time() {
         assert_eq!(
             FileTime::MAX,
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
         );
         assert_ne!(
             FileTime::NT_TIME_EPOCH,
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
         );
         assert_ne!(
             FileTime::MAX,
-            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+            DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
         );
         assert_eq!(
             FileTime::NT_TIME_EPOCH,
-            "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap()
+            DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
         );
     }
 
@@ -358,12 +350,12 @@ mod tests {
     #[cfg(feature = "chrono")]
     #[test]
     fn order_chrono_date_time_and_file_time() {
-        assert!(DateTime::<Utc>::UNIX_EPOCH < FileTime::MAX);
+        assert!(DateTime::UNIX_EPOCH < FileTime::MAX);
         assert_eq!(
-            DateTime::<Utc>::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
+            DateTime::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(DateTime::<Utc>::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+        assert!(DateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "chrono")]
@@ -371,15 +363,13 @@ mod tests {
     fn order_file_time_and_chrono_date_time() {
         assert!(
             FileTime::UNIX_EPOCH
-                < "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
-                    .unwrap()
+                < DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
         );
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&DateTime::<Utc>::UNIX_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&DateTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(FileTime::UNIX_EPOCH > "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap());
+        assert!(FileTime::UNIX_EPOCH > DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
     }
 
     #[cfg(feature = "jiff")]

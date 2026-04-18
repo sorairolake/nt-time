@@ -331,7 +331,7 @@ impl Sub<DateTime<Utc>> for FileTime {
     type Output = TimeDelta;
 
     fn sub(self, rhs: DateTime<Utc>) -> Self::Output {
-        DateTime::<Utc>::from(self) - rhs
+        DateTime::from(self) - rhs
     }
 }
 
@@ -1503,23 +1503,16 @@ mod tests {
     #[test]
     fn sub_file_time_from_chrono_date_time() {
         assert_eq!(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
-                - FileTime::MAX,
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap() - FileTime::MAX,
             TimeDelta::zero()
         );
         assert_eq!(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
                 - (FileTime::MAX - Duration::from_nanos(100)),
             TimeDelta::nanoseconds(100)
         );
         assert_eq!(
-            "+60056-05-28 05:36:10.955161500 UTC"
-                .parse::<DateTime<Utc>>()
-                .unwrap()
+            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
                 - FileTime::NT_TIME_EPOCH,
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
@@ -1529,38 +1522,29 @@ mod tests {
     #[test]
     fn sub_chrono_date_time_from_file_time() {
         assert_eq!(
-            FileTime::MAX
-                - "+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
-                    .unwrap(),
+            FileTime::MAX - DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
             TimeDelta::zero()
         );
         assert_eq!(
             FileTime::MAX
-                - ("+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
-                    .unwrap()
+                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
                     - TimeDelta::nanoseconds(1)),
             TimeDelta::nanoseconds(1)
         );
         assert_eq!(
             FileTime::MAX
-                - ("+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
-                    .unwrap()
+                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
                     - TimeDelta::nanoseconds(99)),
             TimeDelta::nanoseconds(99)
         );
         assert_eq!(
             FileTime::MAX
-                - ("+60056-05-28 05:36:10.955161500 UTC"
-                    .parse::<DateTime<Utc>>()
-                    .unwrap()
+                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
                     - TimeDelta::nanoseconds(100)),
             TimeDelta::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::MAX - "1601-01-01 00:00:00 UTC".parse::<DateTime<Utc>>().unwrap(),
+            FileTime::MAX - DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
     }

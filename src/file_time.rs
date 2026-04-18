@@ -33,7 +33,7 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 /// `FileTime` is a type that represents a [Windows file time].
 ///
 /// This is a 64-bit unsigned integer value that represents the number of
-/// 100-nanosecond intervals that have elapsed since "1601-01-01 00:00:00 UTC",
+/// 100-nanosecond intervals that have elapsed since `1601-01-01 00:00:00 UTC`,
 /// and is used for timestamps in technologies such as [NTFS], [SMB], or [7z].
 /// Windows uses a file time to record when an application creates, accesses, or
 /// writes to a file.
@@ -54,11 +54,11 @@ const FILE_TIMES_PER_SEC: u64 = 10_000_000;
 pub struct FileTime(u64);
 
 impl FileTime {
-    /// Returns the file time corresponding to "now".
+    /// Returns the file time corresponding to the current date and time in UTC.
     ///
     /// # Panics
     ///
-    /// Panics if "now" is out of range for the file time.
+    /// Panics if the current system time is out of range for the file time.
     ///
     /// # Examples
     ///
@@ -80,7 +80,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::new(u64::MIN), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::new(0), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
     /// assert_eq!(FileTime::new(i64::MAX as u64), FileTime::SIGNED_MAX);
     /// assert_eq!(FileTime::new(u64::MAX), FileTime::MAX);
@@ -97,7 +97,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), 0);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
     /// assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
     /// assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
@@ -115,7 +115,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_be_bytes(),
     ///     [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
@@ -124,7 +124,7 @@ impl FileTime {
     ///     FileTime::SIGNED_MAX.to_be_bytes(),
     ///     [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     /// );
-    /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
+    /// assert_eq!(FileTime::MAX.to_be_bytes(), [0xFF; 8]);
     /// ```
     #[must_use]
     pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -139,7 +139,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_le_bytes(),
     ///     [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
@@ -148,7 +148,7 @@ impl FileTime {
     ///     FileTime::SIGNED_MAX.to_le_bytes(),
     ///     [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
     /// );
-    /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    /// assert_eq!(FileTime::MAX.to_le_bytes(), [0xFF; 8]);
     /// ```
     #[must_use]
     pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -171,7 +171,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [u8::MIN; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
     ///     if cfg!(target_endian = "big") {
@@ -188,7 +188,7 @@ impl FileTime {
     ///         [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
     ///     }
     /// );
-    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
+    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [0xFF; 8]);
     /// ```
     #[must_use]
     pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -203,10 +203,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::from_be_bytes([u8::MIN; 8]),
-    ///     FileTime::NT_TIME_EPOCH
-    /// );
+    /// assert_eq!(FileTime::from_be_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_be_bytes([0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]),
     ///     FileTime::UNIX_EPOCH
@@ -215,7 +212,7 @@ impl FileTime {
     ///     FileTime::from_be_bytes([0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_be_bytes([0xFF; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_be_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -230,10 +227,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::from_le_bytes([u8::MIN; 8]),
-    ///     FileTime::NT_TIME_EPOCH
-    /// );
+    /// assert_eq!(FileTime::from_le_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_le_bytes([0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]),
     ///     FileTime::UNIX_EPOCH
@@ -242,7 +236,7 @@ impl FileTime {
     ///     FileTime::from_le_bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_le_bytes([0xFF; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -265,10 +259,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::from_ne_bytes([u8::MIN; 8]),
-    ///     FileTime::NT_TIME_EPOCH
-    /// );
+    /// assert_eq!(FileTime::from_ne_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
     ///         [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
@@ -285,7 +276,7 @@ impl FileTime {
     ///     }),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_ne_bytes([0xFF; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -310,16 +301,16 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (u32::MIN, u32::MIN));
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (0, 0));
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_high_low(),
     ///     (0x019D_B1DE, 0xD53E_8000)
     /// );
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX.to_high_low(),
-    ///     (i32::MAX as u32, u32::MAX)
+    ///     (0x7FFF_FFFF, 0xFFFF_FFFF)
     /// );
-    /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    /// assert_eq!(FileTime::MAX.to_high_low(), (0xFFFF_FFFF, 0xFFFF_FFFF));
     /// ```
     ///
     /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
@@ -345,19 +336,19 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// assert_eq!(
-    ///     FileTime::from_high_low(u32::MIN, u32::MIN),
-    ///     FileTime::NT_TIME_EPOCH
-    /// );
+    /// assert_eq!(FileTime::from_high_low(0, 0), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_high_low(0x019D_B1DE, 0xD53E_8000),
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::from_high_low(i32::MAX as u32, u32::MAX),
+    ///     FileTime::from_high_low(0x7FFF_FFFF, 0xFFFF_FFFF),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
+    /// assert_eq!(
+    ///     FileTime::from_high_low(0xFFFF_FFFF, 0xFFFF_FFFF),
+    ///     FileTime::MAX
+    /// );
     /// ```
     ///
     /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
@@ -371,7 +362,7 @@ impl FileTime {
 }
 
 impl Default for FileTime {
-    /// Returns the default value of "1601-01-01 00:00:00 UTC".
+    /// Returns the default value of `1601-01-01 00:00:00 UTC`.
     ///
     /// # Examples
     ///

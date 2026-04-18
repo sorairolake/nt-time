@@ -10,7 +10,7 @@
 //! <div class="warning">
 //!
 //! If the `large-dates` feature is not enabled, the largest date and time is
-//! "9999-12-31 23:59:59.999999999 UTC".
+//! `9999-12-31 23:59:59.999999999 UTC`.
 //!
 //! </div>
 //!

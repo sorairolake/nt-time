@@ -9,7 +9,7 @@ use super::{FILE_TIMES_PER_SEC, FileTime};
 impl FileTime {
     /// The [NT time epoch].
     ///
-    /// This is defined as "1601-01-01 00:00:00 UTC", which was the first year
+    /// This is defined as `1601-01-01 00:00:00 UTC`, which was the first year
     /// of the 400-year Gregorian calendar cycle at the time Windows NT was
     /// being designed.
     ///
@@ -26,7 +26,7 @@ impl FileTime {
 
     /// The [Unix epoch].
     ///
-    /// This is defined as "1970-01-01 00:00:00 UTC", which is 134,774 days
+    /// This is defined as `1970-01-01 00:00:00 UTC`, which is 134,774 days
     /// after [`FileTime::NT_TIME_EPOCH`].
     ///
     /// # Examples
@@ -43,7 +43,7 @@ impl FileTime {
     /// The largest file time accepted by the [`FileTimeToSystemTime`] function
     /// of the [Win32 API].
     ///
-    /// This is "+30828-09-14 02:48:05.477580700 UTC".
+    /// This is `+30828-09-14 02:48:05.477580700 UTC`.
     ///
     /// # Examples
     ///
@@ -65,7 +65,7 @@ impl FileTime {
 
     /// The largest value that can be represented by the file time.
     ///
-    /// This is "+60056-05-28 05:36:10.955161500 UTC", which is the theoretical
+    /// This is `+60056-05-28 05:36:10.955161500 UTC`, which is the theoretical
     /// largest value that the [`FILETIME`] structure of the [Win32 API] can
     /// represent.
     ///

@@ -6,7 +6,7 @@
 //!
 //! The [`FileTime`] is a type that represents the file time, which is a 64-bit
 //! unsigned integer value that represents the number of 100-nanosecond
-//! intervals that have elapsed since "1601-01-01 00:00:00 UTC", and is used for
+//! intervals that have elapsed since `1601-01-01 00:00:00 UTC`, and is used for
 //! timestamps in technologies such as [NTFS], [SMB], or [7z]. Windows uses a
 //! file time to record when an application creates, accesses, or writes to a
 //! file.
@@ -82,7 +82,7 @@
 //! let dt = DateTime::try_from(ft).unwrap();
 //! assert_eq!(
 //!     (dt.date().to_raw(), dt.time().to_raw()),
-//!     (0b0000_0000_0010_0001, u16::MIN)
+//!     (0b0000_0000_0010_0001, 0b0000_0000_0000_0000)
 //! );
 //! # }
 //! ```
