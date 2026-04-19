@@ -11,7 +11,7 @@ use core::time::Duration;
 use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
-use chrono::{DateTime, TimeDelta};
+use chrono::{TimeDelta, TimeZone, Timelike, Utc};
 #[cfg(feature = "jiff")]
 use jiff::{Timestamp, ToSpan};
 use nt_time::{FileTime, time::macros::utc_datetime};
@@ -152,14 +152,18 @@ fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
 #[bench]
 fn sub_file_time_from_chrono_date_time(b: &mut Bencher) {
     b.iter(|| {
-        DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap() - FileTime::NT_TIME_EPOCH
+        Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+            .unwrap()
+            .with_nanosecond(955_161_500)
+            .unwrap()
+            - FileTime::NT_TIME_EPOCH
     });
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn sub_chrono_date_time_from_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX - DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
+    b.iter(|| FileTime::MAX - Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
 }
 
 #[cfg(feature = "jiff")]

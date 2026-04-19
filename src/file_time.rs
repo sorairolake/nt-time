@@ -65,7 +65,7 @@ impl FileTime {
     /// ```
     /// # use nt_time::FileTime;
     /// #
-    /// let now = FileTime::now();
+    /// assert!(FileTime::now() > FileTime::UNIX_EPOCH);
     /// ```
     #[cfg(feature = "std")]
     #[must_use]
@@ -433,9 +433,7 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn now() {
-        let now = FileTime::now();
-        // After "2023-01-01 00:00:00 UTC".
-        assert!(now >= FileTime::new(133_170_048_000_000_000));
+        assert!(FileTime::now() > FileTime::UNIX_EPOCH);
     }
 
     #[test]

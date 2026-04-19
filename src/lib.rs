@@ -33,7 +33,10 @@
 //! );
 //!
 //! let ft = ft + Duration::from_hours(3_234_576);
-//! assert_eq!(UtcDateTime::try_from(ft), Ok(UtcDateTime::UNIX_EPOCH));
+//! assert_eq!(
+//!     UtcDateTime::try_from(ft),
+//!     Ok(utc_datetime!(1970-01-01 00:00:00))
+//! );
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //! ```
 //!
@@ -50,9 +53,8 @@
 //!     time::{UtcDateTime, macros::utc_datetime},
 //! };
 //!
-//! // `1970-01-01 00:00:00 UTC`.
-//! let dt = UtcDateTime::UNIX_EPOCH;
-//! assert_eq!(dt, utc_datetime!(1970-01-01 00:00:00));
+//! let dt = utc_datetime!(1970-01-01 00:00:00);
+//! assert_eq!(dt, UtcDateTime::UNIX_EPOCH);
 //!
 //! // Convert to a `FileTime`.
 //! let ft = FileTime::from_unix_time_secs(dt.unix_timestamp()).unwrap();

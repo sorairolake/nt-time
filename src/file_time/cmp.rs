@@ -129,6 +129,8 @@ mod tests {
     #[cfg(feature = "std")]
     use std::time::Duration;
 
+    #[cfg(feature = "chrono")]
+    use chrono::{TimeZone, Timelike};
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     use time::macros::utc_datetime;
@@ -226,19 +228,25 @@ mod tests {
     #[test]
     fn equality_chrono_date_time_and_file_time() {
         assert_eq!(
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap(),
             FileTime::MAX
         );
         assert_ne!(
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_ne!(
-            DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
+            Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap(),
             FileTime::MAX
         );
         assert_eq!(
-            DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
+            Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -248,19 +256,25 @@ mod tests {
     fn equality_file_time_and_chrono_date_time() {
         assert_eq!(
             FileTime::MAX,
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap()
         );
         assert_ne!(
             FileTime::NT_TIME_EPOCH,
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap()
         );
         assert_ne!(
             FileTime::MAX,
-            DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
+            Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()
         );
         assert_eq!(
             FileTime::NT_TIME_EPOCH,
-            DateTime::from_timestamp_secs(-11_644_473_600).unwrap()
+            Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap()
         );
     }
 
@@ -363,13 +377,17 @@ mod tests {
     fn order_file_time_and_chrono_date_time() {
         assert!(
             FileTime::UNIX_EPOCH
-                < DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+                < Utc
+                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                    .unwrap()
+                    .with_nanosecond(955_161_500)
+                    .unwrap()
         );
         assert_eq!(
             FileTime::UNIX_EPOCH.partial_cmp(&DateTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(FileTime::UNIX_EPOCH > DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
+        assert!(FileTime::UNIX_EPOCH > Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
     }
 
     #[cfg(feature = "jiff")]

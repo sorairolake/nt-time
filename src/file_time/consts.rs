@@ -32,9 +32,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, time::UtcDateTime};
+    /// # use nt_time::{FileTime, time::macros::utc_datetime};
     /// #
-    /// assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
+    /// assert_eq!(FileTime::UNIX_EPOCH, utc_datetime!(1970-01-01 00:00:00));
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time

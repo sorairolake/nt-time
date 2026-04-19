@@ -10,7 +10,7 @@ extern crate test;
 use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
-use chrono::DateTime;
+use chrono::{DateTime, TimeZone, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Timestamp;
 use nt_time::{
@@ -54,13 +54,13 @@ fn equality_file_time_and_utc_date_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn equality_chrono_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| DateTime::from_timestamp_secs(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
+    b.iter(|| Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() == FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "chrono")]
 #[bench]
 fn equality_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
+    b.iter(|| FileTime::NT_TIME_EPOCH == Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
 }
 
 #[cfg(feature = "jiff")]
@@ -106,7 +106,7 @@ fn order_chrono_date_time_and_file_time(b: &mut Bencher) {
 #[cfg(feature = "chrono")]
 #[bench]
 fn order_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > DateTime::from_timestamp_secs(-11_644_473_600).unwrap());
+    b.iter(|| FileTime::UNIX_EPOCH > Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
 }
 
 #[cfg(feature = "jiff")]

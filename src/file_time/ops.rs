@@ -381,6 +381,8 @@ impl SubAssign<Span> for FileTime {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "chrono")]
+    use chrono::{TimeZone, Timelike};
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     #[cfg(feature = "std")]
@@ -1503,16 +1505,26 @@ mod tests {
     #[test]
     fn sub_file_time_from_chrono_date_time() {
         assert_eq!(
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap() - FileTime::MAX,
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap()
+                - FileTime::MAX,
             TimeDelta::zero()
         );
         assert_eq!(
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap()
                 - (FileTime::MAX - Duration::from_nanos(100)),
             TimeDelta::nanoseconds(100)
         );
         assert_eq!(
-            DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                .unwrap()
+                .with_nanosecond(955_161_500)
+                .unwrap()
                 - FileTime::NT_TIME_EPOCH,
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
@@ -1522,29 +1534,46 @@ mod tests {
     #[test]
     fn sub_chrono_date_time_from_file_time() {
         assert_eq!(
-            FileTime::MAX - DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap(),
+            FileTime::MAX
+                - Utc
+                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                    .unwrap()
+                    .with_nanosecond(955_161_500)
+                    .unwrap(),
             TimeDelta::zero()
         );
         assert_eq!(
             FileTime::MAX
-                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+                - (Utc
+                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                    .unwrap()
+                    .with_nanosecond(955_161_500)
+                    .unwrap()
                     - TimeDelta::nanoseconds(1)),
             TimeDelta::nanoseconds(1)
         );
         assert_eq!(
             FileTime::MAX
-                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+                - (Utc
+                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                    .unwrap()
+                    .with_nanosecond(955_161_500)
+                    .unwrap()
                     - TimeDelta::nanoseconds(99)),
             TimeDelta::nanoseconds(99)
         );
         assert_eq!(
             FileTime::MAX
-                - (DateTime::from_timestamp(1_833_029_933_770, 955_161_500).unwrap()
+                - (Utc
+                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
+                    .unwrap()
+                    .with_nanosecond(955_161_500)
+                    .unwrap()
                     - TimeDelta::nanoseconds(100)),
             TimeDelta::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::MAX - DateTime::from_timestamp_secs(-11_644_473_600).unwrap(),
+            FileTime::MAX - Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap(),
             TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
     }
