@@ -319,6 +319,8 @@ impl FileTime {
     #[must_use]
     pub const fn to_high_low(self) -> (u32, u32) {
         let raw = self.to_raw();
+        // TODO: use `u64::truncate()` when stable.
+        // <https://github.com/rust-lang/rust/issues/154330>
         ((raw >> u32::BITS) as u32, raw as u32)
     }
 
@@ -356,6 +358,8 @@ impl FileTime {
     /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
     pub const fn from_high_low(high: u32, low: u32) -> Self {
+        // TODO: use `u32::widen()` when stable.
+        // <https://github.com/rust-lang/rust/issues/154330>
         let raw = ((high as u64) << u32::BITS) | (low as u64);
         Self::new(raw)
     }
