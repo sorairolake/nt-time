@@ -39,6 +39,36 @@ impl FileTime {
         Duration::from_nanos_u128(u128::from(self.to_raw()) * 100)
     }
 
+    /// Returns this `FileTime` as a [`Duration`] since
+    /// [`FileTime::UNIX_EPOCH`], or `None` if this [`FileTime`] is between
+    /// [`FileTime::NT_TIME_EPOCH`] and [`FileTime::UNIX_EPOCH`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_duration(), None);
+    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_duration(), Some(Duration::ZERO));
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_unix_duration(),
+    ///     Some(Duration::new(910_692_730_085, 477_580_700))
+    /// );
+    /// assert_eq!(
+    ///     FileTime::MAX.to_unix_duration(),
+    ///     Some(Duration::new(1_833_029_933_770, 955_161_500))
+    /// );
+    /// ```
+    #[must_use]
+    pub fn to_unix_duration(self) -> Option<Duration> {
+        let (secs, subsec_nanos) = self.to_unix_time();
+        u64::try_from(secs)
+            .map(|secs| Duration::new(secs, subsec_nanos))
+            .ok()
+    }
+
     /// Creates a `FileTime` from a [`Duration`] since
     /// [`FileTime::NT_TIME_EPOCH`].
     ///
@@ -77,6 +107,43 @@ impl FileTime {
         let ft = u64::try_from(duration.as_nanos() / 100)
             .map_err(|_| FileTimeRangeErrorKind::Overflow)?;
         Ok(Self::new(ft))
+    }
+
+    /// Creates a `FileTime` from a [`Duration`] since
+    /// [`FileTime::UNIX_EPOCH`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Err`] if `duration` is greater than [`FileTime::MAX`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use core::time::Duration;
+    /// #
+    /// # use nt_time::FileTime;
+    /// #
+    /// assert_eq!(
+    ///     FileTime::from_unix_duration(Duration::ZERO),
+    ///     Ok(FileTime::UNIX_EPOCH)
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_duration(Duration::new(910_692_730_085, 477_580_700)),
+    ///     Ok(FileTime::SIGNED_MAX)
+    /// );
+    /// assert_eq!(
+    ///     FileTime::from_unix_duration(Duration::new(1_833_029_933_770, 955_161_500)),
+    ///     Ok(FileTime::MAX)
+    /// );
+    ///
+    /// // After `+60056-05-28 05:36:10.955161500 UTC`.
+    /// assert!(FileTime::from_unix_duration(Duration::new(1_833_029_933_770, 955_161_600)).is_err());
+    /// ```
+    pub fn from_unix_duration(duration: Duration) -> Result<Self, FileTimeRangeError> {
+        Self::from_unix_time(
+            i64::try_from(duration.as_secs()).map_err(|_| FileTimeRangeErrorKind::Overflow)?,
+            duration.subsec_nanos(),
+        )
     }
 }
 
@@ -203,6 +270,38 @@ mod tests {
         assert_eq!(
             FileTime::from_duration(Duration::MAX).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
+        );
+    }
+
+    #[test]
+    fn from_unix_duration() {
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(1)).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(99)).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(100)).unwrap(),
+            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + 1)
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(999_999_900)).unwrap(),
+            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(999_999_901)).unwrap(),
+            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_nanos(999_999_999)).unwrap(),
+            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::from_secs(1)).unwrap(),
+            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC)
         );
     }
 }
