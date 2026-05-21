@@ -16,6 +16,11 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 == {compare-url}/v0.15.0\...HEAD[Unreleased]
 
+=== Added
+
+* Add `FileTime::to_unix_duration` ({pull-request-url}/489[#489])
+* Add `FileTime::from_unix_duration` ({pull-request-url}/489[#489])
+
 === Changed
 
 * Bump MSRV to 1.94.0 ({pull-request-url}/461[#461])
