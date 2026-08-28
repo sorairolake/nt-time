@@ -52,7 +52,11 @@ impl FileTime {
     /// # use nt_time::FileTime;
     /// #
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_duration(), None);
-    /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_duration(), Some(Duration::ZERO));
+    ///
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_unix_duration(),
+    ///     Some(Duration::ZERO)
+    /// );
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX.to_unix_duration(),
     ///     Some(Duration::new(910_692_730_085, 477_580_700))
