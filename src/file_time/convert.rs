@@ -162,6 +162,10 @@ impl TryFrom<FileTime> for Timestamp {
     ///
     /// Returns [`Err`] if `ft` is out of range for [`Timestamp`].
     ///
+    /// # Panics
+    ///
+    /// Panics if the resulting timestamp is greater than [`Timestamp::MAX`].
+    ///
     /// # Examples
     ///
     /// ```
@@ -599,6 +603,13 @@ mod tests {
             Timestamp::try_from(FileTime::new(2_650_466_808_009_999_999)).unwrap(),
             Timestamp::MAX - 99.nanoseconds()
         );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    #[should_panic]
+    fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
+        let _ = Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000));
     }
 
     #[cfg(feature = "dos-date-time")]
