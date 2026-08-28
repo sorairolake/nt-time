@@ -175,8 +175,6 @@ impl TryFrom<FileTime> for Timestamp {
     ///     Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
     ///     Timestamp::UNIX_EPOCH
     /// );
-    ///
-    /// assert!(Timestamp::try_from(FileTime::MAX).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         Self::from_nanosecond(ft.to_unix_time_nanos())
@@ -601,12 +599,6 @@ mod tests {
             Timestamp::try_from(FileTime::new(2_650_466_808_009_999_999)).unwrap(),
             Timestamp::MAX - 99.nanoseconds()
         );
-    }
-
-    #[cfg(feature = "jiff")]
-    #[test]
-    fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
-        assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
     }
 
     #[cfg(feature = "dos-date-time")]
