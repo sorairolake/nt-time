@@ -40,7 +40,7 @@ impl FileTime {
     }
 
     /// Returns this `FileTime` as a [`Duration`] since
-    /// [`FileTime::UNIX_EPOCH`], or `None` if this [`FileTime`] is between
+    /// [`FileTime::UNIX_EPOCH`], or [`None`] if this [`FileTime`] is between
     /// [`FileTime::NT_TIME_EPOCH`] and [`FileTime::UNIX_EPOCH`].
     ///
     /// # Examples
