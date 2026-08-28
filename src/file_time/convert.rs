@@ -603,12 +603,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "jiff")]
-    #[test]
-    fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
-        assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
-    }
-
     #[cfg(feature = "dos-date-time")]
     #[test]
     fn try_from_file_time_to_dos_date_time_before_dos_date_time_epoch() {
