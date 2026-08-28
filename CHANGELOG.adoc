@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2023 Shun Sakai
+// SPDX-FileCopyrightText: 2026 Russell Banks
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
