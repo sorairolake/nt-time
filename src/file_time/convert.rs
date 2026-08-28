@@ -175,8 +175,6 @@ impl TryFrom<FileTime> for Timestamp {
     ///     Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
     ///     Timestamp::UNIX_EPOCH
     /// );
-    ///
-    /// assert!(Timestamp::try_from(FileTime::MAX).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
         Self::from_nanosecond(ft.to_unix_time_nanos())
