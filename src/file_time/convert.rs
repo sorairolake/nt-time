@@ -162,6 +162,10 @@ impl TryFrom<FileTime> for Timestamp {
     ///
     /// Returns [`Err`] if `ft` is out of range for [`Timestamp`].
     ///
+    /// # Panics
+    ///
+    /// Panics if the resulting timestamp is greater than [`Timestamp::MAX`].
+    ///
     /// # Examples
     ///
     /// ```
