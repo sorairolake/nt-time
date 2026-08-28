@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: 2026 Russell Banks
 // SPDX-FileCopyrightText: 2026 Shun Sakai
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
