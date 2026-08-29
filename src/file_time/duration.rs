@@ -112,8 +112,7 @@ impl FileTime {
         Ok(Self::new(ft))
     }
 
-    /// Creates a `FileTime` from a [`Duration`] since
-    /// [`FileTime::UNIX_EPOCH`].
+    /// Creates a `FileTime` from a [`Duration`] since [`FileTime::UNIX_EPOCH`].
     ///
     /// # Errors
     ///
