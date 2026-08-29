@@ -68,10 +68,8 @@ impl FileTime {
     /// ```
     #[must_use]
     pub fn to_unix_duration(self) -> Option<Duration> {
-        let (secs, subsec_nanos) = self.to_unix_time();
-        u64::try_from(secs)
-            .map(|secs| Duration::new(secs, subsec_nanos))
-            .ok()
+        let ts = self.to_unix_time_nanos();
+        u128::try_from(ts).map(Duration::from_nanos_u128).ok()
     }
 
     /// Creates a `FileTime` from a [`Duration`] since
@@ -145,10 +143,9 @@ impl FileTime {
     /// assert!(FileTime::from_unix_duration(Duration::new(1_833_029_933_770, 955_161_600)).is_err());
     /// ```
     pub fn from_unix_duration(duration: Duration) -> Result<Self, FileTimeRangeError> {
-        Self::from_unix_time(
-            i64::try_from(duration.as_secs()).map_err(|_| FileTimeRangeErrorKind::Overflow)?,
-            duration.subsec_nanos(),
-        )
+        let ts =
+            i128::try_from(duration.as_nanos()).map_err(|_| FileTimeRangeErrorKind::Overflow)?;
+        Self::from_unix_time_nanos(ts)
     }
 }
 
