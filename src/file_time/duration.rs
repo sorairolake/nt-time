@@ -191,6 +191,56 @@ mod tests {
     }
 
     #[test]
+    fn to_unix_duration_before_unix_epoch() {
+        assert!(FileTime::NT_TIME_EPOCH.to_unix_duration().is_none());
+        assert!(
+            (FileTime::UNIX_EPOCH - Duration::from_nanos(100))
+                .to_unix_duration()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn to_unix_duration() {
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_unix_duration().unwrap(),
+            Duration::ZERO
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(100))
+                .to_unix_duration()
+                .unwrap(),
+            Duration::from_nanos(100)
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_nanos(999_999_900))
+                .to_unix_duration()
+                .unwrap(),
+            Duration::from_nanos(999_999_900)
+        );
+        assert_eq!(
+            (FileTime::UNIX_EPOCH + Duration::from_secs(1))
+                .to_unix_duration()
+                .unwrap(),
+            Duration::from_secs(1)
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_unix_duration().unwrap(),
+            Duration::new(910_692_730_085, 477_580_700)
+        );
+        assert_eq!(
+            (FileTime::MAX - Duration::from_nanos(100))
+                .to_unix_duration()
+                .unwrap(),
+            Duration::new(1_833_029_933_770, 955_161_400)
+        );
+        assert_eq!(
+            FileTime::MAX.to_unix_duration().unwrap(),
+            Duration::new(1_833_029_933_770, 955_161_500)
+        );
+    }
+
+    #[test]
     fn from_duration() {
         assert_eq!(
             FileTime::from_duration(Duration::ZERO).unwrap(),
@@ -263,7 +313,7 @@ mod tests {
     }
 
     #[test]
-    fn from_duration_with_too_big_date_time() {
+    fn from_duration_with_too_big_duration() {
         assert_eq!(
             FileTime::from_duration(Duration::new(1_844_674_407_370, 955_161_600)).unwrap_err(),
             FileTimeRangeErrorKind::Overflow.into()
@@ -277,6 +327,10 @@ mod tests {
     #[test]
     fn from_unix_duration() {
         assert_eq!(
+            FileTime::from_unix_duration(Duration::ZERO).unwrap(),
+            FileTime::UNIX_EPOCH
+        );
+        assert_eq!(
             FileTime::from_unix_duration(Duration::from_nanos(1)).unwrap(),
             FileTime::UNIX_EPOCH
         );
@@ -286,23 +340,44 @@ mod tests {
         );
         assert_eq!(
             FileTime::from_unix_duration(Duration::from_nanos(100)).unwrap(),
-            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + 1)
+            FileTime::UNIX_EPOCH + Duration::from_nanos(100)
         );
         assert_eq!(
             FileTime::from_unix_duration(Duration::from_nanos(999_999_900)).unwrap(),
-            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+            FileTime::UNIX_EPOCH + Duration::from_nanos(999_999_900)
         );
         assert_eq!(
             FileTime::from_unix_duration(Duration::from_nanos(999_999_901)).unwrap(),
-            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+            FileTime::UNIX_EPOCH + Duration::from_nanos(999_999_900)
         );
         assert_eq!(
             FileTime::from_unix_duration(Duration::from_nanos(999_999_999)).unwrap(),
-            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC - 1)
+            FileTime::UNIX_EPOCH + Duration::from_nanos(999_999_900)
         );
         assert_eq!(
             FileTime::from_unix_duration(Duration::from_secs(1)).unwrap(),
-            FileTime::new(FileTime::UNIX_EPOCH.to_raw() + FILE_TIMES_PER_SEC)
+            FileTime::UNIX_EPOCH + Duration::from_secs(1)
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::new(910_692_730_085, 477_580_700)).unwrap(),
+            FileTime::SIGNED_MAX
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::new(1_833_029_933_770, 955_161_500)).unwrap(),
+            FileTime::MAX
+        );
+    }
+
+    #[test]
+    fn from_unix_duration_with_too_big_duration() {
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::new(1_833_029_933_770, 955_161_600))
+                .unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
+        );
+        assert_eq!(
+            FileTime::from_unix_duration(Duration::MAX).unwrap_err(),
+            FileTimeRangeErrorKind::Overflow.into()
         );
     }
 }
