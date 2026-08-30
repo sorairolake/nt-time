@@ -14,8 +14,8 @@ impl fmt::Display for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(format!("{}", FileTime::NT_TIME_EPOCH), "0");
     /// assert_eq!(format!("{}", FileTime::UNIX_EPOCH), "116444736000000000");
     /// assert_eq!(format!("{}", FileTime::SIGNED_MAX), "9223372036854775807");
