@@ -63,8 +63,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert!(FileTime::now() > FileTime::UNIX_EPOCH);
     /// ```
     #[cfg(feature = "std")]
@@ -78,8 +78,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::new(0), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(FileTime::new(116_444_736_000_000_000), FileTime::UNIX_EPOCH);
     /// assert_eq!(FileTime::new(i64::MAX as u64), FileTime::SIGNED_MAX);
@@ -95,8 +95,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), 0);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
     /// assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
@@ -113,8 +113,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_be_bytes(),
@@ -137,8 +137,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_le_bytes(),
@@ -169,8 +169,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0x00; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
@@ -201,8 +201,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::from_be_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_be_bytes([0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]),
@@ -225,8 +225,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::from_le_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_le_bytes([0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]),
@@ -257,8 +257,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::from_ne_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
@@ -299,8 +299,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (0, 0));
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_high_low(),
@@ -336,8 +336,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::from_high_low(0, 0), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_high_low(0x019D_B1DE, 0xD53E_8000),
@@ -371,8 +371,8 @@ impl Default for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::default(), FileTime::NT_TIME_EPOCH);
     /// ```
     fn default() -> Self {
