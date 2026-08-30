@@ -31,10 +31,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::NT_TIME_EPOCH.checked_add(Duration::from_nanos(1)),
     ///     Some(FileTime::NT_TIME_EPOCH)
@@ -63,10 +63,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::MAX.checked_sub(Duration::from_nanos(1)),
     ///     Some(FileTime::MAX)
@@ -97,10 +97,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::NT_TIME_EPOCH.saturating_add(Duration::from_nanos(1)),
     ///     FileTime::NT_TIME_EPOCH
@@ -132,10 +132,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::MAX.saturating_sub(Duration::from_nanos(1)),
     ///     FileTime::MAX

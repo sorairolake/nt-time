@@ -24,8 +24,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time(), (-11_644_473_600, 0));
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time(), (0, 0));
     /// assert_eq!(
@@ -56,8 +56,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_time_secs(), -11_644_473_600);
     /// assert_eq!(FileTime::UNIX_EPOCH.to_unix_time_secs(), 0);
     /// assert_eq!(FileTime::SIGNED_MAX.to_unix_time_secs(), 910_692_730_085);
@@ -77,8 +77,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::NT_TIME_EPOCH.to_unix_time_millis(),
     ///     -11_644_473_600_000
@@ -107,8 +107,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::NT_TIME_EPOCH.to_unix_time_micros(),
     ///     -11_644_473_600_000_000
@@ -139,8 +139,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::NT_TIME_EPOCH.to_unix_time_nanos(),
     ///     -11_644_473_600_000_000_000
@@ -181,10 +181,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_time(-11_644_473_600, 0),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -228,10 +228,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_time_secs(-11_644_473_600),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -272,10 +272,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_time_millis(-11_644_473_600_000),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -311,10 +311,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_time_micros(-11_644_473_600_000_000),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -350,8 +350,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::FileTime;
-    /// #
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_time_nanos(-11_644_473_600_000_000_000),
     ///     Ok(FileTime::NT_TIME_EPOCH)

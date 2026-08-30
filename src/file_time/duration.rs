@@ -17,10 +17,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_duration(), Duration::ZERO);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_duration(),
@@ -47,10 +47,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH.to_unix_duration(), None);
     ///
     /// assert_eq!(
@@ -82,10 +82,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_duration(Duration::ZERO),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -121,10 +121,10 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use core::time::Duration;
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use core::time::Duration;
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::from_unix_duration(Duration::ZERO),
     ///     Ok(FileTime::UNIX_EPOCH)

@@ -40,10 +40,10 @@ impl From<FileTime> for SystemTime {
     /// # Examples
     ///
     /// ```
-    /// # use std::time::{Duration, SystemTime};
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use std::time::{Duration, SystemTime};
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     SystemTime::from(FileTime::NT_TIME_EPOCH),
     ///     SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)
@@ -71,11 +71,11 @@ impl TryFrom<FileTime> for UtcDateTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     time::{UtcDateTime, macros::utc_datetime},
-    /// # };
-    /// #
+    /// use nt_time::{
+    ///     FileTime,
+    ///     time::{UtcDateTime, macros::utc_datetime},
+    /// };
+    ///
     /// assert_eq!(
     ///     UtcDateTime::try_from(FileTime::NT_TIME_EPOCH),
     ///     Ok(utc_datetime!(1601-01-01 00:00:00))
@@ -92,8 +92,8 @@ impl TryFrom<FileTime> for UtcDateTime {
     /// ```
     /// # #[cfg(not(feature = "large-dates"))]
     /// # {
-    /// # use nt_time::{FileTime, time::UtcDateTime};
-    /// #
+    /// use nt_time::{FileTime, time::UtcDateTime};
+    ///
     /// assert!(UtcDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
     /// # }
     /// ```
@@ -103,11 +103,11 @@ impl TryFrom<FileTime> for UtcDateTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     time::{UtcDateTime, macros::utc_datetime},
-    /// # };
-    /// #
+    /// use nt_time::{
+    ///     FileTime,
+    ///     time::{UtcDateTime, macros::utc_datetime},
+    /// };
+    ///
     /// assert_eq!(
     ///     UtcDateTime::try_from(FileTime::new(2_650_467_744_000_000_000)),
     ///     Ok(utc_datetime!(+10000-01-01 00:00:00))
@@ -135,11 +135,11 @@ impl From<FileTime> for chrono::DateTime<Utc> {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     chrono::{DateTime, Utc},
-    /// # };
-    /// #
+    /// use nt_time::{
+    ///     FileTime,
+    ///     chrono::{DateTime, Utc},
+    /// };
+    ///
     /// assert_eq!(
     ///     DateTime::from(FileTime::NT_TIME_EPOCH),
     ///     "1601-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap()
@@ -165,8 +165,8 @@ impl TryFrom<FileTime> for Timestamp {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, jiff::Timestamp};
-    /// #
+    /// use nt_time::{FileTime, jiff::Timestamp};
+    ///
     /// assert_eq!(
     ///     Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
     ///     Timestamp::from_second(-11_644_473_600).unwrap()
@@ -203,8 +203,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, dos_date_time::DateTime};
-    /// #
+    /// use nt_time::{FileTime, dos_date_time::DateTime};
+    ///
     /// // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
     /// assert_eq!(
     ///     DateTime::try_from(FileTime::new(119_600_064_000_000_000)),
@@ -246,10 +246,10 @@ impl TryFrom<SystemTime> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use std::time::{Duration, SystemTime};
-    /// #
-    /// # use nt_time::FileTime;
-    /// #
+    /// use std::time::{Duration, SystemTime};
+    ///
+    /// use nt_time::FileTime;
+    ///
     /// assert_eq!(
     ///     FileTime::try_from(SystemTime::UNIX_EPOCH - Duration::from_hours(3_234_576)),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -294,11 +294,11 @@ impl TryFrom<UtcDateTime> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     time::{UtcDateTime, macros::utc_datetime},
-    /// # };
-    /// #
+    /// use nt_time::{
+    ///     FileTime,
+    ///     time::{UtcDateTime, macros::utc_datetime},
+    /// };
+    ///
     /// assert_eq!(
     ///     FileTime::try_from(utc_datetime!(1601-01-01 00:00:00)),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -318,8 +318,8 @@ impl TryFrom<UtcDateTime> for FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{FileTime, time::macros::utc_datetime};
-    /// #
+    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    ///
     /// assert!(FileTime::try_from(utc_datetime!(+60056-05-28 05:36:10.955_161_600)).is_err());
     /// # }
     /// ```
@@ -341,11 +341,11 @@ impl TryFrom<chrono::DateTime<Utc>> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{
-    /// #     FileTime,
-    /// #     chrono::{DateTime, Utc},
-    /// # };
-    /// #
+    /// use nt_time::{
+    ///     FileTime,
+    ///     chrono::{DateTime, Utc},
+    /// };
+    ///
     /// assert_eq!(
     ///     FileTime::try_from("1601-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap()),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -392,8 +392,8 @@ impl TryFrom<Timestamp> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, jiff::Timestamp};
-    /// #
+    /// use nt_time::{FileTime, jiff::Timestamp};
+    ///
     /// assert_eq!(
     ///     FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()),
     ///     Ok(FileTime::NT_TIME_EPOCH)
@@ -424,8 +424,8 @@ impl From<dos_date_time::DateTime> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, dos_date_time::DateTime};
-    /// #
+    /// use nt_time::{FileTime, dos_date_time::DateTime};
+    ///
     /// // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
     /// assert_eq!(
     ///     FileTime::from(DateTime::MIN),

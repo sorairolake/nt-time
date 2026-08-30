@@ -25,8 +25,8 @@ impl FileTimeRangeError {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, error::FileTimeRangeErrorKind};
-    /// #
+    /// use nt_time::{FileTime, error::FileTimeRangeErrorKind};
+    ///
     /// let err = FileTime::from_unix_time_secs(i64::MIN).unwrap_err();
     /// assert_eq!(err.kind(), FileTimeRangeErrorKind::Negative);
     ///
