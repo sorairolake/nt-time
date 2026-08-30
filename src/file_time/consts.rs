@@ -16,8 +16,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, time::macros::utc_datetime};
-    /// #
+    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    ///
     /// assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
     /// ```
     ///
@@ -32,8 +32,8 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// # use nt_time::{FileTime, time::macros::utc_datetime};
-    /// #
+    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    ///
     /// assert_eq!(FileTime::UNIX_EPOCH, utc_datetime!(1970-01-01 00:00:00));
     /// ```
     ///
@@ -50,8 +50,8 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{FileTime, time::macros::utc_datetime};
-    /// #
+    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    ///
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
     ///     utc_datetime!(+30828-09-14 02:48:05.477_580_700)
@@ -74,8 +74,8 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// # use nt_time::{FileTime, time::macros::utc_datetime};
-    /// #
+    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    ///
     /// assert_eq!(
     ///     FileTime::MAX,
     ///     utc_datetime!(+60056-05-28 05:36:10.955_161_500)
