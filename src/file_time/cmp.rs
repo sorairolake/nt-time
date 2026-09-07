@@ -10,8 +10,6 @@ use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, Utc};
-#[cfg(feature = "jiff")]
-use jiff::Timestamp;
 use time::UtcDateTime;
 
 use super::FileTime;
@@ -57,16 +55,16 @@ impl PartialEq<DateTime<Utc>> for FileTime {
 }
 
 #[cfg(feature = "jiff")]
-impl PartialEq<FileTime> for Timestamp {
+impl PartialEq<FileTime> for jiff::Timestamp {
     fn eq(&self, other: &FileTime) -> bool {
         self == &Self::try_from(*other).unwrap()
     }
 }
 
 #[cfg(feature = "jiff")]
-impl PartialEq<Timestamp> for FileTime {
-    fn eq(&self, other: &Timestamp) -> bool {
-        &Timestamp::try_from(*self).unwrap() == other
+impl PartialEq<jiff::Timestamp> for FileTime {
+    fn eq(&self, other: &jiff::Timestamp) -> bool {
+        &jiff::Timestamp::try_from(*self).unwrap() == other
     }
 }
 
@@ -111,16 +109,16 @@ impl PartialOrd<DateTime<Utc>> for FileTime {
 }
 
 #[cfg(feature = "jiff")]
-impl PartialOrd<FileTime> for Timestamp {
+impl PartialOrd<FileTime> for jiff::Timestamp {
     fn partial_cmp(&self, other: &FileTime) -> Option<Ordering> {
         self.partial_cmp(&Self::try_from(*other).unwrap())
     }
 }
 
 #[cfg(feature = "jiff")]
-impl PartialOrd<Timestamp> for FileTime {
-    fn partial_cmp(&self, other: &Timestamp) -> Option<Ordering> {
-        Timestamp::try_from(*self).unwrap().partial_cmp(other)
+impl PartialOrd<jiff::Timestamp> for FileTime {
+    fn partial_cmp(&self, other: &jiff::Timestamp) -> Option<Ordering> {
+        jiff::Timestamp::try_from(*self).unwrap().partial_cmp(other)
     }
 }
 
@@ -282,16 +280,16 @@ mod tests {
     #[test]
     fn equality_jiff_timestamp_and_file_time() {
         assert_eq!(
-            Timestamp::MAX - 99.nanoseconds(),
+            jiff::Timestamp::MAX - 99.nanoseconds(),
             FileTime::new(2_650_466_808_009_999_999)
         );
-        assert_ne!(Timestamp::MAX - 99.nanoseconds(), FileTime::NT_TIME_EPOCH);
+        assert_ne!(jiff::Timestamp::MAX - 99.nanoseconds(), FileTime::NT_TIME_EPOCH);
         assert_ne!(
-            Timestamp::from_second(-11_644_473_600).unwrap(),
+            jiff::Timestamp::from_second(-11_644_473_600).unwrap(),
             FileTime::new(2_650_466_808_009_999_999)
         );
         assert_eq!(
-            Timestamp::from_second(-11_644_473_600).unwrap(),
+            jiff::Timestamp::from_second(-11_644_473_600).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -301,16 +299,16 @@ mod tests {
     fn equality_file_time_and_jiff_timestamp() {
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999),
-            Timestamp::MAX - 99.nanoseconds()
+            jiff::Timestamp::MAX - 99.nanoseconds()
         );
-        assert_ne!(FileTime::NT_TIME_EPOCH, Timestamp::MAX - 99.nanoseconds());
+        assert_ne!(FileTime::NT_TIME_EPOCH, jiff::Timestamp::MAX - 99.nanoseconds());
         assert_ne!(
             FileTime::new(2_650_466_808_009_999_999),
-            Timestamp::from_second(-11_644_473_600).unwrap()
+            jiff::Timestamp::from_second(-11_644_473_600).unwrap()
         );
         assert_eq!(
             FileTime::NT_TIME_EPOCH,
-            Timestamp::from_second(-11_644_473_600).unwrap()
+            jiff::Timestamp::from_second(-11_644_473_600).unwrap()
         );
     }
 
@@ -393,22 +391,22 @@ mod tests {
     #[cfg(feature = "jiff")]
     #[test]
     fn order_jiff_timestamp_and_file_time() {
-        assert!(Timestamp::UNIX_EPOCH < FileTime::new(2_650_466_808_009_999_999));
+        assert!(jiff::Timestamp::UNIX_EPOCH < FileTime::new(2_650_466_808_009_999_999));
         assert_eq!(
-            Timestamp::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
+            jiff::Timestamp::UNIX_EPOCH.partial_cmp(&FileTime::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+        assert!(jiff::Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
     }
 
     #[cfg(feature = "jiff")]
     #[test]
     fn order_file_time_and_jiff_timestamp() {
-        assert!(FileTime::UNIX_EPOCH < Timestamp::MAX);
+        assert!(FileTime::UNIX_EPOCH < jiff::Timestamp::MAX);
         assert_eq!(
-            FileTime::UNIX_EPOCH.partial_cmp(&Timestamp::UNIX_EPOCH),
+            FileTime::UNIX_EPOCH.partial_cmp(&jiff::Timestamp::UNIX_EPOCH),
             Some(Ordering::Equal)
         );
-        assert!(FileTime::UNIX_EPOCH > Timestamp::from_second(-11_644_473_600).unwrap());
+        assert!(FileTime::UNIX_EPOCH > jiff::Timestamp::from_second(-11_644_473_600).unwrap());
     }
 }

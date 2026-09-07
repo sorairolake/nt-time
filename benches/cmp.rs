@@ -11,8 +11,6 @@ use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, TimeZone, Utc};
-#[cfg(feature = "jiff")]
-use jiff::Timestamp;
 use nt_time::{
     FileTime,
     time::{UtcDateTime, macros::utc_datetime},
@@ -66,13 +64,13 @@ fn equality_file_time_and_chrono_date_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn equality_jiff_timestamp_and_file_time(b: &mut Bencher) {
-    b.iter(|| Timestamp::from_second(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
+    b.iter(|| jiff::Timestamp::from_second(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn equality_file_time_and_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == Timestamp::from_second(-11_644_473_600).unwrap());
+    b.iter(|| FileTime::NT_TIME_EPOCH == jiff::Timestamp::from_second(-11_644_473_600).unwrap());
 }
 
 #[cfg(feature = "std")]
@@ -112,11 +110,11 @@ fn order_file_time_and_chrono_date_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn order_jiff_timestamp_and_file_time(b: &mut Bencher) {
-    b.iter(|| Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+    b.iter(|| jiff::Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn order_file_time_and_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > Timestamp::from_second(-11_644_473_600).unwrap());
+    b.iter(|| FileTime::UNIX_EPOCH > jiff::Timestamp::from_second(-11_644_473_600).unwrap());
 }

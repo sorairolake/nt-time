@@ -14,8 +14,6 @@ use dos_date_time::{
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
     time::PrimitiveDateTime,
 };
-#[cfg(feature = "jiff")]
-use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
 
 use super::FileTime;
@@ -153,14 +151,14 @@ impl From<FileTime> for chrono::DateTime<Utc> {
 }
 
 #[cfg(feature = "jiff")]
-impl TryFrom<FileTime> for Timestamp {
+impl TryFrom<FileTime> for jiff::Timestamp {
     type Error = jiff::Error;
 
-    /// Converts a `FileTime` to a [`Timestamp`].
+    /// Converts a `FileTime` to a [`jiff::Timestamp`].
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `ft` is out of range for [`Timestamp`].
+    /// Returns [`Err`] if `ft` is out of range for [`jiff::Timestamp`].
     ///
     /// # Examples
     ///
@@ -380,10 +378,10 @@ impl TryFrom<chrono::DateTime<Utc>> for FileTime {
 }
 
 #[cfg(feature = "jiff")]
-impl TryFrom<Timestamp> for FileTime {
+impl TryFrom<jiff::Timestamp> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts a [`Timestamp`] to a `FileTime`.
+    /// Converts a [`jiff::Timestamp`] to a `FileTime`.
     ///
     /// # Errors
     ///
@@ -409,7 +407,7 @@ impl TryFrom<Timestamp> for FileTime {
     ///         .is_err()
     /// );
     /// ```
-    fn try_from(ts: Timestamp) -> Result<Self, Self::Error> {
+    fn try_from(ts: jiff::Timestamp) -> Result<Self, Self::Error> {
         Self::from_unix_time_nanos(ts.as_nanosecond())
     }
 }
@@ -590,23 +588,23 @@ mod tests {
     #[test]
     fn try_from_file_time_to_jiff_timestamp() {
         assert_eq!(
-            Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
-            Timestamp::from_second(-11_644_473_600).unwrap()
+            jiff::Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
+            jiff::Timestamp::from_second(-11_644_473_600).unwrap()
         );
         assert_eq!(
-            Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
-            Timestamp::UNIX_EPOCH
+            jiff::Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap(),
+            jiff::Timestamp::UNIX_EPOCH
         );
         assert_eq!(
-            Timestamp::try_from(FileTime::new(2_650_466_808_009_999_999)).unwrap(),
-            Timestamp::MAX - 99.nanoseconds()
+            jiff::Timestamp::try_from(FileTime::new(2_650_466_808_009_999_999)).unwrap(),
+            jiff::Timestamp::MAX - 99.nanoseconds()
         );
     }
 
     #[cfg(feature = "jiff")]
     #[test]
     fn try_from_file_time_to_jiff_timestamp_with_invalid_file_time() {
-        assert!(Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
+        assert!(jiff::Timestamp::try_from(FileTime::new(2_650_466_808_010_000_000)).is_err());
     }
 
     #[cfg(feature = "dos-date-time")]
@@ -902,7 +900,7 @@ mod tests {
     #[test]
     fn try_from_jiff_timestamp_to_file_time_before_nt_time_epoch() {
         assert_eq!(
-            FileTime::try_from(Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
+            FileTime::try_from(jiff::Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
                 .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
@@ -912,15 +910,15 @@ mod tests {
     #[test]
     fn try_from_jiff_timestamp_to_file_time() {
         assert_eq!(
-            FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()).unwrap(),
+            FileTime::try_from(jiff::Timestamp::from_second(-11_644_473_600).unwrap()).unwrap(),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::try_from(Timestamp::UNIX_EPOCH).unwrap(),
+            FileTime::try_from(jiff::Timestamp::UNIX_EPOCH).unwrap(),
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
-            FileTime::try_from(Timestamp::MAX).unwrap(),
+            FileTime::try_from(jiff::Timestamp::MAX).unwrap(),
             FileTime::new(2_650_466_808_009_999_999)
         );
     }
