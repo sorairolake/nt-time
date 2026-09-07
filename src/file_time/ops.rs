@@ -15,7 +15,6 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Span;
-use time::time::Timestamp;
 
 use super::FileTime;
 
@@ -1456,8 +1455,7 @@ mod tests {
     #[test]
     fn sub_file_time_from_time_timestamp() {
         assert_eq!(
-            timestamp!(9999-12-31 23:59:59.999_999_900)
-                - FileTime::new(2_650_467_743_999_999_999),
+            timestamp!(9999-12-31 23:59:59.999_999_900) - FileTime::new(2_650_467_743_999_999_999),
             time::Duration::ZERO
         );
         assert_eq!(
@@ -1474,8 +1472,7 @@ mod tests {
     #[test]
     fn sub_time_timestamp_from_file_time() {
         assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999)
-                - timestamp!(9999-12-31 23:59:59.999_999_900),
+            FileTime::new(2_650_467_743_999_999_999) - timestamp!(9999-12-31 23:59:59.999_999_900),
             time::Duration::ZERO
         );
         assert_eq!(
@@ -1485,14 +1482,12 @@ mod tests {
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (timestamp!(9999-12-31 23:59:59.999_999_900)
-                    - time::Duration::nanoseconds(99)),
+                - (timestamp!(9999-12-31 23:59:59.999_999_900) - time::Duration::nanoseconds(99)),
             time::Duration::nanoseconds(99)
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (timestamp!(9999-12-31 23:59:59.999_999_900)
-                    - time::Duration::nanoseconds(100)),
+                - (timestamp!(9999-12-31 23:59:59.999_999_900) - time::Duration::nanoseconds(100)),
             time::Duration::nanoseconds(100)
         );
         assert_eq!(
