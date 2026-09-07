@@ -97,13 +97,14 @@
 //! [`time::Timestamp`].
 //!
 //! ```
-//! use nt_time::{FileTime, time::Timestamp};
+//! use nt_time::{FileTime, time::{Timestamp, format_description::well_known::Iso8601}};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");
 //!
-//! let dt = Timestamp::try_from(ft).unwrap();
-//! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00");
+//! let ts = Timestamp::try_from(ft).unwrap();
+//! let ts = ts.format(&Iso8601::DEFAULT).unwrap();
+//! assert_eq!(format!("{ts}"), "1601-01-01 0:00:00.0 +00");
 //! ```
 //!
 //! [Windows file time]: https://learn.microsoft.com/en-us/windows/win32/sysinfo/file-times
