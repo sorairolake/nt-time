@@ -11,10 +11,7 @@ use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, TimeZone, Utc};
-use nt_time::{
-    FileTime,
-    time::{time::Timestamp, macros::timestamp},
-};
+use nt_time::{FileTime, time::macros::timestamp};
 use test::Bencher;
 
 #[bench]
