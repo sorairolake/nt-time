@@ -10,7 +10,6 @@ use std::time::SystemTime;
 
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, Utc};
-use time::time::Timestamp;
 
 use super::FileTime;
 
