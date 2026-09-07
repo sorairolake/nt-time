@@ -283,7 +283,10 @@ mod tests {
             jiff::Timestamp::MAX - 99.nanoseconds(),
             FileTime::new(2_650_466_808_009_999_999)
         );
-        assert_ne!(jiff::Timestamp::MAX - 99.nanoseconds(), FileTime::NT_TIME_EPOCH);
+        assert_ne!(
+            jiff::Timestamp::MAX - 99.nanoseconds(),
+            FileTime::NT_TIME_EPOCH
+        );
         assert_ne!(
             jiff::Timestamp::from_second(-11_644_473_600).unwrap(),
             FileTime::new(2_650_466_808_009_999_999)
@@ -301,7 +304,10 @@ mod tests {
             FileTime::new(2_650_466_808_009_999_999),
             jiff::Timestamp::MAX - 99.nanoseconds()
         );
-        assert_ne!(FileTime::NT_TIME_EPOCH, jiff::Timestamp::MAX - 99.nanoseconds());
+        assert_ne!(
+            FileTime::NT_TIME_EPOCH,
+            jiff::Timestamp::MAX - 99.nanoseconds()
+        );
         assert_ne!(
             FileTime::new(2_650_466_808_009_999_999),
             jiff::Timestamp::from_second(-11_644_473_600).unwrap()
