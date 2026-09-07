@@ -90,7 +90,7 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
-    use time::{time::Timestamp, macros::timestamp};
+    use time::{Timestamp, macros::timestamp};
 
     use super::*;
 
@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(FileTime::UNIX_EPOCH, time::Timestamp::UNIX_EPOCH);
+        assert_eq!(FileTime::UNIX_EPOCH, Timestamp::UNIX_EPOCH);
     }
 
     #[cfg(feature = "large-dates")]
@@ -116,9 +116,6 @@ mod tests {
     #[cfg(feature = "large-dates")]
     #[test]
     fn max() {
-        assert_eq!(
-            FileTime::MAX,
-            timestamp!(+60056-05-28 05:36:10.955_161_500)
-        );
+        assert_eq!(FileTime::MAX, timestamp!(+60056-05-28 05:36:10.955_161_500));
     }
 }
