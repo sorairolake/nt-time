@@ -8,7 +8,7 @@ use anyhow::Context;
 use clap::Parser;
 use nt_time::{
     FileTime,
-    time::{Timestamp, UtcDateTime},
+    time::{Timestamp, format_description::well_known::Iso8601},
 };
 
 #[derive(Debug, Parser)]
@@ -21,9 +21,10 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let dt = Timestamp::try_from(opt.time)
-        .map(UtcDateTime::from)
-        .context("could not convert file time")?;
-    println!("{dt}");
+    let ts = Timestamp::try_from(opt.time).context("could not convert file time")?;
+    let ts = ts
+        .format(&Iso8601::DEFAULT)
+        .context("could not format timestamp")?;
+    println!("{ts}");
     Ok(())
 }
