@@ -13,7 +13,7 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeZone, Utc};
 use nt_time::{
     FileTime,
-    time::{UtcDateTime, macros::utc_datetime},
+    time::{time::Timestamp, macros::timestamp},
 };
 use test::Bencher;
 
@@ -40,13 +40,13 @@ fn equality_file_time_and_system_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn equality_utc_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| utc_datetime!(1601-01-01 00:00:00) == FileTime::NT_TIME_EPOCH);
+fn equality_time_timestamp_and_file_time(b: &mut Bencher) {
+    b.iter(|| timestamp!(1601-01-01 00:00:00) == FileTime::NT_TIME_EPOCH);
 }
 
 #[bench]
-fn equality_file_time_and_utc_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == utc_datetime!(1601-01-01 00:00:00));
+fn equality_file_time_and_time_timestamp(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH == timestamp!(1601-01-01 00:00:00));
 }
 
 #[cfg(feature = "chrono")]
@@ -86,13 +86,13 @@ fn order_file_time_and_system_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn order_utc_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| UtcDateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
+fn order_time_timestamp_and_file_time(b: &mut Bencher) {
+    b.iter(|| time::Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
 }
 
 #[bench]
-fn order_file_time_and_utc_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > utc_datetime!(1601-01-01 00:00:00));
+fn order_file_time_and_time_timestamp(b: &mut Bencher) {
+    b.iter(|| FileTime::UNIX_EPOCH > timestamp!(1601-01-01 00:00:00));
 }
 
 #[cfg(feature = "chrono")]

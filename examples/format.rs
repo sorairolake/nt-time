@@ -6,7 +6,7 @@
 
 use anyhow::Context;
 use clap::Parser;
-use nt_time::{FileTime, time::UtcDateTime};
+use nt_time::{FileTime, time::time::Timestamp};
 
 #[derive(Debug, Parser)]
 #[command(version, about)]
@@ -18,7 +18,7 @@ struct Opt {
 fn main() -> anyhow::Result<()> {
     let opt = Opt::parse();
 
-    let dt = UtcDateTime::try_from(opt.time).context("could not convert file time")?;
+    let dt = time::Timestamp::try_from(opt.time).context("could not convert file time")?;
     println!("{dt}");
     Ok(())
 }

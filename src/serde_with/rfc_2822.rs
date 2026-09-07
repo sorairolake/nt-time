@@ -38,7 +38,7 @@
 pub mod option;
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::{OffsetDateTime, UtcDateTime, serde::rfc2822};
+use time::{OffsetDateTime, time::Timestamp, serde::rfc2822};
 
 use crate::FileTime;
 
@@ -50,7 +50,7 @@ use crate::FileTime;
 /// [RFC 2822 format]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
     rfc2822::serialize(
-        &UtcDateTime::try_from(*ft)
+        &time::Timestamp::try_from(*ft)
             .map(OffsetDateTime::from)
             .map_err(S::Error::custom)?,
         serializer,
@@ -64,7 +64,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 ///
 /// [RFC 2822 representation]: https://datatracker.ietf.org/doc/html/rfc2822#section-3.3
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::try_from(rfc2822::deserialize(deserializer).map(UtcDateTime::from)?)
+    FileTime::try_from(rfc2822::deserialize(deserializer).map(time::Timestamp::from)?)
         .map_err(D::Error::custom)
 }
 

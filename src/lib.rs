@@ -16,26 +16,26 @@
 //! ## Basic usage
 //!
 //! [`FileTime`] can be converted from and to a type which represents time such
-//! as [`time::UtcDateTime`]. Addition and subtraction are also supported.
+//! as [`time::time::Timestamp`]. Addition and subtraction are also supported.
 //!
 //! ```
 //! use core::time::Duration;
 //!
 //! use nt_time::{
 //!     FileTime,
-//!     time::{UtcDateTime, macros::utc_datetime},
+//!     time::{time::Timestamp, macros::timestamp},
 //! };
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(
-//!     UtcDateTime::try_from(ft),
-//!     Ok(utc_datetime!(1601-01-01 00:00:00))
+//!     time::Timestamp::try_from(ft),
+//!     Ok(timestamp!(1601-01-01 00:00:00))
 //! );
 //!
 //! let ft = ft + Duration::from_hours(3_234_576);
 //! assert_eq!(
-//!     UtcDateTime::try_from(ft),
-//!     Ok(utc_datetime!(1970-01-01 00:00:00))
+//!     time::Timestamp::try_from(ft),
+//!     Ok(timestamp!(1970-01-01 00:00:00))
 //! );
 //! assert_eq!(ft.to_raw(), 116_444_736_000_000_000);
 //! ```
@@ -50,11 +50,11 @@
 //! ```
 //! use nt_time::{
 //!     FileTime,
-//!     time::{UtcDateTime, macros::utc_datetime},
+//!     time::{time::Timestamp, macros::timestamp},
 //! };
 //!
-//! let dt = utc_datetime!(1970-01-01 00:00:00);
-//! assert_eq!(dt, UtcDateTime::UNIX_EPOCH);
+//! let dt = timestamp!(1970-01-01 00:00:00);
+//! assert_eq!(dt, time::Timestamp::UNIX_EPOCH);
 //!
 //! // Convert to a `FileTime`.
 //! let ft = FileTime::from_unix_time_secs(dt.unix_timestamp()).unwrap();
@@ -94,15 +94,15 @@
 //! The [`Display`](core::fmt::Display) trait for [`FileTime`] is implemented to
 //! show the underlying [`u64`] value. If you need a human-readable date and
 //! time, convert [`FileTime`] to a type which represents time such as
-//! [`time::UtcDateTime`].
+//! [`time::time::Timestamp`].
 //!
 //! ```
-//! use nt_time::{FileTime, time::UtcDateTime};
+//! use nt_time::{FileTime, time::time::Timestamp};
 //!
 //! let ft = FileTime::NT_TIME_EPOCH;
 //! assert_eq!(format!("{ft}"), "0");
 //!
-//! let dt = UtcDateTime::try_from(ft).unwrap();
+//! let dt = time::Timestamp::try_from(ft).unwrap();
 //! assert_eq!(format!("{dt}"), "1601-01-01 0:00:00.0 +00");
 //! ```
 //!

@@ -15,7 +15,7 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Span;
-use time::UtcDateTime;
+use time::time::Timestamp;
 
 use super::FileTime;
 
@@ -301,7 +301,7 @@ impl Sub<SystemTime> for FileTime {
     }
 }
 
-impl Sub<FileTime> for UtcDateTime {
+impl Sub<FileTime> for time::Timestamp {
     type Output = time::Duration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
@@ -309,11 +309,11 @@ impl Sub<FileTime> for UtcDateTime {
     }
 }
 
-impl Sub<UtcDateTime> for FileTime {
+impl Sub<time::Timestamp> for FileTime {
     type Output = time::Duration;
 
-    fn sub(self, rhs: UtcDateTime) -> Self::Output {
-        UtcDateTime::try_from(self).unwrap() - rhs
+    fn sub(self, rhs: time::Timestamp) -> Self::Output {
+        time::Timestamp::try_from(self).unwrap() - rhs
     }
 }
 
@@ -389,7 +389,7 @@ mod tests {
     use proptest::{prop_assert, prop_assert_eq, prop_assert_ne};
     #[cfg(feature = "std")]
     use test_strategy::proptest;
-    use time::macros::utc_datetime;
+    use time::macros::timestamp;
 
     use super::*;
 
@@ -1454,49 +1454,49 @@ mod tests {
     }
 
     #[test]
-    fn sub_file_time_from_utc_date_time() {
+    fn sub_file_time_from_time_timestamp() {
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900)
+            timestamp!(9999-12-31 23:59:59.999_999_900)
                 - FileTime::new(2_650_467_743_999_999_999),
             time::Duration::ZERO
         );
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900)
+            timestamp!(9999-12-31 23:59:59.999_999_900)
                 - (FileTime::new(2_650_467_743_999_999_999) - time::Duration::nanoseconds(100)),
             time::Duration::nanoseconds(100)
         );
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH,
+            timestamp!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH,
             time::Duration::new(265_046_774_399, 999_999_900)
         );
     }
 
     #[test]
-    fn sub_utc_date_time_from_file_time() {
+    fn sub_time_timestamp_from_file_time() {
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - utc_datetime!(9999-12-31 23:59:59.999_999_900),
+                - timestamp!(9999-12-31 23:59:59.999_999_900),
             time::Duration::ZERO
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900) - time::Duration::nanoseconds(1)),
+                - (timestamp!(9999-12-31 23:59:59.999_999_900) - time::Duration::nanoseconds(1)),
             time::Duration::nanoseconds(1)
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                - (timestamp!(9999-12-31 23:59:59.999_999_900)
                     - time::Duration::nanoseconds(99)),
             time::Duration::nanoseconds(99)
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                - (timestamp!(9999-12-31 23:59:59.999_999_900)
                     - time::Duration::nanoseconds(100)),
             time::Duration::nanoseconds(100)
         );
         assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00),
+            FileTime::new(2_650_467_743_999_999_999) - timestamp!(1601-01-01 00:00:00),
             time::Duration::new(265_046_774_399, 999_999_900)
         );
     }

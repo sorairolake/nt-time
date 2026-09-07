@@ -9,7 +9,7 @@ extern crate test;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-use nt_time::{FileTime, time::UtcDateTime};
+use nt_time::{FileTime, time::time::Timestamp};
 use test::Bencher;
 
 #[bench]
@@ -24,8 +24,8 @@ fn from_file_time_to_system_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn try_from_file_time_to_utc_date_time(b: &mut Bencher) {
-    b.iter(|| UtcDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
+fn try_from_file_time_to_time_timestamp(b: &mut Bencher) {
+    b.iter(|| time::Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]
@@ -58,8 +58,8 @@ fn try_from_system_time_to_file_time(b: &mut Bencher) {
 }
 
 #[bench]
-fn try_from_utc_date_time_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(UtcDateTime::UNIX_EPOCH).unwrap());
+fn try_from_time_timestamp_to_file_time(b: &mut Bencher) {
+    b.iter(|| FileTime::try_from(time::Timestamp::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "chrono")]

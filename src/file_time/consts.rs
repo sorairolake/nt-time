@@ -16,9 +16,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    /// use nt_time::{FileTime, time::macros::timestamp};
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
+    /// assert_eq!(FileTime::NT_TIME_EPOCH, timestamp!(1601-01-01 00:00:00));
     /// ```
     ///
     /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
@@ -32,9 +32,9 @@ impl FileTime {
     /// # Examples
     ///
     /// ```
-    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    /// use nt_time::{FileTime, time::macros::timestamp};
     ///
-    /// assert_eq!(FileTime::UNIX_EPOCH, utc_datetime!(1970-01-01 00:00:00));
+    /// assert_eq!(FileTime::UNIX_EPOCH, timestamp!(1970-01-01 00:00:00));
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
@@ -50,11 +50,11 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    /// use nt_time::{FileTime, time::macros::timestamp};
     ///
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX,
-    ///     utc_datetime!(+30828-09-14 02:48:05.477_580_700)
+    ///     timestamp!(+30828-09-14 02:48:05.477_580_700)
     /// );
     /// # }
     /// ```
@@ -74,11 +74,11 @@ impl FileTime {
     /// ```
     /// # #[cfg(feature = "large-dates")]
     /// # {
-    /// use nt_time::{FileTime, time::macros::utc_datetime};
+    /// use nt_time::{FileTime, time::macros::timestamp};
     ///
     /// assert_eq!(
     ///     FileTime::MAX,
-    ///     utc_datetime!(+60056-05-28 05:36:10.955_161_500)
+    ///     timestamp!(+60056-05-28 05:36:10.955_161_500)
     /// );
     /// # }
     /// ```
@@ -90,18 +90,18 @@ impl FileTime {
 
 #[cfg(test)]
 mod tests {
-    use time::{UtcDateTime, macros::utc_datetime};
+    use time::{time::Timestamp, macros::timestamp};
 
     use super::*;
 
     #[test]
     fn nt_time_epoch() {
-        assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
+        assert_eq!(FileTime::NT_TIME_EPOCH, timestamp!(1601-01-01 00:00:00));
     }
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
+        assert_eq!(FileTime::UNIX_EPOCH, time::Timestamp::UNIX_EPOCH);
     }
 
     #[cfg(feature = "large-dates")]
@@ -109,7 +109,7 @@ mod tests {
     fn signed_max() {
         assert_eq!(
             FileTime::SIGNED_MAX,
-            utc_datetime!(+30828-09-14 02:48:05.477_580_700)
+            timestamp!(+30828-09-14 02:48:05.477_580_700)
         );
     }
 
@@ -118,7 +118,7 @@ mod tests {
     fn max() {
         assert_eq!(
             FileTime::MAX,
-            utc_datetime!(+60056-05-28 05:36:10.955_161_500)
+            timestamp!(+60056-05-28 05:36:10.955_161_500)
         );
     }
 }
