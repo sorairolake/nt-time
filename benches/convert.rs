@@ -9,8 +9,6 @@ extern crate test;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-#[cfg(feature = "jiff")]
-use jiff::Timestamp;
 use nt_time::{FileTime, time::UtcDateTime};
 use test::Bencher;
 
@@ -39,7 +37,7 @@ fn from_file_time_to_chrono_date_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn try_from_file_time_to_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap());
+    b.iter(|| jiff::Timestamp::try_from(FileTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "dos-date-time")]
@@ -73,7 +71,7 @@ fn try_from_chrono_date_time_to_file_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn try_from_jiff_timestamp_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(Timestamp::UNIX_EPOCH).unwrap());
+    b.iter(|| FileTime::try_from(jiff::Timestamp::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "dos-date-time")]

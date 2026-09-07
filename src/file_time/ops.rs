@@ -14,7 +14,7 @@ use std::time::SystemTime;
 #[cfg(feature = "chrono")]
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
-use jiff::{Span, Timestamp};
+use jiff::Span;
 use time::UtcDateTime;
 
 use super::FileTime;
@@ -336,7 +336,7 @@ impl Sub<DateTime<Utc>> for FileTime {
 }
 
 #[cfg(feature = "jiff")]
-impl Sub<FileTime> for Timestamp {
+impl Sub<FileTime> for jiff::Timestamp {
     type Output = Span;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
@@ -345,11 +345,11 @@ impl Sub<FileTime> for Timestamp {
 }
 
 #[cfg(feature = "jiff")]
-impl Sub<Timestamp> for FileTime {
+impl Sub<jiff::Timestamp> for FileTime {
     type Output = Span;
 
-    fn sub(self, rhs: Timestamp) -> Self::Output {
-        Timestamp::try_from(self).unwrap() - rhs
+    fn sub(self, rhs: jiff::Timestamp) -> Self::Output {
+        jiff::Timestamp::try_from(self).unwrap() - rhs
     }
 }
 
@@ -1582,16 +1582,16 @@ mod tests {
     #[test]
     fn sub_file_time_from_jiff_timestamp() {
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds()) - FileTime::new(2_650_466_808_009_999_999),
+            (jiff::Timestamp::MAX - 99.nanoseconds()) - FileTime::new(2_650_466_808_009_999_999),
             Span::new().fieldwise()
         );
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds())
+            (jiff::Timestamp::MAX - 99.nanoseconds())
                 - (FileTime::new(2_650_466_808_009_999_999) - 100.nanoseconds()),
             100.nanoseconds().fieldwise()
         );
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH,
+            (jiff::Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH,
             265_046_680_800_i64
                 .seconds()
                 .milliseconds(999)
@@ -1605,27 +1605,27 @@ mod tests {
     #[test]
     fn sub_jiff_timestamp_from_file_time() {
         assert_eq!(
-            FileTime::new(2_650_466_808_009_999_999) - (Timestamp::MAX - 99.nanoseconds()),
+            FileTime::new(2_650_466_808_009_999_999) - (jiff::Timestamp::MAX - 99.nanoseconds()),
             Span::new().fieldwise()
         );
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999)
-                - ((Timestamp::MAX - 99.nanoseconds()) - 1.nanosecond()),
+                - ((jiff::Timestamp::MAX - 99.nanoseconds()) - 1.nanosecond()),
             1.nanosecond().fieldwise()
         );
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999)
-                - ((Timestamp::MAX - 99.nanoseconds()) - 99.nanoseconds()),
+                - ((jiff::Timestamp::MAX - 99.nanoseconds()) - 99.nanoseconds()),
             99.nanoseconds().fieldwise()
         );
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999)
-                - ((Timestamp::MAX - 99.nanoseconds()) - 100.nanoseconds()),
+                - ((jiff::Timestamp::MAX - 99.nanoseconds()) - 100.nanoseconds()),
             100.nanoseconds().fieldwise()
         );
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999)
-                - Timestamp::from_second(-11_644_473_600).unwrap(),
+                - jiff::Timestamp::from_second(-11_644_473_600).unwrap(),
             265_046_680_800_i64
                 .seconds()
                 .milliseconds(999)
