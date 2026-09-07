@@ -9,7 +9,7 @@ extern crate test;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-use nt_time::{FileTime, time::time::Timestamp};
+use nt_time::FileTime;
 use test::Bencher;
 
 #[bench]
