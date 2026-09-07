@@ -14,7 +14,7 @@ use dos_date_time::{
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
     time::PrimitiveDateTime,
 };
-use time::{time::Timestamp, error::ComponentRange};
+use time::error::ComponentRange;
 
 use super::FileTime;
 use crate::error::FileTimeRangeError;
@@ -60,7 +60,7 @@ impl From<FileTime> for SystemTime {
 impl TryFrom<FileTime> for time::Timestamp {
     type Error = ComponentRange;
 
-    /// Converts a `FileTime` to an [`time::Timestamp`].
+    /// Converts a `FileTime` to a [`time::Timestamp`].
     ///
     /// # Errors
     ///
@@ -71,16 +71,16 @@ impl TryFrom<FileTime> for time::Timestamp {
     /// ```
     /// use nt_time::{
     ///     FileTime,
-    ///     time::{time::Timestamp, macros::timestamp},
+    ///     time::{Timestamp, macros::timestamp},
     /// };
     ///
     /// assert_eq!(
-    ///     time::Timestamp::try_from(FileTime::NT_TIME_EPOCH),
+    ///     Timestamp::try_from(FileTime::NT_TIME_EPOCH),
     ///     Ok(timestamp!(1601-01-01 00:00:00))
     /// );
     /// assert_eq!(
-    ///     time::Timestamp::try_from(FileTime::UNIX_EPOCH),
-    ///     Ok(time::Timestamp::UNIX_EPOCH)
+    ///     Timestamp::try_from(FileTime::UNIX_EPOCH),
+    ///     Ok(Timestamp::UNIX_EPOCH)
     /// );
     /// ```
     ///
@@ -90,9 +90,9 @@ impl TryFrom<FileTime> for time::Timestamp {
     /// ```
     /// # #[cfg(not(feature = "large-dates"))]
     /// # {
-    /// use nt_time::{FileTime, time::time::Timestamp};
+    /// use nt_time::{FileTime, time::Timestamp};
     ///
-    /// assert!(time::Timestamp::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
+    /// assert!(Timestamp::try_from(FileTime::new(2_650_467_744_000_000_000)).is_err());
     /// # }
     /// ```
     ///
@@ -103,25 +103,25 @@ impl TryFrom<FileTime> for time::Timestamp {
     /// # {
     /// use nt_time::{
     ///     FileTime,
-    ///     time::{time::Timestamp, macros::timestamp},
+    ///     time::{Timestamp, macros::timestamp},
     /// };
     ///
     /// assert_eq!(
-    ///     time::Timestamp::try_from(FileTime::new(2_650_467_744_000_000_000)),
+    ///     Timestamp::try_from(FileTime::new(2_650_467_744_000_000_000)),
     ///     Ok(timestamp!(+10000-01-01 00:00:00))
     /// );
     /// assert_eq!(
-    ///     time::Timestamp::try_from(FileTime::SIGNED_MAX),
+    ///     Timestamp::try_from(FileTime::SIGNED_MAX),
     ///     Ok(timestamp!(+30828-09-14 02:48:05.477_580_700))
     /// );
     /// assert_eq!(
-    ///     time::Timestamp::try_from(FileTime::MAX),
+    ///     Timestamp::try_from(FileTime::MAX),
     ///     Ok(timestamp!(+60056-05-28 05:36:10.955_161_500))
     /// );
     /// # }
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        Self::from_unix_timestamp_nanos(ft.to_unix_time_nanos())
+        Self::from_nanoseconds(ft.to_unix_time_nanos())
     }
 }
 
@@ -220,8 +220,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        let dt = time::Timestamp::try_from(ft).map_err(|_| DateTimeRangeErrorKind::Overflow)?;
-        Self::from_date_time(dt.date(), dt.time())
+        let ts = Timestamp::try_from(ft).map_err(|_| DateTimeRangeErrorKind::Overflow)?;
+        Self::from_date_time(ts.date(), ts.time())
     }
 }
 
@@ -283,18 +283,18 @@ impl TryFrom<SystemTime> for FileTime {
 impl TryFrom<time::Timestamp> for FileTime {
     type Error = FileTimeRangeError;
 
-    /// Converts an [`time::Timestamp`] to a `FileTime`.
+    /// Converts a [`time::Timestamp`] to a `FileTime`.
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `dt` is out of range for the file time.
+    /// Returns [`Err`] if `ts` is out of range for the file time.
     ///
     /// # Examples
     ///
     /// ```
     /// use nt_time::{
     ///     FileTime,
-    ///     time::{time::Timestamp, macros::timestamp},
+    ///     time::{Timestamp, macros::timestamp},
     /// };
     ///
     /// assert_eq!(
@@ -302,7 +302,7 @@ impl TryFrom<time::Timestamp> for FileTime {
     ///     Ok(FileTime::NT_TIME_EPOCH)
     /// );
     /// assert_eq!(
-    ///     FileTime::try_from(time::Timestamp::UNIX_EPOCH),
+    ///     FileTime::try_from(Timestamp::UNIX_EPOCH),
     ///     Ok(FileTime::UNIX_EPOCH)
     /// );
     ///
@@ -321,8 +321,8 @@ impl TryFrom<time::Timestamp> for FileTime {
     /// assert!(FileTime::try_from(timestamp!(+60056-05-28 05:36:10.955_161_600)).is_err());
     /// # }
     /// ```
-    fn try_from(dt: time::Timestamp) -> Result<Self, Self::Error> {
-        Self::from_unix_time_nanos(dt.unix_timestamp_nanos())
+    fn try_from(ts: time::Timestamp) -> Result<Self, Self::Error> {
+        Self::from_unix_time_nanos(ts.as_nanoseconds())
     }
 }
 
@@ -437,7 +437,8 @@ impl From<dos_date_time::DateTime> for FileTime {
     /// ```
     fn from(dt: dos_date_time::DateTime) -> Self {
         let dt = PrimitiveDateTime::from(dt).as_utc();
-        Self::try_from(dt).unwrap()
+        let ts = time::Timestamp::from(dt);
+        Self::try_from(ts).unwrap()
     }
 }
 
