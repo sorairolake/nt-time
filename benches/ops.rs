@@ -176,6 +176,7 @@ fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
 #[bench]
 fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
     b.iter(|| {
-        FileTime::new(2_650_466_808_009_999_999) - jiff::Timestamp::from_second(-11_644_473_600).unwrap()
+        FileTime::new(2_650_466_808_009_999_999)
+            - jiff::Timestamp::from_second(-11_644_473_600).unwrap()
     });
 }
