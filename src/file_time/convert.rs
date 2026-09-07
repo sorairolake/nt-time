@@ -220,7 +220,7 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     /// assert!(DateTime::try_from(FileTime::new(159_992_928_000_000_000)).is_err());
     /// ```
     fn try_from(ft: FileTime) -> Result<Self, Self::Error> {
-        let ts = Timestamp::try_from(ft).map_err(|_| DateTimeRangeErrorKind::Overflow)?;
+        let ts = time::Timestamp::try_from(ft).map_err(|_| DateTimeRangeErrorKind::Overflow)?;
         Self::from_date_time(ts.date(), ts.time())
     }
 }
