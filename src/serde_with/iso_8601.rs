@@ -45,7 +45,7 @@
 pub mod option;
 
 use serde::{Deserializer, Serializer, de::Error as _, ser::Error as _};
-use time::{OffsetDateTime, time::Timestamp, serde::iso8601};
+use time::{OffsetDateTime, Timestamp, serde::iso8601};
 
 use crate::FileTime;
 
@@ -57,7 +57,7 @@ use crate::FileTime;
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S::Error> {
     iso8601::serialize(
-        &time::Timestamp::try_from(*ft)
+        &Timestamp::try_from(*ft)
             .map(OffsetDateTime::from)
             .map_err(S::Error::custom)?,
         serializer,
@@ -71,7 +71,7 @@ pub fn serialize<S: Serializer>(ft: &FileTime, serializer: S) -> Result<S::Ok, S
 ///
 /// [ISO 8601 representation]: https://www.iso.org/iso-8601-date-and-time-format.html
 pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<FileTime, D::Error> {
-    FileTime::try_from(iso8601::deserialize(deserializer).map(time::Timestamp::from)?)
+    FileTime::try_from(iso8601::deserialize(deserializer).map(Timestamp::from)?)
         .map_err(D::Error::custom)
 }
 
