@@ -900,8 +900,10 @@ mod tests {
     #[test]
     fn try_from_jiff_timestamp_to_file_time_before_nt_time_epoch() {
         assert_eq!(
-            FileTime::try_from(jiff::Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap())
-                .unwrap_err(),
+            FileTime::try_from(
+                jiff::Timestamp::from_nanosecond(-11_644_473_600_000_000_001).unwrap()
+            )
+            .unwrap_err(),
             FileTimeRangeErrorKind::Negative.into()
         );
     }
