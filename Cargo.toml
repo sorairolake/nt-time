@@ -32,7 +32,7 @@ dos-date-time = { version = "0.3.0", default-features = false, optional = true }
 jiff = { version = "0.2.24", default-features = false, optional = true }
 rand = { version = "0.10.1", default-features = false, optional = true }
 serde = { version = "1.0.228", default-features = false, features = ["derive"], optional = true }
-time = { version = "0.3.47", default-features = false }
+time = { version = "0.3.55", default-features = false }
 
 [dev-dependencies]
 anyhow = "1.0.102"
