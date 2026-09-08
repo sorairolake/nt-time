@@ -15,7 +15,7 @@ use std::time::SystemTime;
 use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Span;
-use time::UtcDateTime;
+use time::{SignedDuration, UtcDateTime};
 
 use super::FileTime;
 
