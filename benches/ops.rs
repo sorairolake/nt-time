@@ -14,7 +14,10 @@ use std::time::SystemTime;
 use chrono::{TimeDelta, TimeZone, Timelike, Utc};
 #[cfg(feature = "jiff")]
 use jiff::ToSpan;
-use nt_time::{FileTime, time::macros::utc_datetime};
+use nt_time::{
+    FileTime,
+    time::{SignedDuration, macros::utc_datetime},
+};
 use test::Bencher;
 
 #[bench]
