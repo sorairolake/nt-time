@@ -14,7 +14,10 @@ use std::time::SystemTime;
 use chrono::{TimeDelta, TimeZone, Timelike, Utc};
 #[cfg(feature = "jiff")]
 use jiff::ToSpan;
-use nt_time::{FileTime, time::macros::utc_datetime};
+use nt_time::{
+    FileTime,
+    time::{SignedDuration, macros::utc_datetime},
+};
 use test::Bencher;
 
 #[bench]
@@ -43,13 +46,13 @@ fn add_std_duration(b: &mut Bencher) {
 }
 
 #[bench]
-fn add_positive_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH + time::Duration::nanoseconds(100));
+fn add_positive_time_signed_duration(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH + SignedDuration::nanoseconds(100));
 }
 
 #[bench]
-fn add_negative_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX + -time::Duration::nanoseconds(100));
+fn add_negative_time_signed_duration(b: &mut Bencher) {
+    b.iter(|| FileTime::MAX + -SignedDuration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
@@ -87,13 +90,13 @@ fn sub_std_duration(b: &mut Bencher) {
 }
 
 #[bench]
-fn sub_positive_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX - time::Duration::nanoseconds(100));
+fn sub_positive_time_signed_duration(b: &mut Bencher) {
+    b.iter(|| FileTime::MAX - SignedDuration::nanoseconds(100));
 }
 
 #[bench]
-fn sub_negative_time_duration(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH - -time::Duration::nanoseconds(100));
+fn sub_negative_time_signed_duration(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH - -SignedDuration::nanoseconds(100));
 }
 
 #[cfg(feature = "chrono")]
