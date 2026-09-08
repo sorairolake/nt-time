@@ -12,7 +12,7 @@ use chrono::Utc;
 #[cfg(feature = "dos-date-time")]
 use dos_date_time::{
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
-    time::PrimitiveDateTime,
+    time::PlainDateTime,
 };
 use time::{UtcDateTime, error::ComponentRange};
 
@@ -436,7 +436,7 @@ impl From<dos_date_time::DateTime> for FileTime {
     /// );
     /// ```
     fn from(dt: dos_date_time::DateTime) -> Self {
-        let dt = PrimitiveDateTime::from(dt).as_utc();
+        let dt = PlainDateTime::from(dt).as_utc();
         Self::try_from(dt).unwrap()
     }
 }
