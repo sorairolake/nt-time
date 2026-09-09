@@ -189,8 +189,8 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     ///
     /// <div class="warning">
     ///
-    /// This function may round towards zero, truncating more precise times that a
-    /// [`dos_date_time::DateTime`] cannot store.
+    /// This function may round towards zero, truncating more precise times that
+    /// a [`dos_date_time::DateTime`] cannot store.
     ///
     /// </div>
     ///
