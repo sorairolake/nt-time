@@ -189,7 +189,7 @@ impl TryFrom<FileTime> for dos_date_time::DateTime {
     ///
     /// <div class="warning">
     ///
-    /// This method may round towards zero, truncating more precise times that a
+    /// This function may round towards zero, truncating more precise times that a
     /// [`dos_date_time::DateTime`] cannot store.
     ///
     /// </div>
@@ -417,7 +417,7 @@ impl TryFrom<jiff::Timestamp> for FileTime {
 impl From<dos_date_time::DateTime> for FileTime {
     /// Converts a [`dos_date_time::DateTime`] to a `FileTime`.
     ///
-    /// This method assumes the time zone of `dt` is the UTC time zone.
+    /// This function assumes the time zone of `dt` is the UTC time zone.
     ///
     /// # Examples
     ///
