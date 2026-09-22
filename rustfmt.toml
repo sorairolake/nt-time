@@ -12,5 +12,6 @@ hex_literal_case = "Upper"
 imports_granularity = "Crate"
 newline_style = "Unix"
 normalize_comments = true
+normalize_doc_attributes = true
 skip_macro_invocations = ["utc_datetime"]
 wrap_comments = true
