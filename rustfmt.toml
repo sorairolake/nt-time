@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 
 condense_wildcard_suffixes = true
-float_literal_trailing_zero = "Always"
 format_code_in_doc_comments = true
 format_macro_matchers = true
 format_strings = true
@@ -11,6 +10,5 @@ group_imports = "StdExternalCrate"
 hex_literal_case = "Upper"
 imports_granularity = "Crate"
 newline_style = "Unix"
-reorder_impl_items = true
 skip_macro_invocations = ["utc_datetime"]
 wrap_comments = true
