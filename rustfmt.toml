@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 
+condense_wildcard_suffixes = true
 format_code_in_doc_comments = true
 format_macro_matchers = true
 group_imports = "StdExternalCrate"
