@@ -13,7 +13,8 @@ use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in seconds and additional nanoseconds representing the same date and time as this `FileTime`.
+    /// Returns [Unix time] in seconds and additional nanoseconds representing
+    /// the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -43,7 +44,8 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in seconds representing the same date and time as this `FileTime`.
+    /// Returns [Unix time] in seconds representing the same date and time as
+    /// this `FileTime`.
     ///
     /// # Examples
     ///
@@ -63,7 +65,8 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in milliseconds which represents the same date and time as this `FileTime`.
+    /// Returns [Unix time] in milliseconds which represents the same date and
+    /// time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -92,7 +95,8 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in microseconds representing the same date and time as this `FileTime`.
+    /// Returns [Unix time] in microseconds representing the same date and time
+    /// as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -123,7 +127,8 @@ impl FileTime {
             .unwrap()
     }
 
-    /// Returns [Unix time] in nanoseconds representing the same date and time as this `FileTime`.
+    /// Returns [Unix time] in nanoseconds representing the same date and time
+    /// as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -151,9 +156,11 @@ impl FileTime {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
 
-    /// Creates a `FileTime` with the given [Unix time] in seconds and additional nanoseconds.
+    /// Creates a `FileTime` with the given [Unix time] in seconds and
+    /// additional nanoseconds.
     ///
-    /// If `nanos` is greater than 1 billion (the number of nanoseconds in a second), then it will carry over into the seconds provided.
+    /// If `nanos` is greater than 1 billion (the number of nanoseconds in a
+    /// second), then it will carry over into the seconds provided.
     ///
     /// # Errors
     ///
