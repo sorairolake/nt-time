@@ -13,13 +13,7 @@ use crate::error::{FileTimeRangeError, FileTimeRangeErrorKind};
 
 impl FileTime {
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] represented as a pair of the number of whole seconds
-    /// and the number of additional nanoseconds, like the [`timespec`]
-    /// structure in C11, which represents the same date and time as this
-    /// `FileTime`.
-    ///
-    /// The first return value represents the number of whole seconds, and the
-    /// second return value represents the number of additional nanoseconds.
+    /// Returns [Unix time] in seconds and additional nanoseconds representing the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -39,7 +33,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     #[must_use]
     pub fn to_unix_time(self) -> (i64, u32) {
         let (secs, subsec_nanos) = (
@@ -50,8 +43,7 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in seconds which represents the same date and time
-    /// as this `FileTime`.
+    /// Returns [Unix time] in seconds representing the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -71,8 +63,7 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in milliseconds which represents the same date and
-    /// time as this `FileTime`.
+    /// Returns [Unix time] in milliseconds which represents the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -101,8 +92,7 @@ impl FileTime {
     }
 
     #[expect(clippy::missing_panics_doc)]
-    /// Returns [Unix time] in microseconds which represents the same date and
-    /// time as this `FileTime`.
+    /// Returns [Unix time] in microseconds representing the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -133,8 +123,7 @@ impl FileTime {
             .unwrap()
     }
 
-    /// Returns [Unix time] in nanoseconds which represents the same date and
-    /// time as this `FileTime`.
+    /// Returns [Unix time] in nanoseconds representing the same date and time as this `FileTime`.
     ///
     /// # Examples
     ///
@@ -162,16 +151,9 @@ impl FileTime {
         (i128::from(self.to_raw()) * 100) - 11_644_473_600_000_000_000
     }
 
-    /// Creates a `FileTime` with the given [Unix time], represented as a pair
-    /// of the number of whole seconds and the number of additional nanoseconds,
-    /// like the [`timespec`] structure in C11.
+    /// Creates a `FileTime` with the given [Unix time] in seconds and additional nanoseconds.
     ///
-    /// `secs` is the number of whole seconds, and `nanos` is the number of
-    /// additional nanoseconds.
-    ///
-    /// If the number of nanoseconds is greater than 1 billion (the number of
-    /// nanoseconds in a second), then it will carry over into the seconds
-    /// provided.
+    /// If `nanos` is greater than 1 billion (the number of nanoseconds in a second), then it will carry over into the seconds provided.
     ///
     /// # Errors
     ///
@@ -212,7 +194,6 @@ impl FileTime {
     /// ```
     ///
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
-    /// [`timespec`]: https://en.cppreference.com/w/c/chrono/timespec
     pub fn from_unix_time(secs: i64, nanos: u32) -> Result<Self, FileTimeRangeError> {
         Self::from_unix_time_secs(secs)?
             .checked_add(Duration::from_nanos(nanos.into()))
