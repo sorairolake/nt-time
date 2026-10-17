@@ -286,16 +286,6 @@ impl FileTime {
     #[expect(clippy::cast_possible_truncation)]
     /// Returns the high-order and low-order parts of this `FileTime`.
     ///
-    /// The first return value represents the high-order part of this
-    /// `FileTime`, and the second return value represents the low-order part of
-    /// this `FileTime`.
-    ///
-    /// The first return value corresponds to the `dwHighDateTime` member of the
-    /// [`FILETIME`] structure of the [Win32 API], and the second return value
-    /// corresponds to the `dwLowDateTime` member of the `FILETIME` structure.
-    /// The data type of these members is [`DWORD`], a 32-bit unsigned integer
-    /// type the same as [`u32`].
-    ///
     /// # Examples
     ///
     /// ```
@@ -312,10 +302,6 @@ impl FileTime {
     /// );
     /// assert_eq!(FileTime::MAX.to_high_low(), (0xFFFF_FFFF, 0xFFFF_FFFF));
     /// ```
-    ///
-    /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-    /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
-    /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
     pub const fn to_high_low(self) -> (u32, u32) {
         let raw = self.to_raw();
@@ -326,12 +312,6 @@ impl FileTime {
 
     /// Creates a `FileTime` from [`u32`] values representing the high-order and
     /// low-order parts of the file time.
-    ///
-    /// `high` corresponds to the `dwHighDateTime` member of the [`FILETIME`]
-    /// structure of the [Win32 API], and `low` corresponds to the
-    /// `dwLowDateTime` member of the `FILETIME` structure. The data type of
-    /// these members is [`DWORD`], a 32-bit unsigned integer type the same as
-    /// [`u32`].
     ///
     /// # Examples
     ///
@@ -352,10 +332,6 @@ impl FileTime {
     ///     FileTime::MAX
     /// );
     /// ```
-    ///
-    /// [`FILETIME`]: https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-    /// [Win32 API]: https://learn.microsoft.com/en-us/windows/win32/
-    /// [`DWORD`]: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/262627d8-3418-4627-9218-4ffe110850b2
     #[must_use]
     pub const fn from_high_low(high: u32, low: u32) -> Self {
         // TODO: use `u32::widen()` when stable.
