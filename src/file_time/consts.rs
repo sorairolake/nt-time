@@ -4,6 +4,8 @@
 
 //! Constants for [`FileTime`].
 
+use core::time::Duration;
+
 use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
@@ -38,7 +40,7 @@ impl FileTime {
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
-    pub const UNIX_EPOCH: Self = Self::new(134_774 * 86400 * FILE_TIMES_PER_SEC);
+    pub const UNIX_EPOCH: Self = Self::new(Duration::from_hours(3_234_576).as_secs() * FILE_TIMES_PER_SEC);
 
     /// The largest file time accepted by the [`FileTimeToSystemTime`] function
     /// of the [Win32 API].
