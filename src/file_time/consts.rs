@@ -4,6 +4,8 @@
 
 //! Constants for [`FileTime`].
 
+use core::time::Duration;
+
 use super::{FILE_TIMES_PER_SEC, FileTime};
 
 impl FileTime {
@@ -38,7 +40,8 @@ impl FileTime {
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
-    pub const UNIX_EPOCH: Self = Self::new(134_774 * 86400 * FILE_TIMES_PER_SEC);
+    pub const UNIX_EPOCH: Self =
+        Self::new(Duration::from_hours(3_234_576).as_secs() * FILE_TIMES_PER_SEC);
 
     /// The largest file time accepted by the [`FileTimeToSystemTime`] function
     /// of the [Win32 API].
@@ -97,28 +100,32 @@ mod tests {
     #[test]
     fn nt_time_epoch() {
         assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
     }
 
     #[test]
     fn unix_epoch() {
         assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
+        assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
     }
 
-    #[cfg(feature = "large-dates")]
     #[test]
     fn signed_max() {
+        #[cfg(feature = "large-dates")]
         assert_eq!(
             FileTime::SIGNED_MAX,
             utc_datetime!(+30828-09-14 02:48:05.477_580_700)
         );
+        assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
     }
 
-    #[cfg(feature = "large-dates")]
     #[test]
     fn max() {
+        #[cfg(feature = "large-dates")]
         assert_eq!(
             FileTime::MAX,
             utc_datetime!(+60056-05-28 05:36:10.955_161_500)
         );
+        assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     }
 }
