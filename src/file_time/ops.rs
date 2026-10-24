@@ -1398,7 +1398,7 @@ mod tests {
         );
         assert_eq!(
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-                - FileTime::new(i64::MAX as u64 - 1),
+                - FileTime::new(i64::MAX.try_into().unwrap() - 1),
             Duration::from_nanos(100)
         );
         assert_eq!(
@@ -1412,7 +1412,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn sub_file_time_from_system_time_with_overflow() {
-        let _ = FileTime::new(i64::MAX as u64 - 1)
+        let _ = FileTime::new(i64::MAX.try_into().unwrap() - 1)
             - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
     }
 

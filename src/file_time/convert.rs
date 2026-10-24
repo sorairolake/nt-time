@@ -465,7 +465,7 @@ mod tests {
     fn from_file_time_to_u64() {
         assert_eq!(u64::from(FileTime::NT_TIME_EPOCH), u64::MIN);
         assert_eq!(u64::from(FileTime::UNIX_EPOCH), 116_444_736_000_000_000);
-        assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX as u64);
+        assert_eq!(u64::from(FileTime::SIGNED_MAX), i64::MAX.try_into().unwrap());
         assert_eq!(u64::from(FileTime::MAX), u64::MAX);
     }
 
@@ -684,7 +684,7 @@ mod tests {
             FileTime::from(116_444_736_000_000_000),
             FileTime::UNIX_EPOCH
         );
-        assert_eq!(FileTime::from(i64::MAX as u64), FileTime::SIGNED_MAX);
+        assert_eq!(FileTime::from(i64::MAX.try_into().unwrap()), FileTime::SIGNED_MAX);
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
