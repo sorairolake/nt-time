@@ -124,7 +124,7 @@ impl FileTime {
     ///     FileTime::SIGNED_MAX.to_be_bytes(),
     ///     [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     /// );
-    /// assert_eq!(FileTime::MAX.to_be_bytes(), [0xFF; 8]);
+    /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
     pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -148,7 +148,7 @@ impl FileTime {
     ///     FileTime::SIGNED_MAX.to_le_bytes(),
     ///     [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
     /// );
-    /// assert_eq!(FileTime::MAX.to_le_bytes(), [0xFF; 8]);
+    /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
     pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -188,7 +188,7 @@ impl FileTime {
     ///         [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
     ///     }
     /// );
-    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [0xFF; 8]);
+    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
     pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
@@ -212,7 +212,7 @@ impl FileTime {
     ///     FileTime::from_be_bytes([0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_be_bytes([0xFF; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_be_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_be_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -236,7 +236,7 @@ impl FileTime {
     ///     FileTime::from_le_bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_le_bytes([0xFF; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_le_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_le_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -276,7 +276,7 @@ impl FileTime {
     ///     }),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(FileTime::from_ne_bytes([0xFF; 8]), FileTime::MAX);
+    /// assert_eq!(FileTime::from_ne_bytes([u8::MAX; 8]), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_ne_bytes(bytes: [u8; mem::size_of::<Self>()]) -> Self {
@@ -298,9 +298,9 @@ impl FileTime {
     /// );
     /// assert_eq!(
     ///     FileTime::SIGNED_MAX.to_high_low(),
-    ///     (0x7FFF_FFFF, 0xFFFF_FFFF)
+    ///     (i32::MAX as u32, u32::MAX)
     /// );
-    /// assert_eq!(FileTime::MAX.to_high_low(), (0xFFFF_FFFF, 0xFFFF_FFFF));
+    /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     /// ```
     #[must_use]
     pub const fn to_high_low(self) -> (u32, u32) {
@@ -324,11 +324,11 @@ impl FileTime {
     ///     FileTime::UNIX_EPOCH
     /// );
     /// assert_eq!(
-    ///     FileTime::from_high_low(0x7FFF_FFFF, 0xFFFF_FFFF),
+    ///     FileTime::from_high_low(i32::MAX as u32, u32::MAX),
     ///     FileTime::SIGNED_MAX
     /// );
     /// assert_eq!(
-    ///     FileTime::from_high_low(0xFFFF_FFFF, 0xFFFF_FFFF),
+    ///     FileTime::from_high_low(u32::MAX, u32::MAX),
     ///     FileTime::MAX
     /// );
     /// ```
