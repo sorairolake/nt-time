@@ -635,7 +635,7 @@ mod tests {
         );
         assert_eq!(
             FileTime::SIGNED_MAX.to_high_low(),
-            (i32::MAX as u32, u32::MAX)
+            (i32::MAX.try_into().unwrap(), u32::MAX)
         );
         assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
     }
@@ -644,7 +644,7 @@ mod tests {
     #[proptest]
     fn to_high_low_roundtrip(ft: FileTime) {
         let raw = ft.to_raw();
-        prop_assert_eq!(ft.to_high_low(), ((raw >> u32::BITS) as u32, raw as u32));
+        prop_assert_eq!(ft.to_high_low(), ((raw >> u32::BITS).try_into().unwrap(), raw as u32));
     }
 
     #[test]
@@ -663,7 +663,7 @@ mod tests {
             FileTime::UNIX_EPOCH
         );
         assert_eq!(
-            FileTime::from_high_low(i32::MAX as u32, u32::MAX),
+            FileTime::from_high_low(i32::MAX.try_into().unwrap(), u32::MAX),
             FileTime::SIGNED_MAX
         );
         assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
