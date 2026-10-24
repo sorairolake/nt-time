@@ -327,10 +327,7 @@ impl FileTime {
     ///     FileTime::from_high_low(i32::MAX as u32, u32::MAX),
     ///     FileTime::SIGNED_MAX
     /// );
-    /// assert_eq!(
-    ///     FileTime::from_high_low(u32::MAX, u32::MAX),
-    ///     FileTime::MAX
-    /// );
+    /// assert_eq!(FileTime::from_high_low(u32::MAX, u32::MAX), FileTime::MAX);
     /// ```
     #[must_use]
     pub const fn from_high_low(high: u32, low: u32) -> Self {
