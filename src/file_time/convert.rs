@@ -684,7 +684,7 @@ mod tests {
             FileTime::from(116_444_736_000_000_000),
             FileTime::UNIX_EPOCH
         );
-        assert_eq!(FileTime::from(i64::MAX.try_into().unwrap()), FileTime::SIGNED_MAX);
+        assert_eq!(FileTime::from(u64::try_from(i64::MAX).unwrap()), FileTime::SIGNED_MAX);
         assert_eq!(FileTime::from(u64::MAX), FileTime::MAX);
     }
 
