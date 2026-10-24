@@ -115,7 +115,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0x00; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_be_bytes(),
     ///     [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
@@ -139,7 +139,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0x00; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_le_bytes(),
     ///     [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
@@ -171,7 +171,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0x00; 8]);
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0; 8]);
     /// assert_eq!(
     ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
     ///     if cfg!(target_endian = "big") {
@@ -203,7 +203,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::from_be_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::from_be_bytes([0; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_be_bytes([0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]),
     ///     FileTime::UNIX_EPOCH
@@ -227,7 +227,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::from_le_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::from_le_bytes([0; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_le_bytes([0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]),
     ///     FileTime::UNIX_EPOCH
@@ -259,7 +259,7 @@ impl FileTime {
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::from_ne_bytes([0x00; 8]), FileTime::NT_TIME_EPOCH);
+    /// assert_eq!(FileTime::from_ne_bytes([0; 8]), FileTime::NT_TIME_EPOCH);
     /// assert_eq!(
     ///     FileTime::from_ne_bytes(if cfg!(target_endian = "big") {
     ///         [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
