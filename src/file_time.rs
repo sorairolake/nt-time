@@ -433,7 +433,7 @@ mod tests {
     fn to_raw() {
         assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
         assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
-        assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX.try_into().unwrap());
+        assert_eq!(FileTime::SIGNED_MAX.to_raw(), u64::try_from(i64::MAX).unwrap());
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     }
 
