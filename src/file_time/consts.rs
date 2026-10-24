@@ -116,7 +116,10 @@ mod tests {
             FileTime::SIGNED_MAX,
             utc_datetime!(+30828-09-14 02:48:05.477_580_700)
         );
-        assert_eq!(FileTime::SIGNED_MAX.to_raw(), i64::MAX as u64);
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_raw(),
+            u64::try_from(i64::MAX).unwrap()
+        );
     }
 
     #[test]

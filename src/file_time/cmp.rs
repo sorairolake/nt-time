@@ -167,7 +167,7 @@ mod tests {
         );
         assert_ne!(
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700)),
-            FileTime::new(i64::MAX as u64 - 1)
+            FileTime::new(u64::try_from(i64::MAX).unwrap() - 1)
         );
         assert_eq!(SystemTime::UNIX_EPOCH, FileTime::UNIX_EPOCH);
         assert_ne!(SystemTime::UNIX_EPOCH, FileTime::NT_TIME_EPOCH);
@@ -181,7 +181,7 @@ mod tests {
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_ne!(
-            FileTime::new(i64::MAX as u64 - 1),
+            FileTime::new(u64::try_from(i64::MAX).unwrap() - 1),
             (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
         );
         assert_eq!(FileTime::UNIX_EPOCH, SystemTime::UNIX_EPOCH);
