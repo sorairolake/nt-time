@@ -25,6 +25,9 @@ project adheres to https://semver.org/[Semantic Versioning].
 === Changed
 
 * Bump MSRV to 1.94.0 ({pull-request-url}/461[#461])
+* Bump `jiff` to v1.0.0 ({pull-request-url}/579[#579])
+* Change the output type of `Sub` between `FileTime` and `jiff::Timestamp`
+  from `jiff::Span` to `jiff::SignedDuration` ({pull-request-url}/579[#579])
 
 == {compare-url}/v0.14.0\...v0.15.0[0.15.0] - 2026-02-28
 
