@@ -99,13 +99,19 @@ mod tests {
 
     #[test]
     fn nt_time_epoch() {
-        assert_eq!(FileTime::NT_TIME_EPOCH, utc_datetime!(1601-01-01 00:00:00));
+        assert_eq!(
+            FileTime::NT_TIME_EPOCH,
+            FileTime::try_from(utc_datetime!(1601-01-01 00:00:00)).unwrap()
+        );
         assert_eq!(FileTime::NT_TIME_EPOCH.to_raw(), u64::MIN);
     }
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(FileTime::UNIX_EPOCH, UtcDateTime::UNIX_EPOCH);
+        assert_eq!(
+            FileTime::UNIX_EPOCH,
+            FileTime::try_from(UtcDateTime::UNIX_EPOCH).unwrap()
+        );
         assert_eq!(FileTime::UNIX_EPOCH.to_raw(), 116_444_736_000_000_000);
     }
 
@@ -114,7 +120,7 @@ mod tests {
         #[cfg(feature = "large-dates")]
         assert_eq!(
             FileTime::SIGNED_MAX,
-            utc_datetime!(+30828-09-14 02:48:05.477_580_700)
+            FileTime::try_from(utc_datetime!(+30828-09-14 02:48:05.477_580_700)).unwrap()
         );
         assert_eq!(
             FileTime::SIGNED_MAX.to_raw(),
@@ -127,7 +133,7 @@ mod tests {
         #[cfg(feature = "large-dates")]
         assert_eq!(
             FileTime::MAX,
-            utc_datetime!(+60056-05-28 05:36:10.955_161_500)
+            FileTime::try_from(utc_datetime!(+60056-05-28 05:36:10.955_161_500)).unwrap()
         );
         assert_eq!(FileTime::MAX.to_raw(), u64::MAX);
     }
