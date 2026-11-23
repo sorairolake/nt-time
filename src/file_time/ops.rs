@@ -634,7 +634,10 @@ mod tests {
         );
 
         assert_eq!(FileTime::MAX + time::SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX + time::SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX + time::SignedDuration::NANOSECOND,
+            FileTime::MAX
+        );
         assert_eq!(
             FileTime::MAX + time::SignedDuration::nanoseconds(99),
             FileTime::MAX
@@ -650,7 +653,10 @@ mod tests {
     #[test]
     fn add_negative_time_signed_duration() {
         assert_eq!(FileTime::MAX + -time::SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX + -time::SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX + -time::SignedDuration::NANOSECOND,
+            FileTime::MAX
+        );
         assert_eq!(
             FileTime::MAX + -time::SignedDuration::nanoseconds(99),
             FileTime::MAX
@@ -1197,7 +1203,10 @@ mod tests {
     #[test]
     fn sub_positive_time_signed_duration() {
         assert_eq!(FileTime::MAX - time::SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX - time::SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX - time::SignedDuration::NANOSECOND,
+            FileTime::MAX
+        );
         assert_eq!(
             FileTime::MAX - time::SignedDuration::nanoseconds(99),
             FileTime::MAX
@@ -1247,7 +1256,10 @@ mod tests {
         );
 
         assert_eq!(FileTime::MAX - -time::SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX - -time::SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(
+            FileTime::MAX - -time::SignedDuration::NANOSECOND,
+            FileTime::MAX
+        );
         assert_eq!(
             FileTime::MAX - -time::SignedDuration::nanoseconds(99),
             FileTime::MAX
@@ -1462,7 +1474,8 @@ mod tests {
         );
         assert_eq!(
             utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                - (FileTime::new(2_650_467_743_999_999_999) - time::SignedDuration::nanoseconds(100)),
+                - (FileTime::new(2_650_467_743_999_999_999)
+                    - time::SignedDuration::nanoseconds(100)),
             time::SignedDuration::nanoseconds(100)
         );
         assert_eq!(
@@ -1480,7 +1493,8 @@ mod tests {
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900) - time::SignedDuration::nanoseconds(1)),
+                - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                    - time::SignedDuration::nanoseconds(1)),
             time::SignedDuration::nanoseconds(1)
         );
         assert_eq!(
