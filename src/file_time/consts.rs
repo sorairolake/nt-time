@@ -20,7 +20,10 @@ impl FileTime {
     /// ```
     /// use nt_time::{FileTime, time::macros::utc_datetime};
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH, FileTime::try_from(utc_datetime!(1601-01-01 00:00:00)).unwrap());
+    /// assert_eq!(
+    ///     FileTime::NT_TIME_EPOCH,
+    ///     FileTime::try_from(utc_datetime!(1601-01-01 00:00:00)).unwrap()
+    /// );
     /// ```
     ///
     /// [NT time epoch]: https://en.wikipedia.org/wiki/Epoch_(computing)
@@ -36,7 +39,10 @@ impl FileTime {
     /// ```
     /// use nt_time::{FileTime, time::macros::utc_datetime};
     ///
-    /// assert_eq!(FileTime::UNIX_EPOCH, FileTime::try_from(utc_datetime!(1970-01-01 00:00:00)).unwrap());
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH,
+    ///     FileTime::try_from(utc_datetime!(1970-01-01 00:00:00)).unwrap()
+    /// );
     /// ```
     ///
     /// [Unix epoch]: https://en.wikipedia.org/wiki/Unix_time
