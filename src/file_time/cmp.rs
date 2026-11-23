@@ -4,28 +4,11 @@
 
 //! Utilities for comparing and ordering values.
 
-use core::cmp::Ordering;
-#[cfg(feature = "std")]
-use std::time::SystemTime;
-
-#[cfg(feature = "chrono")]
-use chrono::{DateTime, Utc};
-use time::UtcDateTime;
-
-use super::FileTime;
-
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "std")]
-    use std::time::Duration;
+    use core::cmp::Ordering;
 
-    #[cfg(feature = "chrono")]
-    use chrono::{TimeZone, Timelike};
-    #[cfg(feature = "jiff")]
-    use jiff::ToSpan;
-    use time::macros::utc_datetime;
-
-    use super::*;
+    use super::super::FileTime;
 
     #[test]
     fn equality() {
