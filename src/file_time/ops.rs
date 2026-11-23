@@ -164,10 +164,10 @@ impl Add<Duration> for FileTime {
     }
 }
 
-impl Add<SignedDuration> for FileTime {
+impl Add<time::SignedDuration> for FileTime {
     type Output = Self;
 
-    fn add(self, rhs: SignedDuration) -> Self::Output {
+    fn add(self, rhs: time::SignedDuration) -> Self::Output {
         if rhs.is_positive() {
             self + rhs.unsigned_abs()
         } else {
@@ -208,8 +208,8 @@ impl AddAssign<Duration> for FileTime {
     }
 }
 
-impl AddAssign<SignedDuration> for FileTime {
-    fn add_assign(&mut self, rhs: SignedDuration) {
+impl AddAssign<time::SignedDuration> for FileTime {
+    fn add_assign(&mut self, rhs: time::SignedDuration) {
         *self = *self + rhs;
     }
 }
@@ -245,10 +245,10 @@ impl Sub<Duration> for FileTime {
     }
 }
 
-impl Sub<SignedDuration> for FileTime {
+impl Sub<time::SignedDuration> for FileTime {
     type Output = Self;
 
-    fn sub(self, rhs: SignedDuration) -> Self::Output {
+    fn sub(self, rhs: time::SignedDuration) -> Self::Output {
         if rhs.is_positive() {
             self - rhs.unsigned_abs()
         } else {
@@ -302,7 +302,7 @@ impl Sub<SystemTime> for FileTime {
 }
 
 impl Sub<FileTime> for UtcDateTime {
-    type Output = SignedDuration;
+    type Output = time::SignedDuration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
         self - Self::try_from(rhs).unwrap()
@@ -310,7 +310,7 @@ impl Sub<FileTime> for UtcDateTime {
 }
 
 impl Sub<UtcDateTime> for FileTime {
-    type Output = SignedDuration;
+    type Output = time::SignedDuration;
 
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
         UtcDateTime::try_from(self).unwrap() - rhs
@@ -359,8 +359,8 @@ impl SubAssign<Duration> for FileTime {
     }
 }
 
-impl SubAssign<SignedDuration> for FileTime {
-    fn sub_assign(&mut self, rhs: SignedDuration) {
+impl SubAssign<time::SignedDuration> for FileTime {
+    fn sub_assign(&mut self, rhs: time::SignedDuration) {
         *self = *self - rhs;
     }
 }
@@ -617,26 +617,26 @@ mod tests {
     #[test]
     fn add_positive_time_signed_duration() {
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + SignedDuration::ZERO,
+            FileTime::NT_TIME_EPOCH + time::SignedDuration::ZERO,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + SignedDuration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH + time::SignedDuration::NANOSECOND,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + SignedDuration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH + time::SignedDuration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + SignedDuration::nanoseconds(100),
+            FileTime::NT_TIME_EPOCH + time::SignedDuration::nanoseconds(100),
             FileTime::new(1)
         );
 
-        assert_eq!(FileTime::MAX + SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX + SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX + time::SignedDuration::ZERO, FileTime::MAX);
+        assert_eq!(FileTime::MAX + time::SignedDuration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX + SignedDuration::nanoseconds(99),
+            FileTime::MAX + time::SignedDuration::nanoseconds(99),
             FileTime::MAX
         );
     }
@@ -644,32 +644,32 @@ mod tests {
     #[test]
     #[should_panic]
     fn add_positive_time_signed_duration_with_overflow() {
-        let _ = FileTime::MAX + SignedDuration::nanoseconds(100);
+        let _ = FileTime::MAX + time::SignedDuration::nanoseconds(100);
     }
 
     #[test]
     fn add_negative_time_signed_duration() {
-        assert_eq!(FileTime::MAX + -SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX + -SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX + -time::SignedDuration::ZERO, FileTime::MAX);
+        assert_eq!(FileTime::MAX + -time::SignedDuration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX + -SignedDuration::nanoseconds(99),
+            FileTime::MAX + -time::SignedDuration::nanoseconds(99),
             FileTime::MAX
         );
         assert_eq!(
-            FileTime::MAX + -SignedDuration::nanoseconds(100),
+            FileTime::MAX + -time::SignedDuration::nanoseconds(100),
             FileTime::new(u64::MAX - 1)
         );
 
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + -SignedDuration::ZERO,
+            FileTime::NT_TIME_EPOCH + -time::SignedDuration::ZERO,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + -SignedDuration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH + -time::SignedDuration::NANOSECOND,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH + -SignedDuration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH + -time::SignedDuration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -677,7 +677,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn add_negative_time_signed_duration_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH + -SignedDuration::nanoseconds(100);
+        let _ = FileTime::NT_TIME_EPOCH + -time::SignedDuration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -859,38 +859,38 @@ mod tests {
     fn add_assign_positive_time_signed_duration() {
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += SignedDuration::ZERO;
+            ft += time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += SignedDuration::NANOSECOND;
+            ft += time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += SignedDuration::nanoseconds(99);
+            ft += time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += SignedDuration::nanoseconds(100);
+            ft += time::SignedDuration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(1));
         }
 
         {
             let mut ft = FileTime::MAX;
-            ft += SignedDuration::ZERO;
+            ft += time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += SignedDuration::NANOSECOND;
+            ft += time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += SignedDuration::nanoseconds(99);
+            ft += time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
     }
@@ -899,45 +899,45 @@ mod tests {
     #[should_panic]
     fn add_assign_positive_time_signed_duration_with_overflow() {
         let mut ft = FileTime::MAX;
-        ft += SignedDuration::nanoseconds(100);
+        ft += time::SignedDuration::nanoseconds(100);
     }
 
     #[test]
     fn add_assign_negative_time_signed_duration() {
         {
             let mut ft = FileTime::MAX;
-            ft += -SignedDuration::ZERO;
+            ft += -time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += -SignedDuration::NANOSECOND;
+            ft += -time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += -SignedDuration::nanoseconds(99);
+            ft += -time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft += -SignedDuration::nanoseconds(100);
+            ft += -time::SignedDuration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -SignedDuration::ZERO;
+            ft += -time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -SignedDuration::NANOSECOND;
+            ft += -time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -SignedDuration::nanoseconds(99);
+            ft += -time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
@@ -946,7 +946,7 @@ mod tests {
     #[should_panic]
     fn add_assign_negative_time_signed_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
-        ft += -SignedDuration::nanoseconds(100);
+        ft += -time::SignedDuration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1196,27 +1196,27 @@ mod tests {
 
     #[test]
     fn sub_positive_time_signed_duration() {
-        assert_eq!(FileTime::MAX - SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX - SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX - time::SignedDuration::ZERO, FileTime::MAX);
+        assert_eq!(FileTime::MAX - time::SignedDuration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX - SignedDuration::nanoseconds(99),
+            FileTime::MAX - time::SignedDuration::nanoseconds(99),
             FileTime::MAX
         );
         assert_eq!(
-            FileTime::MAX - SignedDuration::nanoseconds(100),
+            FileTime::MAX - time::SignedDuration::nanoseconds(100),
             FileTime::new(u64::MAX - 1)
         );
 
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - SignedDuration::ZERO,
+            FileTime::NT_TIME_EPOCH - time::SignedDuration::ZERO,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - SignedDuration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH - time::SignedDuration::NANOSECOND,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - SignedDuration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH - time::SignedDuration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
     }
@@ -1224,32 +1224,32 @@ mod tests {
     #[test]
     #[should_panic]
     fn sub_positive_time_signed_duration_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH - SignedDuration::nanoseconds(100);
+        let _ = FileTime::NT_TIME_EPOCH - time::SignedDuration::nanoseconds(100);
     }
 
     #[test]
     fn sub_negative_time_signed_duration() {
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - -SignedDuration::ZERO,
+            FileTime::NT_TIME_EPOCH - -time::SignedDuration::ZERO,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - -SignedDuration::NANOSECOND,
+            FileTime::NT_TIME_EPOCH - -time::SignedDuration::NANOSECOND,
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - -SignedDuration::nanoseconds(99),
+            FileTime::NT_TIME_EPOCH - -time::SignedDuration::nanoseconds(99),
             FileTime::NT_TIME_EPOCH
         );
         assert_eq!(
-            FileTime::NT_TIME_EPOCH - -SignedDuration::nanoseconds(100),
+            FileTime::NT_TIME_EPOCH - -time::SignedDuration::nanoseconds(100),
             FileTime::new(1)
         );
 
-        assert_eq!(FileTime::MAX - -SignedDuration::ZERO, FileTime::MAX);
-        assert_eq!(FileTime::MAX - -SignedDuration::NANOSECOND, FileTime::MAX);
+        assert_eq!(FileTime::MAX - -time::SignedDuration::ZERO, FileTime::MAX);
+        assert_eq!(FileTime::MAX - -time::SignedDuration::NANOSECOND, FileTime::MAX);
         assert_eq!(
-            FileTime::MAX - -SignedDuration::nanoseconds(99),
+            FileTime::MAX - -time::SignedDuration::nanoseconds(99),
             FileTime::MAX
         );
     }
@@ -1257,7 +1257,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn sub_negative_time_signed_duration_with_overflow() {
-        let _ = FileTime::MAX - -SignedDuration::nanoseconds(100);
+        let _ = FileTime::MAX - -time::SignedDuration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
@@ -1458,16 +1458,16 @@ mod tests {
         assert_eq!(
             utc_datetime!(9999-12-31 23:59:59.999_999_900)
                 - FileTime::new(2_650_467_743_999_999_999),
-            SignedDuration::ZERO
+            time::SignedDuration::ZERO
         );
         assert_eq!(
             utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                - (FileTime::new(2_650_467_743_999_999_999) - SignedDuration::nanoseconds(100)),
-            SignedDuration::nanoseconds(100)
+                - (FileTime::new(2_650_467_743_999_999_999) - time::SignedDuration::nanoseconds(100)),
+            time::SignedDuration::nanoseconds(100)
         );
         assert_eq!(
             utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH,
-            SignedDuration::new(265_046_774_399, 999_999_900)
+            time::SignedDuration::new(265_046_774_399, 999_999_900)
         );
     }
 
@@ -1476,28 +1476,28 @@ mod tests {
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
                 - utc_datetime!(9999-12-31 23:59:59.999_999_900),
-            SignedDuration::ZERO
+            time::SignedDuration::ZERO
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900) - SignedDuration::nanoseconds(1)),
-            SignedDuration::nanoseconds(1)
-        );
-        assert_eq!(
-            FileTime::new(2_650_467_743_999_999_999)
-                - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                    - SignedDuration::nanoseconds(99)),
-            SignedDuration::nanoseconds(99)
+                - (utc_datetime!(9999-12-31 23:59:59.999_999_900) - time::SignedDuration::nanoseconds(1)),
+            time::SignedDuration::nanoseconds(1)
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999)
                 - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                    - SignedDuration::nanoseconds(100)),
-            SignedDuration::nanoseconds(100)
+                    - time::SignedDuration::nanoseconds(99)),
+            time::SignedDuration::nanoseconds(99)
+        );
+        assert_eq!(
+            FileTime::new(2_650_467_743_999_999_999)
+                - (utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                    - time::SignedDuration::nanoseconds(100)),
+            time::SignedDuration::nanoseconds(100)
         );
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00),
-            SignedDuration::new(265_046_774_399, 999_999_900)
+            time::SignedDuration::new(265_046_774_399, 999_999_900)
         );
     }
 
@@ -1676,38 +1676,38 @@ mod tests {
     fn sub_assign_positive_time_signed_duration() {
         {
             let mut ft = FileTime::MAX;
-            ft -= SignedDuration::ZERO;
+            ft -= time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= SignedDuration::NANOSECOND;
+            ft -= time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= SignedDuration::nanoseconds(99);
+            ft -= time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= SignedDuration::nanoseconds(100);
+            ft -= time::SignedDuration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(u64::MAX - 1));
         }
 
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= SignedDuration::ZERO;
+            ft -= time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= SignedDuration::NANOSECOND;
+            ft -= time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= SignedDuration::nanoseconds(99);
+            ft -= time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
     }
@@ -1716,45 +1716,45 @@ mod tests {
     #[should_panic]
     fn sub_assign_positive_time_signed_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
-        ft -= SignedDuration::nanoseconds(100);
+        ft -= time::SignedDuration::nanoseconds(100);
     }
 
     #[test]
     fn sub_assign_negative_time_signed_duration() {
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -SignedDuration::ZERO;
+            ft -= -time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -SignedDuration::NANOSECOND;
+            ft -= -time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -SignedDuration::nanoseconds(99);
+            ft -= -time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::NT_TIME_EPOCH);
         }
         {
             let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -SignedDuration::nanoseconds(100);
+            ft -= -time::SignedDuration::nanoseconds(100);
             assert_eq!(ft, FileTime::new(1));
         }
 
         {
             let mut ft = FileTime::MAX;
-            ft -= -SignedDuration::ZERO;
+            ft -= -time::SignedDuration::ZERO;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= -SignedDuration::NANOSECOND;
+            ft -= -time::SignedDuration::NANOSECOND;
             assert_eq!(ft, FileTime::MAX);
         }
         {
             let mut ft = FileTime::MAX;
-            ft -= -SignedDuration::nanoseconds(99);
+            ft -= -time::SignedDuration::nanoseconds(99);
             assert_eq!(ft, FileTime::MAX);
         }
     }
@@ -1763,7 +1763,7 @@ mod tests {
     #[should_panic]
     fn sub_assign_negative_time_signed_duration_with_overflow() {
         let mut ft = FileTime::MAX;
-        ft -= -SignedDuration::nanoseconds(100);
+        ft -= -time::SignedDuration::nanoseconds(100);
     }
 
     #[cfg(feature = "chrono")]
