@@ -6,15 +6,7 @@
 
 extern crate test;
 
-#[cfg(feature = "std")]
-use std::time::SystemTime;
-
-#[cfg(feature = "chrono")]
-use chrono::{DateTime, TimeZone, Utc};
-use nt_time::{
-    FileTime,
-    time::{UtcDateTime, macros::utc_datetime},
-};
+use nt_time::FileTime;
 use test::Bencher;
 
 #[bench]
@@ -25,96 +17,4 @@ fn equality(b: &mut Bencher) {
 #[bench]
 fn order(b: &mut Bencher) {
     b.iter(|| FileTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "std")]
-#[bench]
-fn equality_system_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| SystemTime::UNIX_EPOCH == FileTime::UNIX_EPOCH);
-}
-
-#[cfg(feature = "std")]
-#[bench]
-fn equality_file_time_and_system_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH == SystemTime::UNIX_EPOCH);
-}
-
-#[bench]
-fn equality_utc_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| utc_datetime!(1601-01-01 00:00:00) == FileTime::NT_TIME_EPOCH);
-}
-
-#[bench]
-fn equality_file_time_and_utc_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == utc_datetime!(1601-01-01 00:00:00));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn equality_chrono_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap() == FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn equality_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
-}
-
-#[cfg(feature = "jiff")]
-#[bench]
-fn equality_jiff_timestamp_and_file_time(b: &mut Bencher) {
-    b.iter(|| jiff::Timestamp::from_second(-11_644_473_600).unwrap() == FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "jiff")]
-#[bench]
-fn equality_file_time_and_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH == jiff::Timestamp::from_second(-11_644_473_600).unwrap());
-}
-
-#[cfg(feature = "std")]
-#[bench]
-fn order_system_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| SystemTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "std")]
-#[bench]
-fn order_file_time_and_system_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > (SystemTime::UNIX_EPOCH - FileTime::UNIX_EPOCH.to_duration()));
-}
-
-#[bench]
-fn order_utc_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| UtcDateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
-}
-
-#[bench]
-fn order_file_time_and_utc_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > utc_datetime!(1601-01-01 00:00:00));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn order_chrono_date_time_and_file_time(b: &mut Bencher) {
-    b.iter(|| DateTime::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn order_file_time_and_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
-}
-
-#[cfg(feature = "jiff")]
-#[bench]
-fn order_jiff_timestamp_and_file_time(b: &mut Bencher) {
-    b.iter(|| jiff::Timestamp::UNIX_EPOCH > FileTime::NT_TIME_EPOCH);
-}
-
-#[cfg(feature = "jiff")]
-#[bench]
-fn order_file_time_and_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| FileTime::UNIX_EPOCH > jiff::Timestamp::from_second(-11_644_473_600).unwrap());
 }

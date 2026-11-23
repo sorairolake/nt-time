@@ -26,6 +26,11 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Bump MSRV to 1.94.0 ({pull-request-url}/461[#461])
 
+=== Removed
+
+* Remove `PartialEq` for foreign types ({pull-request-url}/583[#583])
+* Remove `PartialOrd` for foreign types ({pull-request-url}/583[#583])
+
 == {compare-url}/v0.14.0\...v0.15.0[0.15.0] - 2026-02-28
 
 === Changed
