@@ -35,6 +35,9 @@ cargo add nt-time
 
 Enables the [`chrono`] crate.
 
+> [!IMPORTANT]
+> The `chrono` crate is unmaintained. See [RUSTSEC-2026-0543] for details.
+
 #### `dos-date-time`
 
 Enables the [`dos-date-time`] crate. This is enabled by default.
@@ -122,6 +125,7 @@ licensing information.
 [7z]: https://www.7-zip.org/7z.html
 [`time`]: https://crates.io/crates/time
 [`chrono`]: https://crates.io/crates/chrono
+[RUSTSEC-2026-0543]: https://rustsec.org/advisories/RUSTSEC-2026-0543.html
 [`dos-date-time`]: https://crates.io/crates/dos-date-time
 [`jiff`]: https://crates.io/crates/jiff
 [`rand`]: https://crates.io/crates/rand
