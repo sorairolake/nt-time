@@ -128,7 +128,7 @@ fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| (jiff::Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
+    b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
@@ -136,6 +136,6 @@ fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
 fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
     b.iter(|| {
         FileTime::new(2_650_466_808_009_999_999)
-            - jiff::Timestamp::from_second(-11_644_473_600).unwrap()
+            - Timestamp::from_second(-11_644_473_600).unwrap()
     });
 }
