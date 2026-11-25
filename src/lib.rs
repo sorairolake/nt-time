@@ -130,8 +130,6 @@ mod file_time;
 #[cfg(feature = "serde")]
 pub mod serde_with;
 
-#[cfg(feature = "chrono")]
-pub use chrono;
 #[cfg(feature = "dos-date-time")]
 pub use dos_date_time;
 #[cfg(feature = "jiff")]
