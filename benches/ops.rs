@@ -11,7 +11,7 @@ use core::time::Duration;
 use std::time::SystemTime;
 
 #[cfg(feature = "jiff")]
-use jiff::ToSpan;
+use jiff::{Timestamp, ToSpan};
 use nt_time::{
     FileTime,
     time::{SignedDuration, macros::utc_datetime},
