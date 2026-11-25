@@ -9,6 +9,7 @@ use std::time::SystemTime;
 
 #[cfg(feature = "dos-date-time")]
 use dos_date_time::{
+    DateTime,
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
     time::PlainDateTime,
 };
@@ -155,21 +156,21 @@ impl TryFrom<FileTime> for jiff::Timestamp {
 }
 
 #[cfg(feature = "dos-date-time")]
-impl TryFrom<FileTime> for dos_date_time::DateTime {
+impl TryFrom<FileTime> for DateTime {
     type Error = DateTimeRangeError;
 
-    /// Converts a `FileTime` to a [`dos_date_time::DateTime`].
+    /// Converts a `FileTime` to a [`DateTime`].
     ///
     /// <div class="warning">
     ///
     /// This function may round towards zero, truncating more precise times that
-    /// a [`dos_date_time::DateTime`] cannot store.
+    /// a [`DateTime`] cannot store.
     ///
     /// </div>
     ///
     /// # Errors
     ///
-    /// Returns [`Err`] if `ft` is out of range for [`dos_date_time::DateTime`].
+    /// Returns [`Err`] if `ft` is out of range for [`DateTime`].
     ///
     /// # Examples
     ///
@@ -336,8 +337,8 @@ impl TryFrom<jiff::Timestamp> for FileTime {
 
 #[cfg(feature = "dos-date-time")]
 #[expect(clippy::fallible_impl_from)]
-impl From<dos_date_time::DateTime> for FileTime {
-    /// Converts a [`dos_date_time::DateTime`] to a `FileTime`.
+impl From<DateTime> for FileTime {
+    /// Converts a [`DateTime`] to a `FileTime`.
     ///
     /// This function assumes the time zone of `dt` is the UTC time zone.
     ///
@@ -357,7 +358,7 @@ impl From<dos_date_time::DateTime> for FileTime {
     ///     FileTime::new(159_992_927_980_000_000)
     /// );
     /// ```
-    fn from(dt: dos_date_time::DateTime) -> Self {
+    fn from(dt: DateTime) -> Self {
         let dt = PlainDateTime::from(dt).as_utc();
         Self::try_from(dt).unwrap()
     }
@@ -497,12 +498,12 @@ mod tests {
     fn try_from_file_time_to_dos_date_time_before_dos_date_time_epoch() {
         // `1979-12-31 23:59:58 UTC`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(119_600_063_980_000_000)).unwrap_err(),
+            DateTime::try_from(FileTime::new(119_600_063_980_000_000)).unwrap_err(),
             DateTimeRangeErrorKind::Negative.into()
         );
         // `1979-12-31 23:59:59 UTC`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(119_600_063_990_000_000)).unwrap_err(),
+            DateTime::try_from(FileTime::new(119_600_063_990_000_000)).unwrap_err(),
             DateTimeRangeErrorKind::Negative.into()
         );
     }
@@ -512,20 +513,20 @@ mod tests {
     fn try_from_file_time_to_dos_date_time() {
         // From `1980-01-01 00:00:00 UTC` to `1980-01-01 00:00:00`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap(),
-            dos_date_time::DateTime::MIN
+            DateTime::try_from(FileTime::new(119_600_064_000_000_000)).unwrap(),
+            DateTime::MIN
         );
         // From `1980-01-01 00:00:01 UTC` to `1980-01-01 00:00:00`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(119_600_064_010_000_000)).unwrap(),
-            dos_date_time::DateTime::MIN
+            DateTime::try_from(FileTime::new(119_600_064_010_000_000)).unwrap(),
+            DateTime::MIN
         );
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
         //
         // From `2002-11-27 03:25:00 UTC` to `2002-11-27 03:25:00`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(126_828_411_000_000_000)).unwrap(),
-            dos_date_time::DateTime::new(
+            DateTime::try_from(FileTime::new(126_828_411_000_000_000)).unwrap(),
+            DateTime::new(
                 Date::new(0b0010_1101_0111_1011).unwrap(),
                 Time::new(0b0001_1011_0010_0000).unwrap()
             )
@@ -534,21 +535,21 @@ mod tests {
         //
         // From `2018-11-17 10:38:30 UTC` to `2018-11-17 10:38:30`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(131_869_247_100_000_000)).unwrap(),
-            dos_date_time::DateTime::new(
+            DateTime::try_from(FileTime::new(131_869_247_100_000_000)).unwrap(),
+            DateTime::new(
                 Date::new(0b0100_1101_0111_0001).unwrap(),
                 Time::new(0b0101_0100_1100_1111).unwrap()
             )
         );
         // From `2107-12-31 23:59:58 UTC` to `2107-12-31 23:59:58`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(159_992_927_980_000_000)).unwrap(),
-            dos_date_time::DateTime::MAX
+            DateTime::try_from(FileTime::new(159_992_927_980_000_000)).unwrap(),
+            DateTime::MAX
         );
         // From `2107-12-31 23:59:59 UTC` to `2107-12-31 23:59:58`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(159_992_927_990_000_000)).unwrap(),
-            dos_date_time::DateTime::MAX
+            DateTime::try_from(FileTime::new(159_992_927_990_000_000)).unwrap(),
+            DateTime::MAX
         );
     }
 
@@ -557,7 +558,7 @@ mod tests {
     fn try_from_file_time_to_dos_date_time_with_too_big_date_time() {
         // `2108-01-01 00:00:00 UTC`.
         assert_eq!(
-            dos_date_time::DateTime::try_from(FileTime::new(159_992_928_000_000_000)).unwrap_err(),
+            DateTime::try_from(FileTime::new(159_992_928_000_000_000)).unwrap_err(),
             DateTimeRangeErrorKind::Overflow.into()
         );
     }
@@ -741,14 +742,14 @@ mod tests {
     fn from_dos_date_time_to_file_time() {
         // From `1980-01-01 00:00:00` to `1980-01-01 00:00:00 UTC`.
         assert_eq!(
-            FileTime::from(dos_date_time::DateTime::MIN),
+            FileTime::from(DateTime::MIN),
             FileTime::new(119_600_064_000_000_000)
         );
         // <https://devblogs.microsoft.com/oldnewthing/20030905-02/?p=42653>.
         //
         // From `2002-11-26 19:25:00` to `2002-11-26 19:25:00 UTC`.
         assert_eq!(
-            FileTime::from(dos_date_time::DateTime::new(
+            FileTime::from(DateTime::new(
                 Date::new(0b0010_1101_0111_1010).unwrap(),
                 Time::new(0b1001_1011_0010_0000).unwrap()
             )),
@@ -758,7 +759,7 @@ mod tests {
         //
         // From `2018-11-17 10:38:30` to `2018-11-17 10:38:30 UTC`.
         assert_eq!(
-            FileTime::from(dos_date_time::DateTime::new(
+            FileTime::from(DateTime::new(
                 Date::new(0b0100_1101_0111_0001).unwrap(),
                 Time::new(0b0101_0100_1100_1111).unwrap()
             )),
@@ -766,7 +767,7 @@ mod tests {
         );
         // From `2107-12-31 23:59:58` to `2107-12-31 23:59:58 UTC`.
         assert_eq!(
-            FileTime::from(dos_date_time::DateTime::MAX),
+            FileTime::from(DateTime::MAX),
             FileTime::new(159_992_927_980_000_000)
         );
     }
