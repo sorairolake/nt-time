@@ -28,12 +28,6 @@ fn try_from_file_time_to_utc_date_time(b: &mut Bencher) {
     b.iter(|| UtcDateTime::try_from(FileTime::UNIX_EPOCH).unwrap());
 }
 
-#[cfg(feature = "chrono")]
-#[bench]
-fn from_file_time_to_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| chrono::DateTime::from(FileTime::UNIX_EPOCH));
-}
-
 #[cfg(feature = "jiff")]
 #[bench]
 fn try_from_file_time_to_jiff_timestamp(b: &mut Bencher) {
@@ -60,12 +54,6 @@ fn try_from_system_time_to_file_time(b: &mut Bencher) {
 #[bench]
 fn try_from_utc_date_time_to_file_time(b: &mut Bencher) {
     b.iter(|| FileTime::try_from(UtcDateTime::UNIX_EPOCH).unwrap());
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn try_from_chrono_date_time_to_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::try_from(chrono::DateTime::UNIX_EPOCH).unwrap());
 }
 
 #[cfg(feature = "jiff")]
