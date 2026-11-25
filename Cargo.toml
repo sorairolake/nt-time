@@ -26,12 +26,7 @@ large-dates = ["time/large-dates"]
 rand = ["dep:rand"]
 serde = ["dep:serde"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
-std = [
-  "dos-date-time?/std",
-  "jiff?/std",
-  "rand?/std",
-  "time/std",
-]
+std = ["dos-date-time?/std", "jiff?/std", "rand?/std", "time/std"]
 
 [[example]]
 name = "dos2ft"
