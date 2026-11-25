@@ -139,7 +139,7 @@ impl TryFrom<FileTime> for Timestamp {
     /// # Examples
     ///
     /// ```
-    /// use nt_time::{FileTime, Timestamp};
+    /// use nt_time::{FileTime, jiff::Timestamp};
     ///
     /// assert_eq!(
     ///     Timestamp::try_from(FileTime::NT_TIME_EPOCH).unwrap(),
@@ -315,7 +315,7 @@ impl TryFrom<Timestamp> for FileTime {
     /// # Examples
     ///
     /// ```
-    /// use nt_time::{FileTime, Timestamp};
+    /// use nt_time::{FileTime, jiff::Timestamp};
     ///
     /// assert_eq!(
     ///     FileTime::try_from(Timestamp::from_second(-11_644_473_600).unwrap()),
