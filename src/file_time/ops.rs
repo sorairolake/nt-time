@@ -12,7 +12,7 @@ use core::{
 use std::time::SystemTime;
 
 #[cfg(feature = "jiff")]
-use jiff::Span;
+use jiff::{Span, Timestamp};
 use time::UtcDateTime;
 
 use super::FileTime;
