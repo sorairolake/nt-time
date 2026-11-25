@@ -9,6 +9,8 @@ extern crate test;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
+#[cfg(feature = "dos-date-time")]
+use dos_date_time::DateTime;
 use nt_time::{FileTime, time::UtcDateTime};
 use test::Bencher;
 
