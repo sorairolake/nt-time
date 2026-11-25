@@ -11,6 +11,8 @@ use std::time::SystemTime;
 
 #[cfg(feature = "dos-date-time")]
 use dos_date_time::DateTime;
+#[cfg(feature = "jiff")]
+use jiff::Timestamp;
 use nt_time::{FileTime, time::UtcDateTime};
 use test::Bencher;
 
