@@ -9,6 +9,7 @@ use std::time::SystemTime;
 
 #[cfg(feature = "dos-date-time")]
 use dos_date_time::{
+    DateTime,
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
     time::PlainDateTime,
 };
