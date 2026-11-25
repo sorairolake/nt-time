@@ -33,6 +33,7 @@ project adheres to https://semver.org/[Semantic Versioning].
 
 * Remove `PartialEq` for foreign types ({pull-request-url}/583[#583])
 * Remove `PartialOrd` for foreign types ({pull-request-url}/583[#583])
+* Remove `chrono` support ({pull-request-url}/587[#587])
 
 == {compare-url}/v0.14.0\...v0.15.0[0.15.0] - 2026-02-28
 

@@ -10,8 +10,6 @@ use core::time::Duration;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-#[cfg(feature = "chrono")]
-use chrono::{TimeDelta, TimeZone, Timelike, Utc};
 #[cfg(feature = "jiff")]
 use jiff::ToSpan;
 use nt_time::{
@@ -55,18 +53,6 @@ fn add_negative_time_signed_duration(b: &mut Bencher) {
     b.iter(|| FileTime::MAX + -SignedDuration::nanoseconds(100));
 }
 
-#[cfg(feature = "chrono")]
-#[bench]
-fn add_positive_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(100));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn add_negative_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX + -TimeDelta::nanoseconds(100));
-}
-
 #[cfg(feature = "jiff")]
 #[bench]
 fn add_positive_jiff_span(b: &mut Bencher) {
@@ -97,18 +83,6 @@ fn sub_positive_time_signed_duration(b: &mut Bencher) {
 #[bench]
 fn sub_negative_time_signed_duration(b: &mut Bencher) {
     b.iter(|| FileTime::NT_TIME_EPOCH - -SignedDuration::nanoseconds(100));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn sub_positive_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX - TimeDelta::nanoseconds(100));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn sub_negative_chrono_time_delta(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(100));
 }
 
 #[cfg(feature = "jiff")]
@@ -149,24 +123,6 @@ fn sub_file_time_from_utc_date_time(b: &mut Bencher) {
 #[bench]
 fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
     b.iter(|| FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00));
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn sub_file_time_from_chrono_date_time(b: &mut Bencher) {
-    b.iter(|| {
-        Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-            .unwrap()
-            .with_nanosecond(955_161_500)
-            .unwrap()
-            - FileTime::NT_TIME_EPOCH
-    });
-}
-
-#[cfg(feature = "chrono")]
-#[bench]
-fn sub_chrono_date_time_from_file_time(b: &mut Bencher) {
-    b.iter(|| FileTime::MAX - Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap());
 }
 
 #[cfg(feature = "jiff")]
