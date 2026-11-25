@@ -11,8 +11,6 @@ use core::{
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-#[cfg(feature = "chrono")]
-use chrono::{DateTime, TimeDelta, Utc};
 #[cfg(feature = "jiff")]
 use jiff::Span;
 use time::UtcDateTime;
@@ -176,19 +174,6 @@ impl Add<time::SignedDuration> for FileTime {
     }
 }
 
-#[cfg(feature = "chrono")]
-impl Add<TimeDelta> for FileTime {
-    type Output = Self;
-
-    fn add(self, rhs: TimeDelta) -> Self::Output {
-        if rhs > TimeDelta::zero() {
-            self + rhs.abs().to_std().unwrap()
-        } else {
-            self - rhs.abs().to_std().unwrap()
-        }
-    }
-}
-
 #[cfg(feature = "jiff")]
 impl Add<Span> for FileTime {
     type Output = Self;
@@ -210,13 +195,6 @@ impl AddAssign<Duration> for FileTime {
 
 impl AddAssign<time::SignedDuration> for FileTime {
     fn add_assign(&mut self, rhs: time::SignedDuration) {
-        *self = *self + rhs;
-    }
-}
-
-#[cfg(feature = "chrono")]
-impl AddAssign<TimeDelta> for FileTime {
-    fn add_assign(&mut self, rhs: TimeDelta) {
         *self = *self + rhs;
     }
 }
@@ -253,19 +231,6 @@ impl Sub<time::SignedDuration> for FileTime {
             self - rhs.unsigned_abs()
         } else {
             self + rhs.unsigned_abs()
-        }
-    }
-}
-
-#[cfg(feature = "chrono")]
-impl Sub<TimeDelta> for FileTime {
-    type Output = Self;
-
-    fn sub(self, rhs: TimeDelta) -> Self::Output {
-        if rhs > TimeDelta::zero() {
-            self - rhs.abs().to_std().unwrap()
-        } else {
-            self + rhs.abs().to_std().unwrap()
         }
     }
 }
@@ -317,24 +282,6 @@ impl Sub<UtcDateTime> for FileTime {
     }
 }
 
-#[cfg(feature = "chrono")]
-impl Sub<FileTime> for DateTime<Utc> {
-    type Output = TimeDelta;
-
-    fn sub(self, rhs: FileTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-#[cfg(feature = "chrono")]
-impl Sub<DateTime<Utc>> for FileTime {
-    type Output = TimeDelta;
-
-    fn sub(self, rhs: DateTime<Utc>) -> Self::Output {
-        DateTime::from(self) - rhs
-    }
-}
-
 #[cfg(feature = "jiff")]
 impl Sub<FileTime> for jiff::Timestamp {
     type Output = jiff::SignedDuration;
@@ -365,13 +312,6 @@ impl SubAssign<time::SignedDuration> for FileTime {
     }
 }
 
-#[cfg(feature = "chrono")]
-impl SubAssign<TimeDelta> for FileTime {
-    fn sub_assign(&mut self, rhs: TimeDelta) {
-        *self = *self - rhs;
-    }
-}
-
 #[cfg(feature = "jiff")]
 impl SubAssign<Span> for FileTime {
     fn sub_assign(&mut self, rhs: Span) {
@@ -381,8 +321,6 @@ impl SubAssign<Span> for FileTime {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "chrono")]
-    use chrono::{TimeZone, Timelike};
     #[cfg(feature = "jiff")]
     use jiff::ToSpan;
     #[cfg(feature = "std")]
@@ -686,70 +624,6 @@ mod tests {
         let _ = FileTime::NT_TIME_EPOCH + -time::SignedDuration::nanoseconds(100);
     }
 
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn add_positive_chrono_time_delta() {
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + TimeDelta::zero(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(1),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(99),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + TimeDelta::nanoseconds(100),
-            FileTime::new(1)
-        );
-
-        assert_eq!(FileTime::MAX + TimeDelta::zero(), FileTime::MAX);
-        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX + TimeDelta::nanoseconds(99), FileTime::MAX);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn add_positive_chrono_time_delta_with_overflow() {
-        let _ = FileTime::MAX + TimeDelta::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn add_negative_chrono_time_delta() {
-        assert_eq!(FileTime::MAX + -TimeDelta::zero(), FileTime::MAX);
-        assert_eq!(FileTime::MAX + -TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX + -TimeDelta::nanoseconds(99), FileTime::MAX);
-        assert_eq!(
-            FileTime::MAX + -TimeDelta::nanoseconds(100),
-            FileTime::new(u64::MAX - 1)
-        );
-
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + -TimeDelta::zero(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(1),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(99),
-            FileTime::NT_TIME_EPOCH
-        );
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn add_negative_chrono_time_delta_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH + -TimeDelta::nanoseconds(100);
-    }
-
     #[cfg(feature = "jiff")]
     #[test]
     fn add_positive_jiff_span() {
@@ -953,104 +827,6 @@ mod tests {
     fn add_assign_negative_time_signed_duration_with_overflow() {
         let mut ft = FileTime::NT_TIME_EPOCH;
         ft += -time::SignedDuration::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn add_assign_positive_chrono_time_delta() {
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += TimeDelta::zero();
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += TimeDelta::nanoseconds(100);
-            assert_eq!(ft, FileTime::new(1));
-        }
-
-        {
-            let mut ft = FileTime::MAX;
-            ft += TimeDelta::zero();
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft += TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft += TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::MAX);
-        }
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn add_assign_positive_chrono_time_delta_with_overflow() {
-        let mut ft = FileTime::MAX;
-        ft += TimeDelta::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn add_assign_negative_chrono_time_delta() {
-        {
-            let mut ft = FileTime::MAX;
-            ft += -TimeDelta::zero();
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft += -TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft += -TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft += -TimeDelta::nanoseconds(100);
-            assert_eq!(ft, FileTime::new(u64::MAX - 1));
-        }
-
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -TimeDelta::zero();
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft += -TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn add_assign_negative_chrono_time_delta_with_overflow() {
-        let mut ft = FileTime::NT_TIME_EPOCH;
-        ft += -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
@@ -1272,70 +1048,6 @@ mod tests {
         let _ = FileTime::MAX - -time::SignedDuration::nanoseconds(100);
     }
 
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_positive_chrono_time_delta() {
-        assert_eq!(FileTime::MAX - TimeDelta::zero(), FileTime::MAX);
-        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX - TimeDelta::nanoseconds(99), FileTime::MAX);
-        assert_eq!(
-            FileTime::MAX - TimeDelta::nanoseconds(100),
-            FileTime::new(u64::MAX - 1)
-        );
-
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - TimeDelta::zero(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(1),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(99),
-            FileTime::NT_TIME_EPOCH
-        );
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn sub_positive_chrono_time_delta_with_overflow() {
-        let _ = FileTime::NT_TIME_EPOCH - TimeDelta::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_negative_chrono_time_delta() {
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - -TimeDelta::zero(),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(1),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(99),
-            FileTime::NT_TIME_EPOCH
-        );
-        assert_eq!(
-            FileTime::NT_TIME_EPOCH - -TimeDelta::nanoseconds(100),
-            FileTime::new(1)
-        );
-
-        assert_eq!(FileTime::MAX - -TimeDelta::zero(), FileTime::MAX);
-        assert_eq!(FileTime::MAX - -TimeDelta::nanoseconds(1), FileTime::MAX);
-        assert_eq!(FileTime::MAX - -TimeDelta::nanoseconds(99), FileTime::MAX);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn sub_negative_chrono_time_delta_with_overflow() {
-        let _ = FileTime::MAX - -TimeDelta::nanoseconds(100);
-    }
-
     #[cfg(feature = "jiff")]
     #[test]
     fn sub_positive_jiff_span() {
@@ -1512,83 +1224,6 @@ mod tests {
         assert_eq!(
             FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00),
             time::SignedDuration::new(265_046_774_399, 999_999_900)
-        );
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_file_time_from_chrono_date_time() {
-        assert_eq!(
-            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                .unwrap()
-                .with_nanosecond(955_161_500)
-                .unwrap()
-                - FileTime::MAX,
-            TimeDelta::zero()
-        );
-        assert_eq!(
-            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                .unwrap()
-                .with_nanosecond(955_161_500)
-                .unwrap()
-                - (FileTime::MAX - Duration::from_nanos(100)),
-            TimeDelta::nanoseconds(100)
-        );
-        assert_eq!(
-            Utc.with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                .unwrap()
-                .with_nanosecond(955_161_500)
-                .unwrap()
-                - FileTime::NT_TIME_EPOCH,
-            TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
-        );
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_chrono_date_time_from_file_time() {
-        assert_eq!(
-            FileTime::MAX
-                - Utc
-                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                    .unwrap()
-                    .with_nanosecond(955_161_500)
-                    .unwrap(),
-            TimeDelta::zero()
-        );
-        assert_eq!(
-            FileTime::MAX
-                - (Utc
-                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                    .unwrap()
-                    .with_nanosecond(955_161_500)
-                    .unwrap()
-                    - TimeDelta::nanoseconds(1)),
-            TimeDelta::nanoseconds(1)
-        );
-        assert_eq!(
-            FileTime::MAX
-                - (Utc
-                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                    .unwrap()
-                    .with_nanosecond(955_161_500)
-                    .unwrap()
-                    - TimeDelta::nanoseconds(99)),
-            TimeDelta::nanoseconds(99)
-        );
-        assert_eq!(
-            FileTime::MAX
-                - (Utc
-                    .with_ymd_and_hms(60056, 5, 28, 5, 36, 10)
-                    .unwrap()
-                    .with_nanosecond(955_161_500)
-                    .unwrap()
-                    - TimeDelta::nanoseconds(100)),
-            TimeDelta::nanoseconds(100)
-        );
-        assert_eq!(
-            FileTime::MAX - Utc.with_ymd_and_hms(1601, 1, 1, 0, 0, 0).unwrap(),
-            TimeDelta::new(1_844_674_407_370, 955_161_500).unwrap()
         );
     }
 
@@ -1778,104 +1413,6 @@ mod tests {
     fn sub_assign_negative_time_signed_duration_with_overflow() {
         let mut ft = FileTime::MAX;
         ft -= -time::SignedDuration::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_assign_positive_chrono_time_delta() {
-        {
-            let mut ft = FileTime::MAX;
-            ft -= TimeDelta::zero();
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft -= TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft -= TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft -= TimeDelta::nanoseconds(100);
-            assert_eq!(ft, FileTime::new(u64::MAX - 1));
-        }
-
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= TimeDelta::zero();
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn sub_assign_positive_chrono_time_delta_with_overflow() {
-        let mut ft = FileTime::NT_TIME_EPOCH;
-        ft -= TimeDelta::nanoseconds(100);
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    fn sub_assign_negative_chrono_time_delta() {
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -TimeDelta::zero();
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::NT_TIME_EPOCH);
-        }
-        {
-            let mut ft = FileTime::NT_TIME_EPOCH;
-            ft -= -TimeDelta::nanoseconds(100);
-            assert_eq!(ft, FileTime::new(1));
-        }
-
-        {
-            let mut ft = FileTime::MAX;
-            ft -= -TimeDelta::zero();
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft -= -TimeDelta::nanoseconds(1);
-            assert_eq!(ft, FileTime::MAX);
-        }
-        {
-            let mut ft = FileTime::MAX;
-            ft -= -TimeDelta::nanoseconds(99);
-            assert_eq!(ft, FileTime::MAX);
-        }
-    }
-
-    #[cfg(feature = "chrono")]
-    #[test]
-    #[should_panic]
-    fn sub_assign_negative_chrono_time_delta_with_overflow() {
-        let mut ft = FileTime::MAX;
-        ft -= -TimeDelta::nanoseconds(100);
     }
 
     #[cfg(feature = "jiff")]
