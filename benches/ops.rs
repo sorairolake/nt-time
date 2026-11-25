@@ -11,7 +11,7 @@ use core::time::Duration;
 use std::time::SystemTime;
 
 #[cfg(feature = "jiff")]
-use jiff::ToSpan;
+use jiff::{Timestamp, ToSpan};
 use nt_time::{
     FileTime,
     time::{SignedDuration, macros::utc_datetime},
@@ -128,14 +128,13 @@ fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| (jiff::Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
+    b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
 #[bench]
 fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
     b.iter(|| {
-        FileTime::new(2_650_466_808_009_999_999)
-            - jiff::Timestamp::from_second(-11_644_473_600).unwrap()
+        FileTime::new(2_650_466_808_009_999_999) - Timestamp::from_second(-11_644_473_600).unwrap()
     });
 }
