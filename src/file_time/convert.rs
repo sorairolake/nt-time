@@ -13,6 +13,8 @@ use dos_date_time::{
     error::{DateTimeRangeError, DateTimeRangeErrorKind},
     time::PlainDateTime,
 };
+#[cfg(feature = "jiff")]
+use jiff::Timestamp;
 use time::{UtcDateTime, error::ComponentRange};
 
 use super::FileTime;
