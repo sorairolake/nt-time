@@ -20,7 +20,6 @@ all-features = true
 
 [features]
 default = ["dos-date-time", "std"]
-chrono = ["dep:chrono"]
 dos-date-time = ["dep:dos-date-time"]
 jiff = ["dep:jiff"]
 large-dates = ["time/large-dates"]
@@ -28,7 +27,6 @@ rand = ["dep:rand"]
 serde = ["dep:serde"]
 serde-human-readable = ["serde", "time/serde-human-readable"]
 std = [
-  "chrono?/std",
   "dos-date-time?/std",
   "jiff?/std",
   "rand?/std",
@@ -44,7 +42,6 @@ name = "ft2dos"
 required-features = ["dos-date-time"]
 
 [dependencies]
-chrono = { version = "0.4.44", default-features = false, optional = true }
 dos-date-time = { version = "0.3.0", default-features = false, optional = true }
 jiff = { version = "1.0.0", default-features = false, optional = true }
 rand = { version = "0.10.1", default-features = false, optional = true }
