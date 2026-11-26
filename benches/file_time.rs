@@ -26,21 +26,6 @@ fn to_raw(b: &mut Bencher) {
 }
 
 #[bench]
-fn to_be_bytes(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH.to_be_bytes());
-}
-
-#[bench]
-fn to_le_bytes(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH.to_le_bytes());
-}
-
-#[bench]
-fn to_ne_bytes(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH.to_ne_bytes());
-}
-
-#[bench]
 fn from_be_bytes(b: &mut Bencher) {
     b.iter(|| FileTime::from_be_bytes([u8::MIN; 8]));
 }
@@ -56,13 +41,28 @@ fn from_ne_bytes(b: &mut Bencher) {
 }
 
 #[bench]
-fn to_high_low(b: &mut Bencher) {
-    b.iter(|| FileTime::NT_TIME_EPOCH.to_high_low());
+fn to_be_bytes(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_be_bytes());
+}
+
+#[bench]
+fn to_le_bytes(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_le_bytes());
+}
+
+#[bench]
+fn to_ne_bytes(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_ne_bytes());
 }
 
 #[bench]
 fn from_high_low(b: &mut Bencher) {
     b.iter(|| FileTime::from_high_low(u32::MIN, u32::MIN));
+}
+
+#[bench]
+fn to_high_low(b: &mut Bencher) {
+    b.iter(|| FileTime::NT_TIME_EPOCH.to_high_low());
 }
 
 #[bench]
