@@ -99,15 +99,6 @@ fn sub_negative_jiff_span(b: &mut Bencher) {
 
 #[cfg(feature = "std")]
 #[bench]
-fn sub_file_time_from_system_time(b: &mut Bencher) {
-    b.iter(|| {
-        (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-            - FileTime::new(u64::try_from(i64::MAX).unwrap() - 1)
-    });
-}
-
-#[cfg(feature = "std")]
-#[bench]
 fn sub_system_time_from_file_time(b: &mut Bencher) {
     b.iter(|| {
         FileTime::SIGNED_MAX
@@ -115,9 +106,13 @@ fn sub_system_time_from_file_time(b: &mut Bencher) {
     });
 }
 
+#[cfg(feature = "std")]
 #[bench]
-fn sub_file_time_from_utc_date_time(b: &mut Bencher) {
-    b.iter(|| utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH);
+fn sub_file_time_from_system_time(b: &mut Bencher) {
+    b.iter(|| {
+        (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+            - FileTime::new(u64::try_from(i64::MAX).unwrap() - 1)
+    });
 }
 
 #[bench]
@@ -125,10 +120,9 @@ fn sub_utc_date_time_from_file_time(b: &mut Bencher) {
     b.iter(|| FileTime::new(2_650_467_743_999_999_999) - utc_datetime!(1601-01-01 00:00:00));
 }
 
-#[cfg(feature = "jiff")]
 #[bench]
-fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
-    b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
+fn sub_file_time_from_utc_date_time(b: &mut Bencher) {
+    b.iter(|| utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH);
 }
 
 #[cfg(feature = "jiff")]
@@ -137,4 +131,10 @@ fn sub_jiff_timestamp_from_file_time(b: &mut Bencher) {
     b.iter(|| {
         FileTime::new(2_650_466_808_009_999_999) - Timestamp::from_second(-11_644_473_600).unwrap()
     });
+}
+
+#[cfg(feature = "jiff")]
+#[bench]
+fn sub_file_time_from_jiff_timestamp(b: &mut Bencher) {
+    b.iter(|| (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH);
 }
