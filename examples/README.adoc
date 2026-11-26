@@ -4,26 +4,26 @@
 
 = Examples
 
-link:format.rs[]::
-
-  An example of printing the file time in a human-readable format.
-
 link:parse.rs[]::
 
   An example of printing a human-readable date and time as the file time.
 
-link:ft2unix.rs[]::
+link:format.rs[]::
 
-  An example of converting the file time to Unix time.
+  An example of printing the file time in a human-readable format.
 
 link:unix2ft.rs[]::
 
   An example of converting Unix time to the file time.
 
-link:ft2dos.rs[]::
+link:ft2unix.rs[]::
 
-  An example of converting the file time to MS-DOS date and time.
+  An example of converting the file time to Unix time.
 
 link:dos2ft.rs[]::
 
   An example of converting MS-DOS date and time to the file time.
+
+link:ft2dos.rs[]::
+
+  An example of converting the file time to MS-DOS date and time.

@@ -107,94 +107,6 @@ impl FileTime {
         self.0
     }
 
-    /// Returns the memory representation of this `FileTime` as a byte array in
-    /// big-endian (network) byte order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use nt_time::FileTime;
-    ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0; 8]);
-    /// assert_eq!(
-    ///     FileTime::UNIX_EPOCH.to_be_bytes(),
-    ///     [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
-    /// );
-    /// assert_eq!(
-    ///     FileTime::SIGNED_MAX.to_be_bytes(),
-    ///     [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-    /// );
-    /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
-    /// ```
-    #[must_use]
-    pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
-        self.to_raw().to_be_bytes()
-    }
-
-    /// Returns the memory representation of this `FileTime` as a byte array in
-    /// little-endian byte order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use nt_time::FileTime;
-    ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0; 8]);
-    /// assert_eq!(
-    ///     FileTime::UNIX_EPOCH.to_le_bytes(),
-    ///     [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
-    /// );
-    /// assert_eq!(
-    ///     FileTime::SIGNED_MAX.to_le_bytes(),
-    ///     [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
-    /// );
-    /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
-    /// ```
-    #[must_use]
-    pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
-        self.to_raw().to_le_bytes()
-    }
-
-    /// Returns the memory representation of this `FileTime` as a byte array in
-    /// native byte order.
-    ///
-    /// <div class="warning">
-    ///
-    /// As the target platform's native endianness is used, portable code should
-    /// use [`FileTime::to_be_bytes`] or [`FileTime::to_le_bytes`], as
-    /// appropriate, instead.
-    ///
-    /// </div>
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use nt_time::FileTime;
-    ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0; 8]);
-    /// assert_eq!(
-    ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
-    ///     if cfg!(target_endian = "big") {
-    ///         [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
-    ///     } else {
-    ///         [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
-    ///     }
-    /// );
-    /// assert_eq!(
-    ///     FileTime::SIGNED_MAX.to_ne_bytes(),
-    ///     if cfg!(target_endian = "big") {
-    ///         [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-    ///     } else {
-    ///         [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
-    ///     }
-    /// );
-    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
-    /// ```
-    #[must_use]
-    pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
-        self.to_raw().to_ne_bytes()
-    }
-
     /// Creates a native endian `FileTime` value from its representation as a
     /// byte array in big endian.
     ///
@@ -283,31 +195,92 @@ impl FileTime {
         Self::new(u64::from_ne_bytes(bytes))
     }
 
-    #[expect(clippy::cast_possible_truncation)]
-    /// Returns the high-order and low-order parts of this `FileTime`.
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// big-endian (network) byte order.
     ///
     /// # Examples
     ///
     /// ```
     /// use nt_time::FileTime;
     ///
-    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (0, 0));
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [0; 8]);
     /// assert_eq!(
-    ///     FileTime::UNIX_EPOCH.to_high_low(),
-    ///     (0x019D_B1DE, 0xD53E_8000)
+    ///     FileTime::UNIX_EPOCH.to_be_bytes(),
+    ///     [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
     /// );
     /// assert_eq!(
-    ///     FileTime::SIGNED_MAX.to_high_low(),
-    ///     (i32::MAX as u32, u32::MAX)
+    ///     FileTime::SIGNED_MAX.to_be_bytes(),
+    ///     [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     /// );
-    /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    /// assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     /// ```
     #[must_use]
-    pub const fn to_high_low(self) -> (u32, u32) {
-        let raw = self.to_raw();
-        // TODO: use `u64::truncate()` when stable.
-        // <https://github.com/rust-lang/rust/issues/154330>
-        ((raw >> u32::BITS) as u32, raw as u32)
+    pub const fn to_be_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.to_raw().to_be_bytes()
+    }
+
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// little-endian byte order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nt_time::FileTime;
+    ///
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [0; 8]);
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_le_bytes(),
+    ///     [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
+    /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_le_bytes(),
+    ///     [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
+    /// );
+    /// assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    /// ```
+    #[must_use]
+    pub const fn to_le_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.to_raw().to_le_bytes()
+    }
+
+    /// Returns the memory representation of this `FileTime` as a byte array in
+    /// native byte order.
+    ///
+    /// <div class="warning">
+    ///
+    /// As the target platform's native endianness is used, portable code should
+    /// use [`FileTime::to_be_bytes`] or [`FileTime::to_le_bytes`], as
+    /// appropriate, instead.
+    ///
+    /// </div>
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nt_time::FileTime;
+    ///
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [0; 8]);
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_ne_bytes(),
+    ///     if cfg!(target_endian = "big") {
+    ///         [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
+    ///     } else {
+    ///         [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
+    ///     }
+    /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_ne_bytes(),
+    ///     if cfg!(target_endian = "big") {
+    ///         [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+    ///     } else {
+    ///         [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
+    ///     }
+    /// );
+    /// assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
+    /// ```
+    #[must_use]
+    pub const fn to_ne_bytes(self) -> [u8; mem::size_of::<Self>()] {
+        self.to_raw().to_ne_bytes()
     }
 
     /// Creates a `FileTime` from [`u32`] values representing the high-order and
@@ -335,6 +308,33 @@ impl FileTime {
         // <https://github.com/rust-lang/rust/issues/154330>
         let raw = ((high as u64) << u32::BITS) | (low as u64);
         Self::new(raw)
+    }
+
+    #[expect(clippy::cast_possible_truncation)]
+    /// Returns the high-order and low-order parts of this `FileTime`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nt_time::FileTime;
+    ///
+    /// assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (0, 0));
+    /// assert_eq!(
+    ///     FileTime::UNIX_EPOCH.to_high_low(),
+    ///     (0x019D_B1DE, 0xD53E_8000)
+    /// );
+    /// assert_eq!(
+    ///     FileTime::SIGNED_MAX.to_high_low(),
+    ///     (i32::MAX as u32, u32::MAX)
+    /// );
+    /// assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    /// ```
+    #[must_use]
+    pub const fn to_high_low(self) -> (u32, u32) {
+        let raw = self.to_raw();
+        // TODO: use `u64::truncate()` when stable.
+        // <https://github.com/rust-lang/rust/issues/154330>
+        ((raw >> u32::BITS) as u32, raw as u32)
     }
 }
 
@@ -446,89 +446,6 @@ mod tests {
     }
 
     #[test]
-    fn to_be_bytes() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
-        assert_eq!(
-            FileTime::UNIX_EPOCH.to_be_bytes(),
-            [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
-        );
-        assert_eq!(
-            FileTime::SIGNED_MAX.to_be_bytes(),
-            [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-        );
-        assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn to_be_bytes_roundtrip(ft: FileTime) {
-        prop_assert_eq!(ft.to_be_bytes(), ft.to_raw().to_be_bytes());
-    }
-
-    #[test]
-    const fn to_be_bytes_is_const_fn() {
-        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_be_bytes();
-    }
-
-    #[test]
-    fn to_le_bytes() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
-        assert_eq!(
-            FileTime::UNIX_EPOCH.to_le_bytes(),
-            [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
-        );
-        assert_eq!(
-            FileTime::SIGNED_MAX.to_le_bytes(),
-            [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
-        );
-        assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn to_le_bytes_roundtrip(ft: FileTime) {
-        prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
-    }
-
-    #[test]
-    const fn to_le_bytes_is_const_fn() {
-        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_le_bytes();
-    }
-
-    #[test]
-    fn to_ne_bytes() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [u8::MIN; 8]);
-        assert_eq!(
-            FileTime::UNIX_EPOCH.to_ne_bytes(),
-            if cfg!(target_endian = "big") {
-                [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
-            } else {
-                [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
-            }
-        );
-        assert_eq!(
-            FileTime::SIGNED_MAX.to_ne_bytes(),
-            if cfg!(target_endian = "big") {
-                [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
-            } else {
-                [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
-            }
-        );
-        assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
-    }
-
-    #[cfg(feature = "std")]
-    #[proptest]
-    fn to_ne_bytes_roundtrip(ft: FileTime) {
-        prop_assert_eq!(ft.to_ne_bytes(), ft.to_raw().to_ne_bytes());
-    }
-
-    #[test]
-    const fn to_ne_bytes_is_const_fn() {
-        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_ne_bytes();
-    }
-
-    #[test]
     fn from_be_bytes() {
         assert_eq!(
             FileTime::from_be_bytes([u8::MIN; 8]),
@@ -630,32 +547,86 @@ mod tests {
     }
 
     #[test]
-    fn to_high_low() {
-        assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (u32::MIN, u32::MIN));
+    fn to_be_bytes() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_be_bytes(), [u8::MIN; 8]);
         assert_eq!(
-            FileTime::UNIX_EPOCH.to_high_low(),
-            (0x019D_B1DE, 0xD53E_8000)
+            FileTime::UNIX_EPOCH.to_be_bytes(),
+            [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
         );
         assert_eq!(
-            FileTime::SIGNED_MAX.to_high_low(),
-            (i32::MAX.try_into().unwrap(), u32::MAX)
+            FileTime::SIGNED_MAX.to_be_bytes(),
+            [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
         );
-        assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+        assert_eq!(FileTime::MAX.to_be_bytes(), [u8::MAX; 8]);
     }
 
     #[cfg(feature = "std")]
     #[proptest]
-    fn to_high_low_roundtrip(ft: FileTime) {
-        let raw = ft.to_raw();
-        prop_assert_eq!(
-            ft.to_high_low(),
-            ((raw >> u32::BITS).try_into().unwrap(), raw as u32)
-        );
+    fn to_be_bytes_roundtrip(ft: FileTime) {
+        prop_assert_eq!(ft.to_be_bytes(), ft.to_raw().to_be_bytes());
     }
 
     #[test]
-    const fn to_high_low_is_const_fn() {
-        const _: (u32, u32) = FileTime::NT_TIME_EPOCH.to_high_low();
+    const fn to_be_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_be_bytes();
+    }
+
+    #[test]
+    fn to_le_bytes() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_le_bytes(), [u8::MIN; 8]);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_le_bytes(),
+            [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_le_bytes(),
+            [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
+        );
+        assert_eq!(FileTime::MAX.to_le_bytes(), [u8::MAX; 8]);
+    }
+
+    #[cfg(feature = "std")]
+    #[proptest]
+    fn to_le_bytes_roundtrip(ft: FileTime) {
+        prop_assert_eq!(ft.to_le_bytes(), ft.to_raw().to_le_bytes());
+    }
+
+    #[test]
+    const fn to_le_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_le_bytes();
+    }
+
+    #[test]
+    fn to_ne_bytes() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_ne_bytes(), [u8::MIN; 8]);
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_ne_bytes(),
+            if cfg!(target_endian = "big") {
+                [0x01, 0x9D, 0xB1, 0xDE, 0xD5, 0x3E, 0x80, 0x00]
+            } else {
+                [0x00, 0x80, 0x3E, 0xD5, 0xDE, 0xB1, 0x9D, 0x01]
+            }
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_ne_bytes(),
+            if cfg!(target_endian = "big") {
+                [0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+            } else {
+                [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F]
+            }
+        );
+        assert_eq!(FileTime::MAX.to_ne_bytes(), [u8::MAX; 8]);
+    }
+
+    #[cfg(feature = "std")]
+    #[proptest]
+    fn to_ne_bytes_roundtrip(ft: FileTime) {
+        prop_assert_eq!(ft.to_ne_bytes(), ft.to_raw().to_ne_bytes());
+    }
+
+    #[test]
+    const fn to_ne_bytes_is_const_fn() {
+        const _: [u8; 8] = FileTime::NT_TIME_EPOCH.to_ne_bytes();
     }
 
     #[test]
@@ -685,6 +656,35 @@ mod tests {
     #[test]
     const fn from_high_low_is_const_fn() {
         const _: FileTime = FileTime::from_high_low(u32::MIN, u32::MIN);
+    }
+
+    #[test]
+    fn to_high_low() {
+        assert_eq!(FileTime::NT_TIME_EPOCH.to_high_low(), (u32::MIN, u32::MIN));
+        assert_eq!(
+            FileTime::UNIX_EPOCH.to_high_low(),
+            (0x019D_B1DE, 0xD53E_8000)
+        );
+        assert_eq!(
+            FileTime::SIGNED_MAX.to_high_low(),
+            (i32::MAX.try_into().unwrap(), u32::MAX)
+        );
+        assert_eq!(FileTime::MAX.to_high_low(), (u32::MAX, u32::MAX));
+    }
+
+    #[cfg(feature = "std")]
+    #[proptest]
+    fn to_high_low_roundtrip(ft: FileTime) {
+        let raw = ft.to_raw();
+        prop_assert_eq!(
+            ft.to_high_low(),
+            ((raw >> u32::BITS).try_into().unwrap(), raw as u32)
+        );
+    }
+
+    #[test]
+    const fn to_high_low_is_const_fn() {
+        const _: (u32, u32) = FileTime::NT_TIME_EPOCH.to_high_low();
     }
 
     #[test]

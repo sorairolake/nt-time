@@ -249,15 +249,6 @@ impl Sub<Span> for FileTime {
 }
 
 #[cfg(feature = "std")]
-impl Sub<FileTime> for SystemTime {
-    type Output = Duration;
-
-    fn sub(self, rhs: FileTime) -> Self::Output {
-        self.duration_since(rhs.into()).unwrap()
-    }
-}
-
-#[cfg(feature = "std")]
 impl Sub<SystemTime> for FileTime {
     type Output = Duration;
 
@@ -266,11 +257,12 @@ impl Sub<SystemTime> for FileTime {
     }
 }
 
-impl Sub<FileTime> for UtcDateTime {
-    type Output = time::SignedDuration;
+#[cfg(feature = "std")]
+impl Sub<FileTime> for SystemTime {
+    type Output = Duration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
-        self - Self::try_from(rhs).unwrap()
+        self.duration_since(rhs.into()).unwrap()
     }
 }
 
@@ -282,9 +274,8 @@ impl Sub<UtcDateTime> for FileTime {
     }
 }
 
-#[cfg(feature = "jiff")]
-impl Sub<FileTime> for Timestamp {
-    type Output = jiff::SignedDuration;
+impl Sub<FileTime> for UtcDateTime {
+    type Output = time::SignedDuration;
 
     fn sub(self, rhs: FileTime) -> Self::Output {
         self - Self::try_from(rhs).unwrap()
@@ -297,6 +288,15 @@ impl Sub<Timestamp> for FileTime {
 
     fn sub(self, rhs: Timestamp) -> Self::Output {
         Timestamp::try_from(self).unwrap() - rhs
+    }
+}
+
+#[cfg(feature = "jiff")]
+impl Sub<FileTime> for Timestamp {
+    type Output = jiff::SignedDuration;
+
+    fn sub(self, rhs: FileTime) -> Self::Output {
+        self - Self::try_from(rhs).unwrap()
     }
 }
 
@@ -1114,34 +1114,6 @@ mod tests {
 
     #[cfg(feature = "std")]
     #[test]
-    fn sub_file_time_from_system_time() {
-        assert_eq!(
-            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-                - FileTime::SIGNED_MAX,
-            Duration::ZERO
-        );
-        assert_eq!(
-            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-                - FileTime::new(u64::try_from(i64::MAX).unwrap() - 1),
-            Duration::from_nanos(100)
-        );
-        assert_eq!(
-            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
-                - FileTime::UNIX_EPOCH,
-            Duration::new(910_692_730_085, 477_580_700)
-        );
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
-    #[should_panic]
-    fn sub_file_time_from_system_time_with_overflow() {
-        let _ = FileTime::new(u64::try_from(i64::MAX).unwrap() - 1)
-            - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
-    }
-
-    #[cfg(feature = "std")]
-    #[test]
     fn sub_system_time_from_file_time() {
         assert_eq!(
             FileTime::SIGNED_MAX
@@ -1177,23 +1149,32 @@ mod tests {
             - FileTime::SIGNED_MAX;
     }
 
+    #[cfg(feature = "std")]
     #[test]
-    fn sub_file_time_from_utc_date_time() {
+    fn sub_file_time_from_system_time() {
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                - FileTime::new(2_650_467_743_999_999_999),
-            time::SignedDuration::ZERO
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::SIGNED_MAX,
+            Duration::ZERO
         );
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900)
-                - (FileTime::new(2_650_467_743_999_999_999)
-                    - time::SignedDuration::nanoseconds(100)),
-            time::SignedDuration::nanoseconds(100)
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::new(u64::try_from(i64::MAX).unwrap() - 1),
+            Duration::from_nanos(100)
         );
         assert_eq!(
-            utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH,
-            time::SignedDuration::new(265_046_774_399, 999_999_900)
+            (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700))
+                - FileTime::UNIX_EPOCH,
+            Duration::new(910_692_730_085, 477_580_700)
         );
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    #[should_panic]
+    fn sub_file_time_from_system_time_with_overflow() {
+        let _ = FileTime::new(u64::try_from(i64::MAX).unwrap() - 1)
+            - (SystemTime::UNIX_EPOCH + Duration::new(910_692_730_085, 477_580_700));
     }
 
     #[test]
@@ -1227,21 +1208,22 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "jiff")]
     #[test]
-    fn sub_file_time_from_jiff_timestamp() {
+    fn sub_file_time_from_utc_date_time() {
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds()) - FileTime::new(2_650_466_808_009_999_999),
-            jiff::SignedDuration::ZERO
+            utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                - FileTime::new(2_650_467_743_999_999_999),
+            time::SignedDuration::ZERO
         );
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds())
-                - (FileTime::new(2_650_466_808_009_999_999) - 100.nanoseconds()),
-            jiff::SignedDuration::from_nanos(100)
+            utc_datetime!(9999-12-31 23:59:59.999_999_900)
+                - (FileTime::new(2_650_467_743_999_999_999)
+                    - time::SignedDuration::nanoseconds(100)),
+            time::SignedDuration::nanoseconds(100)
         );
         assert_eq!(
-            (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH,
-            jiff::SignedDuration::new(265_046_680_800, 999_999_900)
+            utc_datetime!(9999-12-31 23:59:59.999_999_900) - FileTime::NT_TIME_EPOCH,
+            time::SignedDuration::new(265_046_774_399, 999_999_900)
         );
     }
 
@@ -1270,6 +1252,24 @@ mod tests {
         assert_eq!(
             FileTime::new(2_650_466_808_009_999_999)
                 - Timestamp::from_second(-11_644_473_600).unwrap(),
+            jiff::SignedDuration::new(265_046_680_800, 999_999_900)
+        );
+    }
+
+    #[cfg(feature = "jiff")]
+    #[test]
+    fn sub_file_time_from_jiff_timestamp() {
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds()) - FileTime::new(2_650_466_808_009_999_999),
+            jiff::SignedDuration::ZERO
+        );
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds())
+                - (FileTime::new(2_650_466_808_009_999_999) - 100.nanoseconds()),
+            jiff::SignedDuration::from_nanos(100)
+        );
+        assert_eq!(
+            (Timestamp::MAX - 99.nanoseconds()) - FileTime::NT_TIME_EPOCH,
             jiff::SignedDuration::new(265_046_680_800, 999_999_900)
         );
     }
