@@ -278,7 +278,7 @@ impl FileTime {
     /// [Unix time]: https://en.wikipedia.org/wiki/Unix_time
     #[must_use]
     pub fn to_unix_time_secs(self) -> i64 {
-        i64::try_from(self.to_raw() / FILE_TIMES_PER_SEC).unwrap() - 11_644_473_600
+        (self.to_raw() / FILE_TIMES_PER_SEC).cast_signed() - 11_644_473_600
     }
 
     #[expect(clippy::missing_panics_doc)]
